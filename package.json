@@ -1,0 +1,13 @@
+{
+  "name": "worklist",
+  "version": "1.0.0",
+  "description": "Task management application with mobile support and chatbot readiness",
+  "main": "index.js",
+  "scripts": {
+    "start": "echo 'Start script not defined'",
+    "test": "echo 'No tests defined'"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
