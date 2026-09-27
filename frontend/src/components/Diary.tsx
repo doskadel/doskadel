@@ -12,6 +12,8 @@ interface DiaryEntry {
   createdAt: string;
 }
 
+const DEFAULT_SORT = 'createdAt_desc';
+
 const Diary: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -19,6 +21,7 @@ const Diary: React.FC = () => {
   const q = searchParams.get('q') || '';
   const dateFrom = searchParams.get('dateFrom') || '';
   const dateTo = searchParams.get('dateTo') || '';
+  const sortParam = searchParams.get('sort') || '';
 
   const [entries, setEntries] = useState<DiaryEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,7 +48,7 @@ const Diary: React.FC = () => {
 
   useEffect(() => {
     fetchEntries();
-  }, [q, dateFrom, dateTo]);
+  }, [q, dateFrom, dateTo, sortParam]);
 
   const updateQuery = (updates: Record<string, string | null>) => {
     const next = new URLSearchParams(searchParams);
@@ -65,6 +68,7 @@ const Diary: React.FC = () => {
       if (q) params.set('q', q);
       if (dateFrom) params.set('dateFrom', dateFrom);
       if (dateTo) params.set('dateTo', dateTo);
+      if (sortParam) params.set('sort', sortParam);
 
       const url = '/api/diary' + (params.toString() ? '?' + params.toString() : '');
       const response = await api.get(url);
@@ -118,7 +122,7 @@ const Diary: React.FC = () => {
   };
 
   const handleResetFilters = () => {
-    updateQuery({ q: null, dateFrom: null, dateTo: null });
+    updateQuery({ q: null, dateFrom: null, dateTo: null, sort: null });
     setSearchInput('');
   };
 
@@ -166,6 +170,8 @@ const Diary: React.FC = () => {
         onReset={handleResetFilters}
         hasActiveFilters={hasActiveFilters}
         dateError={dateError}
+        sort={sortParam || DEFAULT_SORT}
+        onSortChange={(s) => updateQuery({ sort: s === DEFAULT_SORT ? null : s })}
       />
 
       <Modal open={createOpen} onClose={handleCloseCreate} title="Новая запись">

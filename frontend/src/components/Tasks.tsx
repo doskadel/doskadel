@@ -21,6 +21,7 @@ interface Task {
 }
 
 const VIEW_KEY = 'worklist_tasks_view';
+const DEFAULT_SORT = 'createdAt_desc';
 
 const Tasks: React.FC = () => {
   const isMobile = useMediaQuery('(max-width: 640px)');
@@ -200,7 +201,14 @@ const Tasks: React.FC = () => {
   };
 
   const handleResetFilters = () => {
-    updateQuery({ q: null, priority: null, statuses: null, dateFrom: null, dateTo: null });
+    updateQuery({
+      q: null,
+      priority: null,
+      statuses: null,
+      dateFrom: null,
+      dateTo: null,
+      sort: null,
+    });
     setSearchInput('');
   };
 
@@ -290,6 +298,9 @@ const Tasks: React.FC = () => {
         onReset={handleResetFilters}
         hasActiveFilters={hasActiveFilters}
         dateError={dateError}
+        sort={sortParam || DEFAULT_SORT}
+        onSortChange={(s) => updateQuery({ sort: s === DEFAULT_SORT ? null : s })}
+        hideSort={view === 'kanban'}
       />
 
       <Modal open={createOpen} onClose={handleCloseCreate} title="Новая задача">

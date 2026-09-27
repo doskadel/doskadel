@@ -98,11 +98,8 @@ const getTasks = async (req, res) => {
     }
 
     // Сортировка
-    let sortObj = { order: 1, createdAt: -1 };
+    let sortObj = { createdAt: -1 };
     switch (sort) {
-      case 'createdAt_desc':
-        sortObj = { createdAt: -1 };
-        break;
       case 'createdAt_asc':
         sortObj = { createdAt: 1 };
         break;
@@ -118,13 +115,20 @@ const getTasks = async (req, res) => {
       case 'title_desc':
         sortObj = { title: -1 };
         break;
-      case 'order_asc':
+      case 'createdAt_desc':
       default:
-        sortObj = { order: 1, createdAt: -1 };
+        sortObj = { createdAt: -1 };
         break;
     }
 
-    const tasks = await Task.find(filter).sort(sortObj);
+    // Collation для корректной сортировки по алфавиту (русский + игнор регистра)
+    const isTitleSort = sort === 'title_asc' || sort === 'title_desc';
+    const query = Task.find(filter).sort(sortObj);
+    if (isTitleSort) {
+      query.collation({ locale: 'ru', strength: 2 });
+    }
+
+    const tasks = await query;
 
     res.json({
       success: true,

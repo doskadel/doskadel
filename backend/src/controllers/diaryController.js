@@ -26,7 +26,7 @@ const createDiaryEntry = async (req, res) => {
 // Получение записей дневника с фильтрами
 const getDiaryEntries = async (req, res) => {
   try {
-    const { q, dateFrom, dateTo } = req.query;
+    const { q, dateFrom, dateTo, sort } = req.query;
 
     const filter = { userId: req.user._id };
 
@@ -52,8 +52,25 @@ const getDiaryEntries = async (req, res) => {
       }
     }
 
-    const diaryEntries = await DiaryEntry.find(filter)
-      .sort({ createdAt: -1 });
+    // Сортировка
+    let sortObj = { createdAt: -1 };
+    switch (sort) {
+      case 'createdAt_asc':
+        sortObj = { createdAt: 1 };
+        break;
+      case 'title_asc':
+        sortObj = { title: 1 };
+        break;
+      case 'title_desc':
+        sortObj = { title: -1 };
+        break;
+      case 'createdAt_desc':
+      default:
+        sortObj = { createdAt: -1 };
+        break;
+    }
+
+    const diaryEntries = await DiaryEntry.find(filter).sort(sortObj);
     
     res.json({
       success: true,

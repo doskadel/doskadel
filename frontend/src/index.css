@@ -1251,3 +1251,533 @@ color: var(--color-text);
   border-top: 1px solid var(--color-border);
   margin-top: auto;
 }
+
+/* ==================== FILTER BAR SORT ==================== */
+.filter-bar-sort {
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 160px;
+  padding: 8px 12px;
+  font-size: 14px;
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.filter-bar-sort:hover {
+  border-color: var(--color-primary);
+}
+
+.filter-bar-sort:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  background: var(--color-surface);
+  box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.15);
+}
+
+@media (max-width: 640px) {
+  .filter-bar-sort {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+/* ==================== FILTER TOGGLES (compact UI) ==================== */
+.filter-bar-row {
+  position: relative;
+}
+
+/* Кнопка-иконка */
+.filter-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  color: var(--color-text-muted);
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+
+.filter-icon-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-text);
+}
+
+.filter-icon-btn--active {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-surface);
+}
+
+.filter-icon-btn--open {
+  border-color: var(--color-primary);
+  background: var(--color-surface);
+  color: var(--color-primary);
+}
+
+/* Точка-индикатор активного фильтра */
+.filter-icon-dot {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  border: 1px solid var(--color-surface);
+  pointer-events: none;
+}
+
+.filter-icon-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+/* Поповер (общая обёртка) */
+.filter-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  z-index: 60;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-md);
+  animation: modal-fade-in 0.12s ease-out;
+}
+
+/* Поповер поиска */
+.filter-popover--search {
+  left: 0;
+  min-width: 280px;
+  max-width: 420px;
+}
+
+.filter-popover--search .input {
+  width: 100%;
+}
+
+/* Поповер сортировки */
+.filter-popover--sort {
+  left: 0;
+  min-width: 220px;
+  padding: var(--space-xs);
+}
+
+/* Поповер дат */
+.filter-popover--dates {
+  left: 0;
+  min-width: 280px;
+}
+
+.filter-popover--dates .date-range {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  align-items: stretch;
+  width: 100%;
+}
+
+.filter-popover--dates .date-range-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.filter-popover--dates .date-range-label {
+  width: 28px;
+  flex-shrink: 0;
+}
+
+.filter-popover--dates input[type="date"] {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Список вариантов сортировки */
+.filter-sort-option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--color-text);
+  transition: background-color 0.1s;
+}
+
+.filter-sort-option:hover {
+  background: var(--color-bg);
+}
+
+.filter-sort-option--active {
+  background: var(--color-bg);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+/* Подпись даты, если фильтр активен */
+.filter-date-hint {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-top: var(--space-xs);
+  text-align: left;
+}
+
+/* Мобильная адаптация: поповеры во всю ширину */
+@media (max-width: 640px) {
+  .filter-popover {
+    left: 0;
+    right: 0;
+    min-width: 0;
+    max-width: none;
+  }
+
+  .filter-popover--search,
+  .filter-popover--sort,
+  .filter-popover--dates {
+    left: 0;
+    right: 0;
+    min-width: 0;
+    max-width: none;
+  }
+}
+
+/* ==================== FILTER BAR LAYOUT (left/right) ==================== */
+.filter-bar-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.filter-bar-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.filter-bar-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+@media (max-width: 640px) {
+  .filter-bar-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-sm);
+  }
+
+  .filter-bar-left {
+    width: 100%;
+  }
+
+  .filter-bar-right {
+    width: 100%;
+    margin-left: 0;
+    justify-content: flex-start;
+  }
+}
+
+/* ==================== FILTER POPOVER ALIGNMENT ==================== */
+/* Поповер у левой иконки растёт вправо (к центру) */
+.filter-icon-wrap--left .filter-popover {
+  left: 0;
+  right: auto;
+}
+
+/* Поповер у правой иконки растёт влево (к центру) */
+.filter-icon-wrap--right .filter-popover {
+  right: 0;
+  left: auto;
+}
+
+/* На мобилке — всегда на всю ширину */
+@media (max-width: 640px) {
+  .filter-icon-wrap--left .filter-popover,
+  .filter-icon-wrap--right .filter-popover {
+    left: 0;
+    right: 0;
+  }
+}
+
+/* ==================== DASHBOARD ==================== */
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+/* Пустое состояние */
+.dashboard-empty {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-xl);
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.dashboard-empty-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: var(--space-sm);
+}
+
+.dashboard-empty-text {
+  font-size: 15px;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-lg);
+}
+
+.dashboard-empty-actions {
+  display: flex;
+  gap: var(--space-md);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Верхние карточки-счётчики */
+.dashboard-counters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-md);
+}
+
+.dashboard-counter {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  cursor: pointer;
+  transition: box-shadow 0.15s, border-color 0.15s;
+  box-shadow: var(--shadow-sm);
+  text-align: center;
+}
+
+.dashboard-counter:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-primary);
+}
+
+.dashboard-counter-value {
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--color-primary);
+  line-height: 1.1;
+  margin-bottom: var(--space-xs);
+}
+
+.dashboard-counter-label {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Секция с заголовком */
+.dashboard-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.dashboard-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.dashboard-section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.dashboard-section-link {
+  background: transparent;
+  border: none;
+  color: var(--color-primary);
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  transition: background-color 0.15s;
+}
+
+.dashboard-section-link:hover {
+  background: var(--color-bg);
+}
+
+/* Плашки статусов */
+.dashboard-status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: var(--space-sm);
+}
+
+.dashboard-status-card {
+  display: flex;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  cursor: pointer;
+  transition: box-shadow 0.15s, border-color 0.15s;
+  box-shadow: var(--shadow-sm);
+}
+
+.dashboard-status-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-primary);
+}
+
+.dashboard-status-rail {
+  width: 4px;
+  flex-shrink: 0;
+}
+
+.dashboard-status-content {
+  flex: 1;
+  min-width: 0;
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dashboard-status-name {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dashboard-status-count {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.1;
+}
+
+/* Списки (задачи, записи) */
+.dashboard-list {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.dashboard-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-lg);
+  cursor: pointer;
+  border-bottom: 1px solid var(--color-border);
+  transition: background-color 0.15s;
+}
+
+.dashboard-item:last-child {
+  border-bottom: none;
+}
+
+.dashboard-item:hover {
+  background: var(--color-bg);
+}
+
+.dashboard-item-priority {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dashboard-item-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dashboard-item-date {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  margin-left: var(--space-sm);
+}
+
+/* Мобильная адаптация */
+@media (max-width: 640px) {
+  .dashboard {
+    gap: var(--space-lg);
+  }
+
+  .dashboard-counter-value {
+    font-size: 28px;
+  }
+
+  .dashboard-status-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+
+  .dashboard-status-count {
+    font-size: 20px;
+  }
+
+  .dashboard-item {
+    padding: var(--space-sm) var(--space-md);
+  }
+
+  .dashboard-item-title {
+    font-size: 14px;
+  }
+
+  .dashboard-item-date {
+    font-size: 12px;
+  }
+
+  .dashboard-empty-actions {
+    flex-direction: column;
+  }
+
+  .dashboard-empty-actions .button {
+    width: 100%;
+  }
+}

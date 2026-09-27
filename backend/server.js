@@ -47,6 +47,7 @@ app.use('/api/statuses', require('./src/routes/statuses'));
 app.use('/api/tasks', require('./src/routes/tasks'));
 app.use('/api/diary', require('./src/routes/diary'));
 app.use('/api/search', require('./src/routes/search'));
+app.use('/api/dashboard', require('./src/routes/dashboard'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
