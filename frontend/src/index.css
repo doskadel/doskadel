@@ -136,6 +136,24 @@ box-shadow: var(--shadow-md);
 margin-bottom: var(--space-md);
 }
 
+/* Обрезка описания до 2 строк */
+.card-description {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+/* Адаптивная сетка дневника */
+.diary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-md);
+}
+
 /* ==================== LAYOUT ==================== */
 .layout {
   min-height: 100vh;

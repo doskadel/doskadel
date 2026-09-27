@@ -128,30 +128,34 @@ const Diary: React.FC = () => {
         onUpdate={fetchEntries}
       />
 
-      <div>
-        {entries.map((entry) => (
-          <div key={entry._id} className="card" style={{ marginBottom: '10px' }}>
-            <button
-              type="button"
-              onClick={() => openEntry(entry._id)}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                padding: 0,
-                textAlign: 'left',
-                cursor: 'pointer',
-                color: 'inherit',
-                fontFamily: 'inherit',
-                width: '100%',
-              }}
-            >
-              <h3 style={{ marginBottom: 'var(--space-sm)' }}>{entry.title}</h3>
-              <p style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', wordBreak: 'break-word' }}>{entry.content}</p>
-              <p>Дата: {new Date(entry.createdAt).toLocaleDateString('ru-RU')}</p>
-            </button>
-          </div>
-        ))}
-      </div>
+      {entries.length === 0 ? (
+        <p style={{ color: 'var(--color-text-muted)' }}>Записей пока нет</p>
+      ) : (
+        <div className="diary-grid">
+          {entries.map((entry) => (
+            <div key={entry._id} className="card" style={{ marginBottom: 0 }}>
+              <button
+                type="button"
+                onClick={() => openEntry(entry._id)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  padding: 0,
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  color: 'inherit',
+                  fontFamily: 'inherit',
+                  width: '100%',
+                }}
+              >
+                <h3 style={{ marginBottom: 'var(--space-sm)' }}>{entry.title}</h3>
+                <p className="card-description">{entry.content}</p>
+                <p>Дата: {new Date(entry.createdAt).toLocaleDateString('ru-RU')}</p>
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

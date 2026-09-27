@@ -139,19 +139,19 @@ const Tasks: React.FC = () => {
             <div className="view-toggle">
               <button
                 type="button"
-                className={view === 'list' ? 'view-toggle-btn view-toggle-btn--active' : 'view-toggle-btn'}
-                onClick={() => setView('list')}
-                title="Список"
-              >
-                ☰ Список
-              </button>
-              <button
-                type="button"
                 className={view === 'kanban' ? 'view-toggle-btn view-toggle-btn--active' : 'view-toggle-btn'}
                 onClick={() => setView('kanban')}
                 title="Канбан"
               >
                 ▦ Канбан
+              </button>
+              <button
+                type="button"
+                className={view === 'list' ? 'view-toggle-btn view-toggle-btn--active' : 'view-toggle-btn'}
+                onClick={() => setView('list')}
+                title="Список"
+              >
+                ☰ Список
               </button>
             </div>
           )}
@@ -270,7 +270,9 @@ const Tasks: React.FC = () => {
                   />
                   <h3 style={{ margin: 0 }}>{task.title}</h3>
                 </div>
-                <p>{task.description}</p>
+                {task.description && (
+                  <p className="card-description">{task.description}</p>
+                )}
                 <p>Статус: {getStatusName(task.statusId)}</p>
                 <p>Приоритет: {getPriorityLabel(task.priority)}</p>
                 <p>Создано: {new Date(task.createdAt).toLocaleDateString('ru-RU')}</p>
