@@ -5,6 +5,7 @@ import KanbanBoard, { KanbanTask } from './KanbanBoard';
 import Modal from './Modal';
 import TaskModal from './TaskModal';
 import StatusManager from './StatusManager';
+import FilterBar from './FilterBar';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { PRIORITY_OPTIONS, getPriorityLabel, getPriorityColor } from '../utils/priority';
 import { Status } from '../utils/status';
@@ -26,6 +27,17 @@ const Tasks: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const openedTaskId = searchParams.get('task');
+  const q = searchParams.get('q') || '';
+  const statusesParam = searchParams.get('statuses') || '';
+  const priorityParam = searchParams.get('priority') || '';
+  const dateFrom = searchParams.get('dateFrom') || '';
+  const dateTo = searchParams.get('dateTo') || '';
+  const sortParam = searchParams.get('sort') || '';
+
+  const statusIds = statusesParam ? statusesParam.split(',').filter(Boolean) : [];
+  const priorityFilter = priorityParam
+    ? priorityParam.split(',').map((p) => parseInt(p, 10)).filter((p) => p >= 1 && p <= 3)
+    : [];
 
   const [tasks, setTasks] = useState<Task[]>([]);
   const [statuses, setStatuses] = useState<Status[]>([]);
@@ -42,27 +54,78 @@ const Tasks: React.FC = () => {
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState<number | ''>('');
 
+  const [searchInput, setSearchInput] = useState(q);
+
   useEffect(() => {
-    fetchData();
+    setSearchInput(q);
+  }, [q]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchInput !== q) {
+        updateQuery({ q: searchInput || null });
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  useEffect(() => {
+    fetchStatuses();
   }, []);
+
+  useEffect(() => {
+    fetchTasks();
+  }, [q, statusesParam, priorityParam, dateFrom, dateTo, sortParam]);
 
   useEffect(() => {
     localStorage.setItem(VIEW_KEY, view);
   }, [view]);
 
-  const fetchData = async () => {
+  const updateQuery = (updates: Record<string, string | null>) => {
+    const next = new URLSearchParams(searchParams);
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value === null || value === '') {
+        next.delete(key);
+      } else {
+        next.set(key, value);
+      }
+    });
+    setSearchParams(next, { replace: true });
+  };
+
+  const fetchStatuses = async () => {
     try {
-      const [tasksRes, statusesRes] = await Promise.all([
-        api.get('/api/tasks'),
-        api.get('/api/statuses'),
-      ]);
-      setTasks(tasksRes.data.tasks);
-      setStatuses(statusesRes.data.statuses);
+      const res = await api.get('/api/statuses');
+      setStatuses(res.data.statuses);
+    } catch (err) {
+      console.error('Error fetching statuses:', err);
+    }
+  };
+
+  const fetchTasks = async () => {
+    try {
+      const params = new URLSearchParams();
+      if (q) params.set('q', q);
+      if (statusIds.length > 0) params.set('statusIds', statusIds.join(','));
+      if (priorityFilter.length > 0) params.set('priority', priorityFilter.join(','));
+      if (dateFrom) params.set('dateFrom', dateFrom);
+      if (dateTo) params.set('dateTo', dateTo);
+      if (sortParam) params.set('sort', sortParam);
+
+      const url = '/api/tasks' + (params.toString() ? '?' + params.toString() : '');
+      const res = await api.get(url);
+      setTasks(res.data.tasks);
       setLoading(false);
     } catch (err) {
-      console.error('Error fetching data:', err);
+      console.error('Error fetching tasks:', err);
       setLoading(false);
     }
+  };
+
+  const refreshAll = () => {
+    fetchStatuses();
+    fetchTasks();
   };
 
   const getStatusName = (statusId: string): string => {
@@ -70,11 +133,15 @@ const Tasks: React.FC = () => {
   };
 
   const openTask = (id: string) => {
-    setSearchParams({ task: id });
+    const next = new URLSearchParams(searchParams);
+    next.set('task', id);
+    setSearchParams(next);
   };
 
   const closeTaskModal = () => {
-    setSearchParams({});
+    const next = new URLSearchParams(searchParams);
+    next.delete('task');
+    setSearchParams(next);
   };
 
   const resetCreateForm = () => {
@@ -102,7 +169,7 @@ const Tasks: React.FC = () => {
       await api.post('/api/tasks', { title, description, priority });
       resetCreateForm();
       setCreateOpen(false);
-      fetchData();
+      refreshAll();
     } catch (err) {
       console.error('Error creating task:', err);
     }
@@ -124,9 +191,45 @@ const Tasks: React.FC = () => {
       await api.put('/api/tasks/reorder', { tasks: updates });
     } catch (err) {
       console.error('Error reordering tasks:', err);
-      fetchData();
+      fetchTasks();
     }
   };
+
+  const handleResetFilters = () => {
+    updateQuery({ q: null, priority: null, statuses: null, dateFrom: null, dateTo: null });
+    setSearchInput('');
+  };
+
+  const handleDateFromChange = (value: string) => {
+    if (value && dateTo && value > dateTo) {
+      // Не даём поставить "С" позже "По"
+      return;
+    }
+    updateQuery({ dateFrom: value || null });
+  };
+
+  const handleDateToChange = (value: string) => {
+    if (value && dateFrom && value < dateFrom) {
+      // Не даём поставить "По" раньше "С"
+      return;
+    }
+    updateQuery({ dateTo: value || null });
+  };
+
+  const dateError = (() => {
+    if (dateFrom && dateTo && dateFrom > dateTo) {
+      return 'Дата «По» не может быть раньше даты «С»';
+    }
+    return '';
+  })();
+
+  const hasActiveFilters = !!(
+    q ||
+    statusIds.length > 0 ||
+    priorityFilter.length > 0 ||
+    dateFrom ||
+    dateTo
+  );
 
   if (loading) return <p>Загрузка...</p>;
 
@@ -173,6 +276,23 @@ const Tasks: React.FC = () => {
           </button>
         </div>
       </div>
+
+      <FilterBar
+        q={searchInput}
+        onQChange={setSearchInput}
+        statusIds={statusIds}
+        onStatusIdsChange={(ids) => updateQuery({ statuses: ids.length > 0 ? ids.join(',') : null })}
+        priorityFilter={priorityFilter}
+        onPriorityFilterChange={(priorities) => updateQuery({ priority: priorities.length > 0 ? priorities.join(',') : null })}
+        dateFrom={dateFrom}
+        dateTo={dateTo}
+        onDateFromChange={handleDateFromChange}
+        onDateToChange={handleDateToChange}
+        statuses={statuses}
+        onReset={handleResetFilters}
+        hasActiveFilters={hasActiveFilters}
+        dateError={dateError}
+      />
 
       <Modal open={createOpen} onClose={handleCloseCreate} title="Новая задача">
         <form onSubmit={handleSubmit} className="form">
@@ -223,24 +343,32 @@ const Tasks: React.FC = () => {
         open={statusManagerOpen}
         statuses={statuses}
         onClose={() => setStatusManagerOpen(false)}
-        onChanged={fetchData}
+        onChanged={refreshAll}
       />
 
       <TaskModal
         taskId={openedTaskId}
         statuses={statuses}
         onClose={closeTaskModal}
-        onUpdate={fetchData}
+        onUpdate={refreshAll}
       />
 
-      {view === 'kanban' ? (
+      {tasks.length === 0 && hasActiveFilters && (
+        <p style={{ color: 'var(--color-text-muted)', textAlign: 'center', padding: 'var(--space-xl)' }}>
+          Ничего не найдено по вашим фильтрам
+        </p>
+      )}
+
+      {tasks.length > 0 && view === 'kanban' && (
         <KanbanBoard
           tasks={tasks as KanbanTask[]}
           statuses={statuses}
           onReorder={handleReorder}
           onOpenTask={openTask}
         />
-      ) : (
+      )}
+
+      {tasks.length > 0 && view === 'list' && (
         <div>
           {tasks.map((task) => (
             <div key={task._id} className="card" style={{ marginBottom: '10px' }}>

@@ -18,7 +18,6 @@ const createTask = async (req, res) => {
       statusId = firstStatus._id;
     }
 
-    // Определяем order — в конец своего статуса
     const lastTask = await Task.findOne({
       userId: req.user._id,
       statusId
@@ -47,11 +46,85 @@ const createTask = async (req, res) => {
   }
 };
 
-// Получение всех задач пользователя
+// Получение задач с фильтрами и сортировкой
 const getTasks = async (req, res) => {
   try {
-    const tasks = await Task.find({ userId: req.user._id })
-      .sort({ order: 1, createdAt: -1 });
+    const { q, priority, statusId, statusIds, dateFrom, dateTo, sort } = req.query;
+
+    const filter = { userId: req.user._id };
+
+    // Поиск по title + description
+    if (q && q.trim()) {
+      const regex = new RegExp(q.trim(), 'i');
+      filter.$or = [
+        { title: regex },
+        { description: regex }
+      ];
+    }
+
+    // Фильтр по приоритету (1,2,3)
+    if (priority) {
+      const priorities = String(priority)
+        .split(',')
+        .map((p) => parseInt(p, 10))
+        .filter((p) => p >= 1 && p <= 3);
+
+      if (priorities.length > 0) {
+        filter.priority = { $in: priorities };
+      }
+    }
+
+    // Фильтр по нескольким статусам
+    if (statusIds) {
+      const ids = String(statusIds).split(',').filter(Boolean);
+      if (ids.length > 0) {
+        filter.statusId = { $in: ids };
+      }
+    } else if (statusId) {
+      filter.statusId = statusId;
+    }
+
+    // Фильтр по дате создания
+    if (dateFrom || dateTo) {
+      filter.createdAt = {};
+      if (dateFrom) {
+        filter.createdAt.$gte = new Date(dateFrom);
+      }
+      if (dateTo) {
+        const to = new Date(dateTo);
+        to.setHours(23, 59, 59, 999);
+        filter.createdAt.$lte = to;
+      }
+    }
+
+    // Сортировка
+    let sortObj = { order: 1, createdAt: -1 };
+    switch (sort) {
+      case 'createdAt_desc':
+        sortObj = { createdAt: -1 };
+        break;
+      case 'createdAt_asc':
+        sortObj = { createdAt: 1 };
+        break;
+      case 'priority_desc':
+        sortObj = { priority: -1, createdAt: -1 };
+        break;
+      case 'priority_asc':
+        sortObj = { priority: 1, createdAt: -1 };
+        break;
+      case 'title_asc':
+        sortObj = { title: 1 };
+        break;
+      case 'title_desc':
+        sortObj = { title: -1 };
+        break;
+      case 'order_asc':
+      default:
+        sortObj = { order: 1, createdAt: -1 };
+        break;
+    }
+
+    const tasks = await Task.find(filter).sort(sortObj);
 
     res.json({
       success: true,
@@ -154,7 +227,7 @@ const deleteTask = async (req, res) => {
 // Переупорядочивание задач
 const reorderTasks = async (req, res) => {
   try {
-    const { tasks } = req.body; // массив { id, statusId, order }
+    const { tasks } = req.body;
 
     if (!Array.isArray(tasks)) {
       return res.status(400).json({
