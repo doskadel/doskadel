@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import { setToken } from '../utils/token';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [remember, setRemember] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
@@ -15,9 +17,9 @@ const Login: React.FC = () => {
         email,
         password
       });
-      
+
       const { token } = response.data;
-      localStorage.setItem('token', token);
+      setToken(token, remember);
       navigate('/');
     } catch (err) {
       setError('Invalid credentials');
@@ -46,8 +48,19 @@ const Login: React.FC = () => {
           className="input"
           required
         />
+        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+          <input
+            type="checkbox"
+            checked={remember}
+            onChange={(e) => setRemember(e.target.checked)}
+          />
+          Запомнить меня
+        </label>
         <button type="submit" className="button">Login</button>
       </form>
+      <p style={{ marginTop: '15px' }}>
+        Нет аккаунта? <Link to="/register">Зарегистрироваться</Link>
+      </p>
     </div>
   );
 };
