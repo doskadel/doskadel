@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { getToken } from '../utils/token';
+import api from '../utils/api';
 
 interface DiaryEntry {
   _id: string;
@@ -21,10 +20,7 @@ const Diary: React.FC = () => {
 
   const fetchEntries = async () => {
     try {
-      const token = getToken();
-      const response = await axios.get('http://localhost:5000/api/diary', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get('/api/diary');
       setEntries(response.data.diaryEntries);
       setLoading(false);
     } catch (err) {
@@ -36,14 +32,7 @@ const Diary: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const token = getToken();
-      await axios.post('http://localhost:5000/api/diary', {
-        title,
-        content
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
+      await api.post('/api/diary', { title, content });
       setTitle('');
       setContent('');
       fetchEntries();
@@ -57,8 +46,8 @@ const Diary: React.FC = () => {
   return (
     <div>
       <h2 className="page-title">Дневник</h2>
-      
-        <div className="form-wrapper">
+
+      <div className="form-wrapper">
         <form onSubmit={handleSubmit} className="form">
           <input
             type="text"
@@ -78,7 +67,7 @@ const Diary: React.FC = () => {
           />
           <button type="submit" className="button">Добавить запись</button>
         </form>
-        </div>
+      </div>
 
       <h3 className="list-title">Записи</h3>
       <div>

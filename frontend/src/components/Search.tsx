@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
-import { getToken } from '../utils/token';
+import api from '../utils/api';
 
 interface SearchResult {
   _id: string;
@@ -17,14 +16,11 @@ const Search: React.FC = () => {
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!query.trim()) return;
-    
+
     setLoading(true);
     try {
-      const token = getToken();
-      const response = await axios.get(`http://localhost:5000/api/search?q=${encodeURIComponent(query)}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
+      const response = await api.get(`/api/search?q=${encodeURIComponent(query)}`);
+
       const { tasks, diaryEntries } = response.data.results;
       setResults([
         ...tasks.map((t: any) => ({ ...t, type: 'task' as const })),
@@ -55,7 +51,7 @@ const Search: React.FC = () => {
         </div>
 
       {loading && <p>Поиск...</p>}
-      
+
       {results.length > 0 && (
         <div style={{ marginTop: '20px' }}>
           <h3>Результаты:</h3>
