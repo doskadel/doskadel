@@ -8,6 +8,7 @@ import Dashboard from './components/Dashboard';
 import Tasks from './components/Tasks';
 import TaskDetail from './components/TaskDetail';
 import Diary from './components/Diary';
+import DiaryDetail from './components/DiaryDetail';
 import Search from './components/Search';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
@@ -25,6 +26,7 @@ function App() {
         <Route path="/tasks" element={<ProtectedRoute><Layout><Tasks /></Layout></ProtectedRoute>} />
         <Route path="/tasks/:id" element={<ProtectedRoute><Layout><TaskDetail /></Layout></ProtectedRoute>} />
         <Route path="/diary" element={<ProtectedRoute><Layout><Diary /></Layout></ProtectedRoute>} />
+        <Route path="/diary/:id" element={<ProtectedRoute><Layout><DiaryDetail /></Layout></ProtectedRoute>} />
         <Route path="/search" element={<ProtectedRoute><Layout><Search /></Layout></ProtectedRoute>} />
       </Routes>
     </div>

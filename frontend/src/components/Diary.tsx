@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import api from '../utils/api';
 
 interface DiaryEntry {
@@ -164,10 +165,15 @@ const Diary: React.FC = () => {
           return (
             <div key={entry._id} className="card" style={{ marginBottom: '10px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div style={{ flex: 1 }}>
-                  <h3>{entry.title}</h3>
-                  <p>{entry.content}</p>
-                  <p>Дата: {new Date(entry.createdAt).toLocaleDateString('ru-RU')}</p>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <Link
+                    to={`/diary/${entry._id}`}
+                    style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
+                  >
+                    <h3 style={{ marginBottom: 'var(--space-sm)' }}>{entry.title}</h3>
+                    <p>{entry.content}</p>
+                    <p>Дата: {new Date(entry.createdAt).toLocaleDateString('ru-RU')}</p>
+                  </Link>
                 </div>
                 <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
                   <button
