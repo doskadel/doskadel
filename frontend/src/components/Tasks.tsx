@@ -132,6 +132,10 @@ const Tasks: React.FC = () => {
     return statuses.find((s) => s._id === statusId)?.name || 'Неизвестно';
   };
 
+  const getStatusColor = (statusId: string): string => {
+    return statuses.find((s) => s._id === statusId)?.color || 'var(--color-border)';
+  };
+
   const openTask = (id: string) => {
     const next = new URLSearchParams(searchParams);
     next.set('task', id);
@@ -201,18 +205,12 @@ const Tasks: React.FC = () => {
   };
 
   const handleDateFromChange = (value: string) => {
-    if (value && dateTo && value > dateTo) {
-      // Не даём поставить "С" позже "По"
-      return;
-    }
+    if (value && dateTo && value > dateTo) return;
     updateQuery({ dateFrom: value || null });
   };
 
   const handleDateToChange = (value: string) => {
-    if (value && dateFrom && value < dateFrom) {
-      // Не даём поставить "По" раньше "С"
-      return;
-    }
+    if (value && dateFrom && value < dateFrom) return;
     updateQuery({ dateTo: value || null });
   };
 
@@ -371,40 +369,43 @@ const Tasks: React.FC = () => {
       {tasks.length > 0 && view === 'list' && (
         <div>
           {tasks.map((task) => (
-            <div key={task._id} className="card" style={{ marginBottom: '10px' }}>
-              <button
-                type="button"
-                onClick={() => openTask(task._id)}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  padding: 0,
-                  textAlign: 'left',
-                  cursor: 'pointer',
-                  color: 'inherit',
-                  fontFamily: 'inherit',
-                  width: '100%',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: 'var(--space-sm)' }}>
-                  <span
-                    style={{
-                      width: '10px',
-                      height: '10px',
-                      borderRadius: '50%',
-                      backgroundColor: getPriorityColor(task.priority),
-                      flexShrink: 0,
-                    }}
-                  />
-                  <h3 style={{ margin: 0 }}>{task.title}</h3>
-                </div>
+            <div
+              key={task._id}
+              className="task-card"
+              onClick={() => openTask(task._id)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') openTask(task._id);
+              }}
+            >
+              <div
+                className="task-card-status-rail"
+                style={{ backgroundColor: getStatusColor(task.statusId) }}
+              />
+              <div className="task-card-content">
+                <h3 className="task-card-title">{task.title}</h3>
+
                 {task.description && (
-                  <p className="card-description">{task.description}</p>
+                  <p className="task-card-description">{task.description}</p>
                 )}
-                <p>Статус: {getStatusName(task.statusId)}</p>
-                <p>Приоритет: {getPriorityLabel(task.priority)}</p>
-                <p>Создано: {new Date(task.createdAt).toLocaleDateString('ru-RU')}</p>
-              </button>
+
+                <div className="task-card-meta">
+                  <span className="task-card-meta-item">
+                    <span
+                      className="task-card-priority-dot"
+                      style={{ backgroundColor: getPriorityColor(task.priority) }}
+                    />
+                    Приоритет: {getPriorityLabel(task.priority)}
+                  </span>
+                  <span className="task-card-meta-item">
+                    Статус: {getStatusName(task.statusId)}
+                  </span>
+                  <span className="task-card-meta-item">
+                    Создано: {new Date(task.createdAt).toLocaleDateString('ru-RU')}
+                  </span>
+                </div>
+              </div>
             </div>
           ))}
         </div>

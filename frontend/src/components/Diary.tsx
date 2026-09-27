@@ -133,25 +133,21 @@ const Diary: React.FC = () => {
       ) : (
         <div className="diary-grid">
           {entries.map((entry) => (
-            <div key={entry._id} className="card" style={{ marginBottom: 0 }}>
-              <button
-                type="button"
-                onClick={() => openEntry(entry._id)}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  padding: 0,
-                  textAlign: 'left',
-                  cursor: 'pointer',
-                  color: 'inherit',
-                  fontFamily: 'inherit',
-                  width: '100%',
-                }}
-              >
-                <h3 style={{ marginBottom: 'var(--space-sm)' }}>{entry.title}</h3>
-                <p className="card-description">{entry.content}</p>
-                <p>Дата: {new Date(entry.createdAt).toLocaleDateString('ru-RU')}</p>
-              </button>
+            <div
+              key={entry._id}
+              className="diary-card"
+              onClick={() => openEntry(entry._id)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') openEntry(entry._id);
+              }}
+            >
+              <h3 className="diary-card-title">{entry.title}</h3>
+              <p className="diary-card-description">{entry.content}</p>
+              <div className="diary-card-meta">
+                Создано: {new Date(entry.createdAt).toLocaleDateString('ru-RU')}
+              </div>
             </div>
           ))}
         </div>

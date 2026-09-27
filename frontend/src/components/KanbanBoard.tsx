@@ -30,12 +30,23 @@ export interface KanbanTask {
   createdAt: string;
 }
 
+const getTextColorForBackground = (hex: string): string => {
+  const clean = hex.replace('#', '');
+  if (clean.length !== 6) return '#ffffff';
+  const r = parseInt(clean.substring(0, 2), 16);
+  const g = parseInt(clean.substring(2, 4), 16);
+  const b = parseInt(clean.substring(4, 6), 16);
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+  return brightness > 160 ? '#1f2328' : '#ffffff';
+};
+
 interface DraggableTaskProps {
   task: KanbanTask;
+  statusColor: string;
   onOpenTask: (id: string) => void;
 }
 
-const DraggableTask: React.FC<DraggableTaskProps> = ({ task, onOpenTask }) => {
+const DraggableTask: React.FC<DraggableTaskProps> = ({ task, statusColor, onOpenTask }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task._id,
     data: { type: 'task', statusId: task.statusId },
@@ -48,28 +59,40 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, onOpenTask }) => {
   };
 
   return (
-    <div ref={setNodeRef} style={style} className="kanban-card" {...listeners} {...attributes}>
-      <div className="kanban-card-row">
-        <a
-          href={`/tasks?task=${task._id}`}
-          className="kanban-card-title"
-          onPointerDown={(e) => e.stopPropagation()}
-          onClick={(e) => {
-            if (e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {
-              e.preventDefault();
-              if (!isDragging) {
-                onOpenTask(task._id);
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="kanban-card"
+      {...listeners}
+      {...attributes}
+    >
+      <div
+        className="kanban-card-status-rail"
+        style={{ backgroundColor: statusColor }}
+      />
+      <div className="kanban-card-content">
+        <div className="kanban-card-row">
+          <a
+            href={`/tasks?task=${task._id}`}
+            className="kanban-card-title"
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              if (e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {
+                e.preventDefault();
+                if (!isDragging) {
+                  onOpenTask(task._id);
+                }
               }
-            }
-          }}
-        >
-          {task.title}
-        </a>
-        <span
-          className="kanban-card-priority"
-          style={{ backgroundColor: getPriorityColor(task.priority) }}
-          title={`Приоритет: ${task.priority}`}
-        />
+            }}
+          >
+            {task.title}
+          </a>
+          <span
+            className="kanban-card-priority"
+            style={{ backgroundColor: getPriorityColor(task.priority) }}
+            title={`Приоритет: ${task.priority}`}
+          />
+        </div>
       </div>
     </div>
   );
@@ -88,6 +111,7 @@ const Column: React.FC<ColumnProps> = ({ status, tasks, onOpenTask }) => {
   });
 
   const taskIds = tasks.map((t) => t._id);
+  const headerTextColor = getTextColorForBackground(status.color);
 
   return (
     <div
@@ -96,10 +120,21 @@ const Column: React.FC<ColumnProps> = ({ status, tasks, onOpenTask }) => {
     >
       <div
         className="kanban-column-header"
-        style={{ borderTop: `4px solid ${status.color}` }}
+        style={{ backgroundColor: status.color }}
       >
-        <h3 className="kanban-column-title">{status.name}</h3>
-        <span className="kanban-column-count">{tasks.length}</span>
+        <h3 className="kanban-column-title" style={{ color: headerTextColor }}>
+          {status.name}
+        </h3>
+        <span
+          className="kanban-column-count"
+          style={{
+            color: headerTextColor,
+            borderColor: headerTextColor,
+            backgroundColor: 'transparent',
+          }}
+        >
+          {tasks.length}
+        </span>
       </div>
       <div className="kanban-column-body">
         <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
@@ -107,7 +142,12 @@ const Column: React.FC<ColumnProps> = ({ status, tasks, onOpenTask }) => {
             <p className="kanban-empty">Пусто</p>
           ) : (
             tasks.map((task) => (
-              <DraggableTask key={task._id} task={task} onOpenTask={onOpenTask} />
+              <DraggableTask
+                key={task._id}
+                task={task}
+                statusColor={status.color}
+                onOpenTask={onOpenTask}
+              />
             ))
           )}
         </SortableContext>
@@ -132,6 +172,9 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ tasks, statuses, onReorder, o
   );
 
   const activeTask = activeId ? tasks.find((t) => t._id === activeId) : null;
+  const activeStatus = activeTask
+    ? statuses.find((s) => s._id === activeTask.statusId)
+    : null;
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string);
@@ -149,7 +192,6 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ tasks, statuses, onReorder, o
 
     const overId = over.id as string;
 
-    // Куда попали: задача или колонка?
     const overTask = tasks.find((t) => t._id === overId);
     const overStatusId = overTask
       ? overTask.statusId
@@ -159,13 +201,11 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ tasks, statuses, onReorder, o
 
     const sourceStatusId = activeTaskData.statusId;
 
-    // 1. Перетащили в другую колонку
     if (sourceStatusId !== overStatusId) {
       const targetTasks = tasks
         .filter((t) => t.statusId === overStatusId)
         .sort((a, b) => a.order - b.order);
 
-      // Куда вставить: перед задачей overTask или в конец
       let insertIndex = targetTasks.length;
       if (overTask && overTask._id !== activeTaskId) {
         const idx = targetTasks.findIndex((t) => t._id === overTask._id);
@@ -192,7 +232,6 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ tasks, statuses, onReorder, o
       return;
     }
 
-    // 2. Внутри той же колонки
     if (sourceStatusId === overStatusId) {
       const columnTasks = tasks
         .filter((t) => t.statusId === sourceStatusId)
@@ -201,7 +240,6 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ tasks, statuses, onReorder, o
       const oldIndex = columnTasks.findIndex((t) => t._id === activeTaskId);
       if (oldIndex < 0) return;
 
-      // 2a. Drop на другую задачу — вставка на её место
       if (overTask && overTask._id !== activeTaskId) {
         const newIndex = columnTasks.findIndex((t) => t._id === overTask._id);
         if (newIndex < 0 || oldIndex === newIndex) return;
@@ -216,9 +254,8 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ tasks, statuses, onReorder, o
         return;
       }
 
-      // 2b. Drop на пустое место колонки (overId === statusId) — в конец
       if (overId === sourceStatusId) {
-        if (oldIndex === columnTasks.length - 1) return; // уже в конце
+        if (oldIndex === columnTasks.length - 1) return;
 
         const reordered = arrayMove(columnTasks, oldIndex, columnTasks.length - 1);
         const updates = reordered.map((t, idx) => ({
@@ -257,12 +294,18 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ tasks, statuses, onReorder, o
       <DragOverlay>
         {activeTask ? (
           <div className="kanban-card kanban-card--overlay">
-            <div className="kanban-card-row">
-              <span className="kanban-card-title">{activeTask.title}</span>
-              <span
-                className="kanban-card-priority"
-                style={{ backgroundColor: getPriorityColor(activeTask.priority) }}
-              />
+            <div
+              className="kanban-card-status-rail"
+              style={{ backgroundColor: activeStatus?.color || 'var(--color-border)' }}
+            />
+            <div className="kanban-card-content">
+              <div className="kanban-card-row">
+                <span className="kanban-card-title">{activeTask.title}</span>
+                <span
+                  className="kanban-card-priority"
+                  style={{ backgroundColor: getPriorityColor(activeTask.priority) }}
+                />
+              </div>
             </div>
           </div>
         ) : null}
