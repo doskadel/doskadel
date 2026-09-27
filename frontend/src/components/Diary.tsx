@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import api from '../utils/api';
 import Modal from './Modal';
 import DiaryModal from './DiaryModal';
+import DiaryFilterBar from './DiaryFilterBar';
 
 interface DiaryEntry {
   _id: string;
@@ -13,7 +14,11 @@ interface DiaryEntry {
 
 const Diary: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+
   const openedEntryId = searchParams.get('entry');
+  const q = searchParams.get('q') || '';
+  const dateFrom = searchParams.get('dateFrom') || '';
+  const dateTo = searchParams.get('dateTo') || '';
 
   const [entries, setEntries] = useState<DiaryEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -22,13 +27,47 @@ const Diary: React.FC = () => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
 
+  const [searchInput, setSearchInput] = useState(q);
+
+  useEffect(() => {
+    setSearchInput(q);
+  }, [q]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchInput !== q) {
+        updateQuery({ q: searchInput || null });
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
   useEffect(() => {
     fetchEntries();
-  }, []);
+  }, [q, dateFrom, dateTo]);
+
+  const updateQuery = (updates: Record<string, string | null>) => {
+    const next = new URLSearchParams(searchParams);
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value === null || value === '') {
+        next.delete(key);
+      } else {
+        next.set(key, value);
+      }
+    });
+    setSearchParams(next, { replace: true });
+  };
 
   const fetchEntries = async () => {
     try {
-      const response = await api.get('/api/diary');
+      const params = new URLSearchParams();
+      if (q) params.set('q', q);
+      if (dateFrom) params.set('dateFrom', dateFrom);
+      if (dateTo) params.set('dateTo', dateTo);
+
+      const url = '/api/diary' + (params.toString() ? '?' + params.toString() : '');
+      const response = await api.get(url);
       setEntries(response.data.diaryEntries);
       setLoading(false);
     } catch (err) {
@@ -38,11 +77,15 @@ const Diary: React.FC = () => {
   };
 
   const openEntry = (id: string) => {
-    setSearchParams({ entry: id });
+    const next = new URLSearchParams(searchParams);
+    next.set('entry', id);
+    setSearchParams(next);
   };
 
   const closeEntryModal = () => {
-    setSearchParams({});
+    const next = new URLSearchParams(searchParams);
+    next.delete('entry');
+    setSearchParams(next);
   };
 
   const resetCreateForm = () => {
@@ -74,6 +117,30 @@ const Diary: React.FC = () => {
     }
   };
 
+  const handleResetFilters = () => {
+    updateQuery({ q: null, dateFrom: null, dateTo: null });
+    setSearchInput('');
+  };
+
+  const handleDateFromChange = (value: string) => {
+    if (value && dateTo && value > dateTo) return;
+    updateQuery({ dateFrom: value || null });
+  };
+
+  const handleDateToChange = (value: string) => {
+    if (value && dateFrom && value < dateFrom) return;
+    updateQuery({ dateTo: value || null });
+  };
+
+  const dateError = (() => {
+    if (dateFrom && dateTo && dateFrom > dateTo) {
+      return 'Дата «По» не может быть раньше даты «С»';
+    }
+    return '';
+  })();
+
+  const hasActiveFilters = !!(q || dateFrom || dateTo);
+
   if (loading) return <p>Загрузка...</p>;
 
   return (
@@ -88,6 +155,18 @@ const Diary: React.FC = () => {
           + Добавить запись
         </button>
       </div>
+
+      <DiaryFilterBar
+        q={searchInput}
+        onQChange={setSearchInput}
+        dateFrom={dateFrom}
+        dateTo={dateTo}
+        onDateFromChange={handleDateFromChange}
+        onDateToChange={handleDateToChange}
+        onReset={handleResetFilters}
+        hasActiveFilters={hasActiveFilters}
+        dateError={dateError}
+      />
 
       <Modal open={createOpen} onClose={handleCloseCreate} title="Новая запись">
         <form onSubmit={handleSubmit} className="form">
@@ -128,9 +207,17 @@ const Diary: React.FC = () => {
         onUpdate={fetchEntries}
       />
 
-      {entries.length === 0 ? (
+      {entries.length === 0 && hasActiveFilters && (
+        <p style={{ color: 'var(--color-text-muted)', textAlign: 'center', padding: 'var(--space-xl)' }}>
+          Ничего не найдено по вашим фильтрам
+        </p>
+      )}
+
+      {entries.length === 0 && !hasActiveFilters && (
         <p style={{ color: 'var(--color-text-muted)' }}>Записей пока нет</p>
-      ) : (
+      )}
+
+      {entries.length > 0 && (
         <div className="diary-grid">
           {entries.map((entry) => (
             <div

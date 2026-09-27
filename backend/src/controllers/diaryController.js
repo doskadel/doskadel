@@ -15,6 +15,7 @@ const createDiaryEntry = async (req, res) => {
       diaryEntry
     });
   } catch (error) {
+    console.error('Create diary entry error:', error);
     res.status(500).json({ 
       success: false,
       message: 'Server error' 
@@ -22,10 +23,36 @@ const createDiaryEntry = async (req, res) => {
   }
 };
 
-// Получение всех записей дневника пользователя
+// Получение записей дневника с фильтрами
 const getDiaryEntries = async (req, res) => {
   try {
-    const diaryEntries = await DiaryEntry.find({ userId: req.user._id })
+    const { q, dateFrom, dateTo } = req.query;
+
+    const filter = { userId: req.user._id };
+
+    // Поиск по title + content
+    if (q && q.trim()) {
+      const regex = new RegExp(q.trim(), 'i');
+      filter.$or = [
+        { title: regex },
+        { content: regex }
+      ];
+    }
+
+    // Фильтр по дате создания
+    if (dateFrom || dateTo) {
+      filter.createdAt = {};
+      if (dateFrom) {
+        filter.createdAt.$gte = new Date(dateFrom);
+      }
+      if (dateTo) {
+        const to = new Date(dateTo);
+        to.setHours(23, 59, 59, 999);
+        filter.createdAt.$lte = to;
+      }
+    }
+
+    const diaryEntries = await DiaryEntry.find(filter)
       .sort({ createdAt: -1 });
     
     res.json({
@@ -33,6 +60,7 @@ const getDiaryEntries = async (req, res) => {
       diaryEntries
     });
   } catch (error) {
+    console.error('Get diary entries error:', error);
     res.status(500).json({ 
       success: false,
       message: 'Server error' 
@@ -60,6 +88,7 @@ const getDiaryEntryById = async (req, res) => {
       diaryEntry
     });
   } catch (error) {
+    console.error('Get diary entry error:', error);
     res.status(500).json({ 
       success: false,
       message: 'Server error' 
@@ -88,6 +117,7 @@ const updateDiaryEntry = async (req, res) => {
       diaryEntry
     });
   } catch (error) {
+    console.error('Update diary entry error:', error);
     res.status(500).json({ 
       success: false,
       message: 'Server error' 
@@ -115,6 +145,7 @@ const deleteDiaryEntry = async (req, res) => {
       message: 'Diary entry deleted successfully'
     });
   } catch (error) {
+    console.error('Delete diary entry error:', error);
     res.status(500).json({ 
       success: false,
       message: 'Server error' 
