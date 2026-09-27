@@ -23,6 +23,11 @@ const statusSchema = new mongoose.Schema({
     type: Number,
     required: true,
     default: 0
+  },
+  isFinal: {
+    type: Boolean,
+    default: false,
+    required: true
   }
 }, {
   timestamps: true

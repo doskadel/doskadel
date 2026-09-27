@@ -4,7 +4,7 @@
 
 ## Текущий статус
 
-MVP работает: регистрация, логин, CRUD задач (канбан + список), CRUD статей, статусы, поиск, дашборд, иерархическая навигация.
+MVP работает: регистрация, логин, CRUD задач (канбан + список), CRUD статей, статусы (с финальными статусами), сроки задач (dueDate), глобальный поиск (command palette), дашборд, иерархическая навигация.
 
 ## Что уже реализовано
 
@@ -15,12 +15,13 @@ MVP работает: регистрация, логин, CRUD задач (ка�
 - Защищённые маршруты (ProtectedRoute)
 
 ### Задачи
-- Создание с названием, описанием, приоритетом (1-3)
+- Создание с названием, описанием, приоритетом (1-3), сроком (дата + время)
 - Канбан-доска с drag-n-drop между статусами
 - Список с сортировкой (по дате, приоритету, алфавиту)
 - Фильтры: поиск, статусы, приоритеты, диапазон дат
-- Управление статусами (создание, редактирование, цвета, порядок)
+- Управление статусами (создание, редактирование, цвета, порядок, финальный статус)
 - Детальный экран: /tasks/:id
+- Просроченные сроки подсвечиваются красным в списке и канбане
 
 ### База знаний
 - Создание статей (заголовок + содержимое)
@@ -29,20 +30,22 @@ MVP работает: регистрация, логин, CRUD задач (ка�
 - Детальный экран: /knowledge/:id — полный текст, даты
 - Фильтры: поиск, диапазон дат, сортировка
 
+### Глобальный поиск
+- Command palette (кнопка «Поиск» в шапке)
+- Результаты в блоках «Задачи» и «Статьи» с общим счётчиком
+- «Показать ещё» и «Открыть в разделе»
+- Открытие деталей внутри панели (без закрытия)
+
 ### Дашборд
-- Счётчики задач и статей
+- Быстрые действия (+ Задача, + Статья)
 - Плашки по статусам (цвет + имя + число)
 - Последние задачи (5 шт., по updatedAt)
 - Последние статьи (5 шт., по createdAt)
-
-### Поиск
-- Полнотекстовый поиск по задачам (title, description) и статьям (title, content)
-- Case-insensitive (regex на backend)
-- Карточки результатов кликабельны
+- Пустое состояние с подсказкой
 
 ### Навигация
 - Иерархическая: стрелка в шапке ведёт на уровень вверх
-- Главная, Мои задачи, База знаний, Поиск
+- Главная, Мои задачи, База знаний, Поиск (command palette)
 
 ## Технологии
 
@@ -65,30 +68,30 @@ MVP работает: регистрация, логин, CRUD задач (ка�
 - MongoDB 7.0 в контейнере с named volume `mongo_data`
 
 ## Архитектура
+
 worklist/
 ├── backend/
-│ ├── src/
-│ │ ├── controllers/ # authController, taskController, articleController, statusController, dashboardController
-│ │ ├── models/ # User, Task, Article, Status
-│ │ ├── routes/ # auth, tasks, articles, statuses, search, dashboard
-│ │ └── middleware/ # auth (JWT), errorHandler
-│ ├── server.js
-│ ├── .env.example
-│ ├── Dockerfile
-│ └── package.json
+│   ├── src/
+│   │   ├── controllers/   # authController, taskController, articleController, statusController, dashboardController
+│   │   ├── models/        # User, Task, Article, Status
+│   │   ├── routes/        # auth, tasks, articles, statuses, search, dashboard
+│   │   └── middleware/    # auth (JWT), errorHandler
+│   ├── server.js
+│   ├── .env.example
+│   ├── Dockerfile
+│   └── package.json
 ├── frontend/
-│ ├── src/
-│ │ ├── components/ # Layout, Login, Register, Dashboard, Tasks, TaskDetail, TaskModal, Knowledge, ArticleDetail, ArticleModal, FilterBar, ArticleFilterBar, KanbanBoard, StatusManager, Search, Modal, MultiSelect, ProtectedRoute
-│ │ ├── hooks/ # useMediaQuery
-│ │ ├── utils/ # token, api, priority, status, sort
-│ │ ├── App.tsx, index.tsx
-│ │ └── index.css, App.css
-│ ├── .env.example
-│ ├── Dockerfile
-│ └── package.json
+│   ├── src/
+│   │   ├── components/    # Layout, Login, Register, Dashboard, Tasks, TaskDetail, TaskModal, TaskModalContent, TaskModalRail, Knowledge, ArticleDetail, ArticleModal, ArticleModalContent, ArticleModalRail, FilterBar, ArticleFilterBar, KanbanBoard, StatusManager, SearchModal, Modal, MultiSelect, ProtectedRoute
+│   │   ├── hooks/         # useMediaQuery, useTaskDetail, useArticleDetail
+│   │   ├── utils/         # token, api, priority, status, sort, date
+│   │   ├── App.tsx, index.tsx
+│   │   └── index.css, App.css
+│   ├── .env.example
+│   ├── Dockerfile
+│   └── package.json
 ├── docker-compose.yml
 └── README.md
-
 
 ## API
 
@@ -130,34 +133,31 @@ worklist/
 
 **User:** `_id`, `username` (unique), `email` (unique, lowercase), `password` (bcrypt), `createdAt`, `updatedAt`
 
-**Status:** `_id`, `userId` (ref User), `name`, `color` (hex), `order`, `createdAt`, `updatedAt`
+**Status:** `_id`, `userId` (ref User), `name`, `color` (hex), `order`, `isFinal` (Boolean), `createdAt`, `updatedAt`
 
-**Task:** `_id`, `userId` (ref User), `title`, `description`, `statusId` (ref Status), `priority` (1-3), `order`, `dueDate?`, `createdAt`, `updatedAt`
+**Task:** `_id`, `userId` (ref User), `title`, `description`, `statusId` (ref Status), `priority` (1-3), `order`, `dueDate` (Date, UTC), `createdAt`, `updatedAt`
 
 **Article:** `_id`, `userId` (ref User), `title`, `content`, `createdAt`, `updatedAt`
 
-# Запуск
+## Запуск
 
 Требуется Docker и Docker Compose.
 
 1. Скопировать env-примеры.
 
    **Windows (cmd):**
-   ```
-   copy backend\.env.example backend\.env
-   copy frontend\.env.example frontend\.env
-   ```
+copy backend.env.example backend.env
+copy frontend.env.example frontend.env
 
-   **Linux / macOS:**
-   ```
-   cp backend/.env.example backend/.env
-   cp frontend/.env.example frontend/.env
-   ```
+
+**Linux / macOS:**
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
+
 
 2. Собрать и запустить:
-   ```
-   docker-compose up --build
-   ```
+docker-compose up --build
+
 
 - Frontend: http://localhost:3000
 - Backend: http://localhost:5000
@@ -189,10 +189,13 @@ DANGEROUSLY_DISABLE_HOST_CHECK=true
 ## В планах
 
 ### Функционал
-- Глобальный поиск в шапке (иконка + dropdown)
 - Связи между задачами и статьями (привязка статьи к задаче)
-- Напоминания и дедлайны (`dueDate` в UI)
 - Файлы и таблицы в статьях (Markdown)
+
+### Дашборд и дедлайны
+- Блок «Ближайшие дедлайны» на дашборде (задачи с dueDate в ближайшие 7 дней)
+- Отдельный блок «Просрочено» на дашборде
+- Напоминания и уведомления (Web Push / локальные)
 
 ### UX
 - Свой ConfirmDialog вместо системного `window.confirm`
@@ -202,7 +205,7 @@ DANGEROUSLY_DISABLE_HOST_CHECK=true
 
 ### Перспективное
 - Синхронизация в реальном времени (WebSocket)
-- Чат-бот (текстовые и голосовые команды)
+- Чат-бот / Ассистент (текстовые и голосовые команды)
 - PWA / Capacitor для мобильной версии
 - i18n (переключение RU/EN)
 - Экспорт данных

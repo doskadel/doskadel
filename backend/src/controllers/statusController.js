@@ -23,7 +23,7 @@ const getStatuses = async (req, res) => {
 // Создание статуса
 const createStatus = async (req, res) => {
   try {
-    const { name, color } = req.body;
+    const { name, color, isFinal } = req.body;
 
     if (!name || !name.trim()) {
       return res.status(400).json({
@@ -32,7 +32,6 @@ const createStatus = async (req, res) => {
       });
     }
 
-    // Определяем order — ставим в конец
     const lastStatus = await Status.findOne({ userId: req.user._id })
       .sort({ order: -1 });
     const order = lastStatus ? lastStatus.order + 1 : 0;
@@ -41,7 +40,8 @@ const createStatus = async (req, res) => {
       userId: req.user._id,
       name: name.trim(),
       color: color || '#9ca3af',
-      order
+      order,
+      isFinal: !!isFinal
     });
 
     await status.save();
@@ -59,15 +59,16 @@ const createStatus = async (req, res) => {
   }
 };
 
-// Обновление статуса (name, color, order)
+// Обновление статуса (name, color, order, isFinal)
 const updateStatus = async (req, res) => {
   try {
-    const { name, color, order } = req.body;
+    const { name, color, order, isFinal } = req.body;
 
     const update = {};
     if (name !== undefined) update.name = name.trim();
     if (color !== undefined) update.color = color;
     if (order !== undefined) update.order = order;
+    if (isFinal !== undefined) update.isFinal = !!isFinal;
 
     const status = await Status.findOneAndUpdate(
       { _id: req.params.id, userId: req.user._id },
@@ -98,7 +99,7 @@ const updateStatus = async (req, res) => {
 // Переупорядочивание статусов
 const reorderStatuses = async (req, res) => {
   try {
-    const { order } = req.body; // массив { id, order }
+    const { order } = req.body;
 
     if (!Array.isArray(order)) {
       return res.status(400).json({
@@ -145,7 +146,6 @@ const deleteStatus = async (req, res) => {
       });
     }
 
-    // Проверяем, есть ли задачи с этим статусом
     const tasksCount = await Task.countDocuments({
       statusId: status._id,
       userId: req.user._id

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import api from '../utils/api';
 import Modal from './Modal';
 import { Status, STATUS_COLOR_PALETTE } from '../utils/status';
@@ -17,17 +17,33 @@ const StatusManager: React.FC<StatusManagerProps> = ({ open, statuses, onClose, 
   const [editingStatus, setEditingStatus] = useState<Status | null>(null);
   const [name, setName] = useState('');
   const [color, setColor] = useState(STATUS_COLOR_PALETTE[0]);
+  const [isFinal, setIsFinal] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const [tipOpen, setTipOpen] = useState(false);
+  const tipRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     if (open) {
       setMode('list');
       setEditingStatus(null);
       setError('');
+      setTipOpen(false);
     }
   }, [open]);
+
+  useEffect(() => {
+    if (!tipOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (tipRef.current && !tipRef.current.contains(e.target as Node)) {
+        setTipOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [tipOpen]);
 
   const goToList = () => {
     setMode('list');
@@ -35,6 +51,8 @@ const StatusManager: React.FC<StatusManagerProps> = ({ open, statuses, onClose, 
     setError('');
     setName('');
     setColor(STATUS_COLOR_PALETTE[0]);
+    setIsFinal(false);
+    setTipOpen(false);
   };
 
   const startEdit = (status: Status) => {
@@ -42,7 +60,9 @@ const StatusManager: React.FC<StatusManagerProps> = ({ open, statuses, onClose, 
     setEditingStatus(status);
     setName(status.name);
     setColor(status.color);
+    setIsFinal(!!status.isFinal);
     setError('');
+    setTipOpen(false);
   };
 
   const startCreate = () => {
@@ -50,7 +70,9 @@ const StatusManager: React.FC<StatusManagerProps> = ({ open, statuses, onClose, 
     setEditingStatus(null);
     setName('');
     setColor(STATUS_COLOR_PALETTE[0]);
+    setIsFinal(false);
     setError('');
+    setTipOpen(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -60,9 +82,17 @@ const StatusManager: React.FC<StatusManagerProps> = ({ open, statuses, onClose, 
     setError('');
     try {
       if (mode === 'edit' && editingStatus) {
-        await api.put(`/api/statuses/${editingStatus._id}`, { name: name.trim(), color });
+        await api.put(`/api/statuses/${editingStatus._id}`, {
+          name: name.trim(),
+          color,
+          isFinal,
+        });
       } else {
-        await api.post('/api/statuses', { name: name.trim(), color });
+        await api.post('/api/statuses', {
+          name: name.trim(),
+          color,
+          isFinal,
+        });
       }
       onChanged();
       goToList();
@@ -97,7 +127,7 @@ const StatusManager: React.FC<StatusManagerProps> = ({ open, statuses, onClose, 
     onClose();
   };
 
-  const modalTitle = 
+  const modalTitle =
     mode === 'edit' ? 'Редактирование статуса' :
     mode === 'create' ? 'Новый статус' :
     'Управление статусами';
@@ -132,7 +162,14 @@ const StatusManager: React.FC<StatusManagerProps> = ({ open, statuses, onClose, 
                     className="status-row-color"
                     style={{ backgroundColor: status.color }}
                   />
-                  <span className="status-row-name">{status.name}</span>
+                  <span className="status-row-name">
+                    {status.name}
+                    {status.isFinal && (
+                      <span className="status-row-final-badge" title="Финальный статус">
+                        {' '}· финальный
+                      </span>
+                    )}
+                  </span>
                   <div className="status-row-actions">
                     <button
                       type="button"
@@ -201,6 +238,37 @@ const StatusManager: React.FC<StatusManagerProps> = ({ open, statuses, onClose, 
                 />
               ))}
             </div>
+          </div>
+
+          <div className="checkbox-row-wrap">
+            <label className="checkbox-row">
+              <input
+                type="checkbox"
+                checked={isFinal}
+                onChange={(e) => setIsFinal(e.target.checked)}
+              />
+              <span>Финальный статус</span>
+            </label>
+
+            <span className="info-icon-wrap" ref={tipRef}>
+              <button
+                type="button"
+                className="info-icon"
+                onClick={() => setTipOpen((v) => !v)}
+                onMouseEnter={() => setTipOpen(true)}
+                onMouseLeave={() => setTipOpen(false)}
+                aria-label="Справка"
+                aria-expanded={tipOpen}
+              >
+                i
+              </button>
+              {tipOpen && (
+                <div className="info-tooltip" role="tooltip">
+                  Задачи в этом статусе не попадут в блоки
+                  «Просрочено» и «Ближайшие сроки» на дашборде.
+                </div>
+              )}
+            </span>
           </div>
 
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: 'var(--space-sm)' }}>

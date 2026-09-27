@@ -102,28 +102,11 @@ const Dashboard: React.FC = () => {
         <div className="dashboard-empty">
           <p className="dashboard-empty-title">Добро пожаловать в WorkList</p>
           <p className="dashboard-empty-text">
-            Начните с создания первой задачи или статьи в базе знаний.
+            Начните с создания первой задачи или статьи — используйте кнопки выше.
           </p>
-          <div className="dashboard-empty-actions">
-            <button
-              type="button"
-              className="button"
-              onClick={() => navigate('/tasks?new=1')}
-            >
-              + Добавить задачу
-            </button>
-            <button
-              type="button"
-              className="button button--outline"
-              onClick={() => navigate('/knowledge?new=1')}
-            >
-              + Добавить статью
-            </button>
-          </div>
         </div>
       ) : (
         <>
-          {/* --- Плашки по статусам --- */}
           {data.statusCounts.length > 0 && (
             <div className="dashboard-section">
               <h3 className="dashboard-section-title">Задачи по статусам</h3>
@@ -151,7 +134,6 @@ const Dashboard: React.FC = () => {
             </div>
           )}
 
-          {/* --- Последние задачи --- */}
           {data.recentTasks.length > 0 && (
             <div className="dashboard-section">
               <div className="dashboard-section-header">
@@ -186,7 +168,6 @@ const Dashboard: React.FC = () => {
             </div>
           )}
 
-          {/* --- Последние статьи --- */}
           {data.recentArticles.length > 0 && (
             <div className="dashboard-section">
               <div className="dashboard-section-header">

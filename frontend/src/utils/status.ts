@@ -3,22 +3,23 @@ export interface Status {
   name: string;
   color: string;
   order: number;
+  isFinal: boolean;
   userId: string;
   createdAt: string;
   updatedAt: string;
 }
 
 export const STATUS_COLOR_PALETTE = [
-  '#9ca3af', // серый
-  '#3b82f6', // синий
-  '#22c55e', // зелёный
-  '#eab308', // жёлтый
-  '#f97316', // оранжевый
-  '#ef4444', // красный
-  '#ec4899', // розовый
-  '#a855f7', // фиолетовый
-  '#06b6d4', // циан
-  '#14b8a6', // тил
-  '#64748b', // slate
-  '#0ea5e9', // sky
+  '#9ca3af',
+  '#3b82f6',
+  '#22c55e',
+  '#eab308',
+  '#f97316',
+  '#ef4444',
+  '#ec4899',
+  '#a855f7',
+  '#06b6d4',
+  '#14b8a6',
+  '#64748b',
+  '#0ea5e9',
 ];

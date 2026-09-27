@@ -63,7 +63,7 @@
 
 **User:** _id, username (unique), email (unique, lowercase), password (bcrypt), createdAt, updatedAt
 
-**Status:** _id, userId (ref User), name, color (hex), order, createdAt, updatedAt
+**Status:** _id, userId (ref User), name, color (hex), order, isFinal (Boolean), createdAt, updatedAt
 
 **Task:** _id, userId (ref User), title, description, statusId (ref Status), priority (1-3), order, dueDate (Date, UTC), createdAt, updatedAt
 
