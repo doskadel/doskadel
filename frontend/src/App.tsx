@@ -9,7 +9,6 @@ import Tasks from './components/Tasks';
 import TaskDetail from './components/TaskDetail';
 import Knowledge from './components/Knowledge';
 import ArticleDetail from './components/ArticleDetail';
-import Search from './components/Search';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import { getToken } from './utils/token';
@@ -27,7 +26,7 @@ function App() {
         <Route path="/tasks/:id" element={<ProtectedRoute><Layout><TaskDetail /></Layout></ProtectedRoute>} />
         <Route path="/knowledge" element={<ProtectedRoute><Layout><Knowledge /></Layout></ProtectedRoute>} />
         <Route path="/knowledge/:id" element={<ProtectedRoute><Layout><ArticleDetail /></Layout></ProtectedRoute>} />
-        <Route path="/search" element={<ProtectedRoute><Layout><Search /></Layout></ProtectedRoute>} />
+        <Route path="/search" element={<Navigate to="/" replace />} />
       </Routes>
     </div>
   );

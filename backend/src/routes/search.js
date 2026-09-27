@@ -23,7 +23,7 @@ router.get('/', auth, async (req, res) => {
         { title: { $regex: q, $options: 'i' } },
         { description: { $regex: q, $options: 'i' } }
       ]
-    });
+    }).sort({ updatedAt: -1 });
 
     // Поиск статей
     const articles = await Article.find({
@@ -32,13 +32,15 @@ router.get('/', auth, async (req, res) => {
         { title: { $regex: q, $options: 'i' } },
         { content: { $regex: q, $options: 'i' } }
       ]
-    });
+    }).sort({ createdAt: -1 });
 
     res.json({
       success: true,
       results: {
         tasks,
-        articles
+        tasksTotal: tasks.length,
+        articles,
+        articlesTotal: articles.length
       }
     });
   } catch (error) {

@@ -1,6 +1,7 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { clearToken } from '../utils/token';
+import SearchModal from './SearchModal';
 
 interface LayoutProps {
   children: ReactNode;
@@ -9,6 +10,7 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const isRoot = location.pathname === '/';
 
@@ -33,7 +35,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { path: '/', label: 'Главная' },
     { path: '/tasks', label: 'Мои задачи' },
     { path: '/knowledge', label: 'База знаний' },
-    { path: '/search', label: 'Поиск' },
   ];
 
   return (
@@ -68,6 +69,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               {item.label}
             </Link>
           ))}
+          <button
+            type="button"
+            className="layout-nav-link layout-nav-link--button"
+            onClick={() => setSearchOpen(true)}
+            title="Поиск"
+          >
+            Поиск
+          </button>
           <button onClick={handleLogout} className="layout-logout">
             Выйти
           </button>
@@ -76,6 +85,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <main className="layout-main">
         <div className="layout-container">{children}</div>
       </main>
+      <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
     </div>
   );
 };
