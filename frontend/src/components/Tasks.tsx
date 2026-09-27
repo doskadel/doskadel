@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import api from '../utils/api';
 
 interface Task {
@@ -23,13 +24,11 @@ const Tasks: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Форма создания
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState<Task['status']>('pending');
   const [priority, setPriority] = useState(1);
 
-  // Инлайн-редактирование
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editDescription, setEditDescription] = useState('');
@@ -135,9 +134,7 @@ const Tasks: React.FC = () => {
             className="input"
           >
             {statusOptions.map((s) => (
-              <option key={s} value={s}>
-                {statusMap[s]}
-              </option>
+              <option key={s} value={s}>{statusMap[s]}</option>
             ))}
           </select>
           <input
@@ -189,9 +186,7 @@ const Tasks: React.FC = () => {
                     style={{ flex: 1 }}
                   >
                     {statusOptions.map((s) => (
-                      <option key={s} value={s}>
-                        {statusMap[s]}
-                      </option>
+                      <option key={s} value={s}>{statusMap[s]}</option>
                     ))}
                   </select>
                   <input
@@ -230,12 +225,17 @@ const Tasks: React.FC = () => {
           return (
             <div key={task._id} className="card" style={{ marginBottom: '10px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div style={{ flex: 1 }}>
-                  <h3>{task.title}</h3>
-                  <p>{task.description}</p>
-                  <p>Статус: {statusMap[task.status] || task.status}</p>
-                  <p>Приоритет: {task.priority}</p>
-                  <p>Создано: {new Date(task.createdAt).toLocaleDateString('ru-RU')}</p>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <Link
+                    to={`/tasks/${task._id}`}
+                    style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
+                  >
+                    <h3 style={{ marginBottom: 'var(--space-sm)' }}>{task.title}</h3>
+                    <p>{task.description}</p>
+                    <p>Статус: {statusMap[task.status] || task.status}</p>
+                    <p>Приоритет: {task.priority}</p>
+                    <p>Создано: {new Date(task.createdAt).toLocaleDateString('ru-RU')}</p>
+                  </Link>
                 </div>
                 <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
                   <button

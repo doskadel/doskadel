@@ -14,6 +14,11 @@ const Diary: React.FC = () => {
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(true);
 
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editContent, setEditContent] = useState('');
+  const [savingEdit, setSavingEdit] = useState(false);
+
   useEffect(() => {
     fetchEntries();
   }, []);
@@ -38,6 +43,42 @@ const Diary: React.FC = () => {
       fetchEntries();
     } catch (err) {
       console.error('Error creating diary entry:', err);
+    }
+  };
+
+  const startEdit = (entry: DiaryEntry) => {
+    setEditingId(entry._id);
+    setEditTitle(entry.title);
+    setEditContent(entry.content);
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+  };
+
+  const saveEdit = async (id: string) => {
+    setSavingEdit(true);
+    try {
+      await api.put(`/api/diary/${id}`, {
+        title: editTitle,
+        content: editContent,
+      });
+      setEditingId(null);
+      fetchEntries();
+    } catch (err) {
+      console.error('Error updating diary entry:', err);
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Удалить запись?')) return;
+    try {
+      await api.delete(`/api/diary/${id}`);
+      fetchEntries();
+    } catch (err) {
+      console.error('Error deleting diary entry:', err);
     }
   };
 
@@ -71,13 +112,89 @@ const Diary: React.FC = () => {
 
       <h3 className="list-title">Записи</h3>
       <div>
-        {entries.map((entry) => (
-          <div key={entry._id} className="card" style={{ marginBottom: '10px' }}>
-            <h3>{entry.title}</h3>
-            <p>{entry.content}</p>
-            <p>Дата: {new Date(entry.createdAt).toLocaleDateString('ru-RU')}</p>
-          </div>
-        ))}
+        {entries.map((entry) => {
+          const isEditing = editingId === entry._id;
+
+          if (isEditing) {
+            return (
+              <div
+                key={entry._id}
+                className="card"
+                style={{ marginBottom: '10px', border: '1px solid var(--color-primary)' }}
+              >
+                <input
+                  type="text"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  className="input"
+                  style={{ marginBottom: '8px', fontWeight: 600 }}
+                  required
+                />
+                <textarea
+                  value={editContent}
+                  onChange={(e) => setEditContent(e.target.value)}
+                  className="input"
+                  rows={5}
+                  style={{ marginBottom: '8px' }}
+                  required
+                />
+                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                  <button
+                    type="button"
+                    className="button"
+                    onClick={cancelEdit}
+                    style={{ backgroundColor: 'var(--color-text-muted)' }}
+                    disabled={savingEdit}
+                  >
+                    Отмена
+                  </button>
+                  <button
+                    type="button"
+                    className="button"
+                    onClick={() => saveEdit(entry._id)}
+                    disabled={savingEdit || !editTitle.trim() || !editContent.trim()}
+                  >
+                    {savingEdit ? 'Сохранение...' : 'Сохранить'}
+                  </button>
+                </div>
+              </div>
+            );
+          }
+
+          return (
+            <div key={entry._id} className="card" style={{ marginBottom: '10px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div style={{ flex: 1 }}>
+                  <h3>{entry.title}</h3>
+                  <p>{entry.content}</p>
+                  <p>Дата: {new Date(entry.createdAt).toLocaleDateString('ru-RU')}</p>
+                </div>
+                <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                  <button
+                    type="button"
+                    className="button"
+                    onClick={() => startEdit(entry)}
+                    style={{ padding: '6px 12px', fontSize: '13px' }}
+                  >
+                    Редактировать
+                  </button>
+                  <button
+                    type="button"
+                    className="button"
+                    onClick={() => handleDelete(entry._id)}
+                    style={{
+                      padding: '6px 12px',
+                      fontSize: '13px',
+                      backgroundColor: 'var(--color-danger)',
+                    }}
+                  >
+                    Удалить
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

@@ -9,11 +9,26 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const isDashboard = location.pathname === '/';
+
+  // Уровень 1 — корень, без стрелки
+  const isRoot = location.pathname === '/';
+
+  // Родительский путь: отрезаем последний сегмент
+  const getParentPath = (path: string): string => {
+    const segments = path.split('/').filter(Boolean);
+    if (segments.length <= 1) return '/';
+    return '/' + segments.slice(0, -1).join('/');
+  };
+
+  const parentPath = getParentPath(location.pathname);
 
   const handleLogout = () => {
     clearToken();
     window.location.href = '/login';
+  };
+
+  const handleBack = () => {
+    navigate(parentPath);
   };
 
   const navItems = [
@@ -26,10 +41,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     <div className="layout">
       <header className="layout-header">
         <div className="layout-header-left">
-          {!isDashboard && (
-            <Link to="/" className="layout-back" title="На главную">
+          {!isRoot && (
+            <button
+              onClick={handleBack}
+              className="layout-back"
+              title="Назад"
+              style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}
+            >
               ←
-            </Link>
+            </button>
           )}
           <Link to="/" className="layout-logo">
             WorkList
