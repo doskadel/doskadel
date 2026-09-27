@@ -147,8 +147,8 @@ margin-bottom: var(--space-md);
   overflow-wrap: anywhere;
 }
 
-/* Адаптивная сетка дневника */
-.diary-grid {
+/* Адаптивная сетка статей */
+.article-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: var(--space-md);
@@ -1203,8 +1203,8 @@ color: var(--color-text);
   vertical-align: middle;
 }
 
-/* ==================== DIARY CARD (LIST) ==================== */
-.diary-card {
+/* ==================== ARTICLE CARD (LIST) ==================== */
+.article-card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -1217,12 +1217,12 @@ color: var(--color-text);
   height: 100%;
 }
 
-.diary-card:hover {
+.article-card:hover {
   box-shadow: var(--shadow-md);
   border-color: var(--color-primary);
 }
 
-.diary-card-title {
+.article-card-title {
   font-size: 16px;
   font-weight: 600;
   color: var(--color-text);
@@ -1230,7 +1230,7 @@ color: var(--color-text);
   word-break: break-word;
 }
 
-.diary-card-description {
+.article-card-description {
   font-size: 14px;
   color: var(--color-text-muted);
   margin: 0 0 var(--space-md) 0;
@@ -1244,46 +1244,12 @@ color: var(--color-text);
   flex: 1;
 }
 
-.diary-card-meta {
+.article-card-meta {
   font-size: 13px;
   color: var(--color-text-muted);
   padding-top: var(--space-sm);
   border-top: 1px solid var(--color-border);
   margin-top: auto;
-}
-
-/* ==================== FILTER BAR SORT ==================== */
-.filter-bar-sort {
-  flex: 0 0 auto;
-  width: auto;
-  min-width: 160px;
-  padding: 8px 12px;
-  font-size: 14px;
-  background: var(--color-surface-alt);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  color: var(--color-text);
-  cursor: pointer;
-  font-family: inherit;
-  transition: border-color 0.15s, background-color 0.15s;
-}
-
-.filter-bar-sort:hover {
-  border-color: var(--color-primary);
-}
-
-.filter-bar-sort:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  background: var(--color-surface);
-  box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.15);
-}
-
-@media (max-width: 640px) {
-  .filter-bar-sort {
-    width: 100%;
-    min-width: 0;
-  }
 }
 
 /* ==================== FILTER TOGGLES (compact UI) ==================== */
@@ -1690,7 +1656,7 @@ color: var(--color-text);
   line-height: 1.1;
 }
 
-/* Списки (задачи, записи) */
+/* Списки (задачи, статьи) */
 .dashboard-list {
   display: flex;
   flex-direction: column;

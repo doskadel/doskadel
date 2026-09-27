@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const diaryEntrySchema = new mongoose.Schema({
+const articleSchema = new mongoose.Schema({
   title: {
     type: String,
     required: true,
@@ -20,4 +20,4 @@ const diaryEntrySchema = new mongoose.Schema({
   timestamps: true
 });
 
-module.exports = mongoose.model('DiaryEntry', diaryEntrySchema);
+module.exports = mongoose.model('Article', articleSchema);

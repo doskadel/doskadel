@@ -9,235 +9,205 @@
 - Docker контейнеры для каждого компонента
 
 ### 1.2 Функциональные модули
-1. **Аутентификация и авторизация**
-2. **Управление задачами**
-3. **Дневник/справочник**
-4. **Поиск и фильтрация**
-5. **Синхронизация данных**
-6. **Чат-бот (перспективный модуль)**
+1. **Аутентификация и авторизация** — ✅ реализовано
+2. **Управление задачами** (канбан + список, статусы, приоритеты) — ✅ реализовано
+3. **База знаний** (статьи, фильтры, поиск) — ✅ реализовано
+4. **Поиск и фильтрация** — ✅ реализовано
+5. **Дашборд с агрегацией** — ✅ реализовано
+6. **Синхронизация данных** — ⏳ в планах
+7. **Чат-бот (текстовые и голосовые команды)** — ⏳ в планах
 
 ## 2. Backend реализация
 
 ### 2.1 Технологии
-- Node.js с Express.js
-- MongoDB с Mongoose
+- Node.js 20 с Express.js
+- MongoDB 7 с Mongoose 7
 - JWT для аутентификации
 - Docker для контейнеризации
 
 ### 2.2 API endpoints
-```
-POST /api/auth/register        - Регистрация пользователя
-POST /api/auth/login           - Вход пользователя
-GET /api/tasks                 - Получение списка задач
-POST /api/tasks                - Создание задачи
-PUT /api/tasks/:id             - Обновление задачи
-DELETE /api/tasks/:id          - Удаление задачи
-GET /api/diary                 - Получение записей дневника
-POST /api/diary                - Создание записи
-PUT /api/diary/:id             - Обновление записи
-DELETE /api/diary/:id          - Удаление записи
-GET /api/search                - Поиск по содержимому
-```
+
+**Auth**
+- `POST /api/auth/register` — регистрация
+- `POST /api/auth/login` — вход
+
+**Statuses (требуют JWT)**
+- `GET /api/statuses` — все статусы пользователя
+- `POST /api/statuses` — создание
+- `PUT /api/statuses/reorder` — переупорядочивание
+- `PUT /api/statuses/:id` — обновление
+- `DELETE /api/statuses/:id` — удаление
+
+**Tasks (требуют JWT)**
+- `GET /api/tasks` — список задач
+- `POST /api/tasks` — создание
+- `GET /api/tasks/:id` — одна задача
+- `PUT /api/tasks/:id` — обновление
+- `DELETE /api/tasks/:id` — удаление
+- `PUT /api/tasks/reorder` — переупорядочивание
+
+**Articles (требуют JWT)**
+- `GET /api/articles` — список статей
+- `POST /api/articles` — создание
+- `GET /api/articles/:id` — одна статья
+- `PUT /api/articles/:id` — обновление
+- `DELETE /api/articles/:id` — удаление
+
+**Search (требует JWT)**
+- `GET /api/search?q=<query>` — поиск по задачам и статьям
+
+**Dashboard (требует JWT)**
+- `GET /api/dashboard` — агрегированные данные
 
 ### 2.3 Структура данных
 
-#### Пользователь (User)
-```json
-{
-  "_id": "ObjectId",
-  "username": "string",
-  "email": "string",
-  "password": "string",
-  "createdAt": "date",
-  "updatedAt": "date"
-}
-```
+**User:** _id, username (unique), email (unique, lowercase), password (bcrypt), createdAt, updatedAt
 
-#### Задача (Task)
-```json
-{
-  "_id": "ObjectId",
-  "userId": "ObjectId",
-  "title": "string",
-  "description": "string",
-  "status": "string", // pending, in_progress, completed, cancelled
-  "priority": "number", // 1-5
-  "createdAt": "date",
-  "updatedAt": "date",
-  "dueDate": "date"
-}
-```
+**Status:** _id, userId (ref User), name, color (hex), order, createdAt, updatedAt
 
-#### Запись дневника (DiaryEntry)
-```json
-{
-  "_id": "ObjectId",
-  "userId": "ObjectId",
-  "title": "string",
-  "content": "string",
-  "tags": ["string"],
-  "createdAt": "date",
-  "updatedAt": "date"
-}
-```
+**Task:** _id, userId (ref User), title, description, statusId (ref Status), priority (1-3), order, dueDate?, createdAt, updatedAt
+
+**Article:** _id, userId (ref User), title, content, createdAt, updatedAt
 
 ## 3. Frontend реализация
 
 ### 3.1 Технологии
-- React.js с TypeScript
-- Material-UI для дизайна
-- Redux Toolkit для управления состоянием
-- Axios для HTTP запросов
-- Docker для контейнеризации
+- React 18 с TypeScript 4.9
+- Create React App 5
+- react-router-dom 6
+- axios (централизованный клиент с interceptor)
+- CSS-переменные (без UI-библиотек)
+- @dnd-kit (drag-n-drop для канбана)
 
 ### 3.2 Основные компоненты
-1. **Auth Components**:
-   - Login Form
-   - Register Form
-
-2. **Main Components**:
-   - Dashboard (главный экран с поиском)
-   - Task List
-   - Task Detail
-   - Diary List
-   - Diary Entry Form
-   - Search Results
-
-3. **Navigation**:
-   - Main Navigation Bar
-   - Sidebar Menu
+- **Auth:** Login, Register
+- **Layout:** шапка с навигацией (Главная, Мои задачи, База знаний, Поиск)
+- **Dashboard:** счётчики, плашки по статусам, последние задачи, последние статьи
+- **Tasks:** канбан + список, фильтры в поповерах, StatusManager, TaskModal, TaskDetail
+- **Knowledge:** сетка статей, ArticleModal, ArticleDetail
+- **Search:** глобальный поиск по задачам и статьям
 
 ### 3.3 Структура приложения
-```
-src/
+
+worklist/
+├── .gitignore
+├── PROJECT_PLAN.md
+├── README.md
+├── docker-compose.yml
+├── package.json
+│
+├── backend/
+│ ├── .env.example
+│ ├── Dockerfile
+│ ├── package.json
+│ ├── server.js
+│ └── src/
+│ ├── controllers/
+│ │ ├── articleController.js
+│ │ ├── authController.js
+│ │ ├── dashboardController.js
+│ │ ├── statusController.js
+│ │ └── taskController.js
+│ ├── middleware/
+│ │ ├── auth.js
+│ │ └── errorHandler.js
+│ ├── models/
+│ │ ├── Article.js
+│ │ ├── Status.js
+│ │ ├── Task.js
+│ │ └── User.js
+│ ├── routes/
+│ │ ├── articles.js
+│ │ ├── auth.js
+│ │ ├── dashboard.js
+│ │ ├── search.js
+│ │ ├── statuses.js
+│ │ └── tasks.js
+│ └── utils/
+│ └── defaultStatuses.js
+│
+└── frontend/
+├── .env.example
+├── Dockerfile
+├── package.json
+├── tsconfig.json
+├── public/
+│ ├── index.html
+│ └── manifest.json
+└── src/
+├── App.css
+├── App.tsx
+├── index.css
+├── index.tsx
 ├── components/
-│   ├── auth/
-│   ├── tasks/
-│   ├── diary/
-│   ├── search/
-│   └── layout/
-├── pages/
-│   ├── Dashboard/
-│   ├── Tasks/
-│   ├── Diary/
-│   └── Login/
-├── services/
-│   ├── api/
-│   └── auth/
-├── store/
-│   ├── slices/
-│   └── index.ts
-└── App.tsx
-```
+│ ├── ArticleDetail.tsx
+│ ├── ArticleFilterBar.tsx
+│ ├── ArticleModal.tsx
+│ ├── Dashboard.tsx
+│ ├── FilterBar.tsx
+│ ├── KanbanBoard.tsx
+│ ├── Knowledge.tsx
+│ ├── Layout.tsx
+│ ├── Login.tsx
+│ ├── Modal.tsx
+│ ├── MultiSelect.tsx
+│ ├── ProtectedRoute.tsx
+│ ├── Register.tsx
+│ ├── Search.tsx
+│ ├── StatusManager.tsx
+│ ├── TaskDetail.tsx
+│ ├── TaskModal.tsx
+│ └── Tasks.tsx
+├── hooks/
+│ └── useMediaQuery.ts
+└── utils/
+├── api.ts
+├── priority.ts
+├── sort.ts
+├── status.ts
+└── token.ts
+
+
 
 ## 4. Docker конфигурация
 
-### 4.1 docker-compose.yml
-```yaml
-version: '3.8'
-services:
-  backend:
-    build: ./backend
-    ports:
-      - "5000:5000"
-    environment:
-      - MONGODB_URI=mongodb://mongo:27017/worklist
-    depends_on:
-      - mongo
-    networks:
-      - worklist-network
-
-  frontend:
-    build: ./frontend
-    ports:
-      - "3000:3000"
-    depends_on:
-      - backend
-    networks:
-      - worklist-network
-
-  mongo:
-    image: mongo:latest
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo_data:/data/db
-    networks:
-      - worklist-network
-
-networks:
-  worklist-network:
-    driver: bridge
-
-volumes:
-  mongo_data:
-```
+- `docker-compose.yml` — три сервиса: backend, frontend, mongo
+- MongoDB 7.0 с named volume `mongo_data` и healthcheck
+- Backend и frontend монтируются через volume (hot-reload)
 
 ## 5. Этапы реализации
 
-### Этап 1: Подготовка и базовая структура (1-2 дня)
-- Создание проекта и структуры
-- Настройка Docker контейнеров
-- Базовая архитектура backend
-- Базовая архитектура frontend
+- ✅ Этап 1: Подготовка и базовая структура
+- ✅ Этап 2: Аутентификация и базовые API
+- ✅ Этап 3: Поиск и фильтрация
+- ✅ Этап 4: Канбан и статусы
+- ✅ Этап 5: Дашборд с агрегацией
+- ✅ Этап 6: База знаний (статьи)
+- ⏳ Этап 7: Синхронизация данных
+- ⏳ Этап 8: Чат-бот
 
-### Этап 2: Аутентификация и базовые API (2-3 дня)
-- Реализация пользовательской системы
-- JWT аутентификация
-- CRUD операции для задач
-- CRUD операции для дневника
+## 6. В планах
 
-### Этап 3: Поиск и фильтрация (1-2 дня)
-- Реализация полнотекстового поиска
-- Фильтрация записей
-- Главный экран с поиском
+### Функционал
+- Глобальный поиск в шапке (иконка + dropdown)
+- Связи между задачами и статьями
+- Напоминания и дедлайны (dueDate в UI)
+- Файлы и таблицы в статьях (Markdown)
 
-### Этап 4: Синхронизация данных (1 день)
-- Настройка синхронизации между клиентами
-- Обработка конфликтов
+### UX
+- Свой ConfirmDialog вместо `window.confirm`
+- Тёмная тема
+- Иконки (lucide-react)
+- Адаптив под мобильные
 
-### Этап 5: Чат-бот (перспективный модуль)
-- Интеграция чат-бота
-- Поддержка текстовых команд
-- Поддержка голосовых команд
+### Перспективное
+- Синхронизация в реальном времени (WebSocket)
+- Чат-бот (текстовые и голосовые команды)
+- PWA / Capacitor
+- i18n (RU/EN)
+- Экспорт данных
 
-## 6. Тестирование
-
-### 6.1 Backend тесты
-- Модульные тесты для API endpoints
-- Integration тесты для базы данных
-- E2E тесты для основных функций
-
-### 6.2 Frontend тесты
-- Unit тесты для компонентов
-- Integration тесты для маршрутов
-- E2E тесты с Cypress
-
-## 7. Документация
-
-### 7.1 API документация
-- Swagger/OpenAPI документация
-- Примеры запросов и ответов
-
-### 7.2 Пользовательская документация
-- Руководство пользователя
-- Гайд по началу работы
-
-## 8. Deployment
-
-### 8.1 Локальный запуск
-- Docker Compose для локальной разработки
-
-### 8.2 Production deployment
-- CI/CD pipeline
-- Cloud deployment (AWS/Azure/GCP)
-
-## 9. Поддержка и обновления
-
-### 9.1 Мониторинг
-- Логирование ошибок
-- Мониторинг производительности
-
-### 9.2 Обновления
-- Автоматические обновления
-- Планирование релизов
+### Технический долг
+- Миграция с CRA 5 на Vite
+- Ограничить CORS для продакшена
+- Отсутствуют favicon.ico, logo192.png, logo512.png (упомянуты в manifest.json)

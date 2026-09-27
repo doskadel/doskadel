@@ -18,7 +18,7 @@ interface RecentTask {
   updatedAt: string;
 }
 
-interface RecentDiary {
+interface RecentArticle {
   _id: string;
   title: string;
   createdAt: string;
@@ -27,10 +27,18 @@ interface RecentDiary {
 interface DashboardData {
   statusCounts: StatusCount[];
   totalTasks: number;
-  totalDiary: number;
+  totalArticles: number;
   recentTasks: RecentTask[];
-  recentDiary: RecentDiary[];
+  recentArticles: RecentArticle[];
 }
+
+const pluralize = (n: number, one: string, few: string, many: string): string => {
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return one;
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return few;
+  return many;
+};
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -74,7 +82,15 @@ const Dashboard: React.FC = () => {
   if (error) return <p style={{ color: 'var(--color-danger)' }}>{error}</p>;
   if (!data) return null;
 
-  const isEmpty = data.totalTasks === 0 && data.totalDiary === 0;
+  const isEmpty = data.totalTasks === 0 && data.totalArticles === 0;
+
+  const tasksLabel = pluralize(data.totalTasks, 'задача', 'задачи', 'задач');
+  const articlesLabel = pluralize(
+    data.totalArticles,
+    'статья',
+    'статьи',
+    'статей'
+  );
 
   return (
     <div className="dashboard">
@@ -84,7 +100,7 @@ const Dashboard: React.FC = () => {
         <div className="dashboard-empty">
           <p className="dashboard-empty-title">Добро пожаловать в WorkList</p>
           <p className="dashboard-empty-text">
-            Начните с создания первой задачи или записи в дневнике.
+            Начните с создания первой задачи или статьи в базе знаний.
           </p>
           <div className="dashboard-empty-actions">
             <button
@@ -98,9 +114,9 @@ const Dashboard: React.FC = () => {
               type="button"
               className="button"
               style={{ backgroundColor: 'var(--color-text-muted)' }}
-              onClick={() => navigate('/diary')}
+              onClick={() => navigate('/knowledge')}
             >
-              + Добавить запись
+              + Добавить статью
             </button>
           </div>
         </div>
@@ -116,22 +132,18 @@ const Dashboard: React.FC = () => {
               onKeyDown={(e) => e.key === 'Enter' && navigate('/tasks')}
             >
               <div className="dashboard-counter-value">{data.totalTasks}</div>
-              <div className="dashboard-counter-label">
-                {data.totalTasks === 1 ? 'задача' : data.totalTasks < 5 ? 'задачи' : 'задач'}
-              </div>
+              <div className="dashboard-counter-label">{tasksLabel}</div>
             </div>
 
             <div
               className="dashboard-counter"
-              onClick={() => navigate('/diary')}
+              onClick={() => navigate('/knowledge')}
               role="button"
               tabIndex={0}
-              onKeyDown={(e) => e.key === 'Enter' && navigate('/diary')}
+              onKeyDown={(e) => e.key === 'Enter' && navigate('/knowledge')}
             >
-              <div className="dashboard-counter-value">{data.totalDiary}</div>
-              <div className="dashboard-counter-label">
-                {data.totalDiary === 1 ? 'запись' : data.totalDiary < 5 ? 'записи' : 'записей'}
-              </div>
+              <div className="dashboard-counter-value">{data.totalArticles}</div>
+              <div className="dashboard-counter-label">{articlesLabel}</div>
             </div>
           </div>
 
@@ -198,31 +210,31 @@ const Dashboard: React.FC = () => {
             </div>
           )}
 
-          {/* --- Последние записи --- */}
-          {data.recentDiary.length > 0 && (
+          {/* --- Последние статьи --- */}
+          {data.recentArticles.length > 0 && (
             <div className="dashboard-section">
               <div className="dashboard-section-header">
-                <h3 className="dashboard-section-title">Последние записи</h3>
+                <h3 className="dashboard-section-title">Последние статьи</h3>
                 <button
                   type="button"
                   className="dashboard-section-link"
-                  onClick={() => navigate('/diary')}
+                  onClick={() => navigate('/knowledge')}
                 >
                   Все →
                 </button>
               </div>
               <div className="dashboard-list">
-                {data.recentDiary.map((d) => (
+                {data.recentArticles.map((a) => (
                   <div
-                    key={d._id}
+                    key={a._id}
                     className="dashboard-item"
-                    onClick={() => navigate(`/diary?entry=${d._id}`)}
+                    onClick={() => navigate(`/knowledge?article=${a._id}`)}
                     role="button"
                     tabIndex={0}
-                    onKeyDown={(e) => e.key === 'Enter' && navigate(`/diary?entry=${d._id}`)}
+                    onKeyDown={(e) => e.key === 'Enter' && navigate(`/knowledge?article=${a._id}`)}
                   >
-                    <span className="dashboard-item-title">{d.title}</span>
-                    <span className="dashboard-item-date">{formatDate(d.createdAt)}</span>
+                    <span className="dashboard-item-title">{a.title}</span>
+                    <span className="dashboard-item-date">{formatDate(a.createdAt)}</span>
                   </div>
                 ))}
               </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { DIARY_SORT_OPTIONS } from '../utils/sort';
+import { ARTICLE_SORT_OPTIONS } from '../utils/sort';
 
-interface DiaryFilterBarProps {
+interface ArticleFilterBarProps {
   q: string;
   onQChange: (q: string) => void;
   dateFrom: string;
@@ -17,7 +17,7 @@ interface DiaryFilterBarProps {
 
 type OpenPopover = 'search' | 'sort' | 'dates' | null;
 
-const DiaryFilterBar: React.FC<DiaryFilterBarProps> = ({
+const ArticleFilterBar: React.FC<ArticleFilterBarProps> = ({
   q,
   onQChange,
   dateFrom,
@@ -79,7 +79,7 @@ const DiaryFilterBar: React.FC<DiaryFilterBarProps> = ({
   const isDatesActive = !!(dateFrom || dateTo);
 
   const activeSortLabel =
-    DIARY_SORT_OPTIONS.find((o) => o.value === sort)?.label || 'Сортировка';
+    ARTICLE_SORT_OPTIONS.find((o) => o.value === sort)?.label || 'Сортировка';
 
   return (
     <div className="filter-bar">
@@ -153,7 +153,7 @@ const DiaryFilterBar: React.FC<DiaryFilterBarProps> = ({
 
         {/* --- ПРАВАЯ ЧАСТЬ: поиск, сортировка, сброс --- */}
         <div className="filter-bar-right">
-          {/* --- Поиск (первый) --- */}
+          {/* --- Поиск --- */}
           <div className="filter-icon-wrap filter-icon-wrap--right">
             <button
               type="button"
@@ -176,7 +176,7 @@ const DiaryFilterBar: React.FC<DiaryFilterBarProps> = ({
                 <input
                   ref={searchInputRef}
                   type="text"
-                  placeholder="Поиск по дневнику..."
+                  placeholder="Поиск по базе знаний..."
                   value={searchLocal}
                   onChange={(e) => commitSearch(e.target.value)}
                   className="input"
@@ -185,7 +185,7 @@ const DiaryFilterBar: React.FC<DiaryFilterBarProps> = ({
             )}
           </div>
 
-          {/* --- Сортировка (второй) --- */}
+          {/* --- Сортировка --- */}
           <div className="filter-icon-wrap filter-icon-wrap--right">
             <button
               type="button"
@@ -203,7 +203,7 @@ const DiaryFilterBar: React.FC<DiaryFilterBarProps> = ({
 
             {open === 'sort' && (
               <div className="filter-popover filter-popover--sort">
-                {DIARY_SORT_OPTIONS.map((opt) => (
+                {ARTICLE_SORT_OPTIONS.map((opt) => (
                   <button
                     key={opt.value}
                     type="button"
@@ -246,4 +246,4 @@ const DiaryFilterBar: React.FC<DiaryFilterBarProps> = ({
   );
 };
 
-export default DiaryFilterBar;
+export default ArticleFilterBar;

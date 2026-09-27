@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import Modal from './Modal';
 
-interface DiaryEntry {
+interface Article {
   _id: string;
   title: string;
   content: string;
@@ -11,16 +11,16 @@ interface DiaryEntry {
   updatedAt: string;
 }
 
-interface DiaryModalProps {
-  entryId: string | null;
+interface ArticleModalProps {
+  articleId: string | null;
   onClose: () => void;
   onUpdate: () => void;
 }
 
-const DiaryModal: React.FC<DiaryModalProps> = ({ entryId, onClose, onUpdate }) => {
+const ArticleModal: React.FC<ArticleModalProps> = ({ articleId, onClose, onUpdate }) => {
   const navigate = useNavigate();
 
-  const [entry, setEntry] = useState<DiaryEntry | null>(null);
+  const [article, setArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [linkCopied, setLinkCopied] = useState(false);
@@ -31,27 +31,27 @@ const DiaryModal: React.FC<DiaryModalProps> = ({ entryId, onClose, onUpdate }) =
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (!entryId) {
-      setEntry(null);
+    if (!articleId) {
+      setArticle(null);
       setIsEditing(false);
       setLinkCopied(false);
       return;
     }
-    fetchEntry(entryId);
-  }, [entryId]);
+    fetchArticle(articleId);
+  }, [articleId]);
 
-  const fetchEntry = async (id: string) => {
+  const fetchArticle = async (id: string) => {
     setLoading(true);
     setError('');
     try {
-      const response = await api.get(`/api/diary/${id}`);
-      const e = response.data.diaryEntry;
-      setEntry(e);
-      setEditTitle(e.title);
-      setEditContent(e.content);
+      const response = await api.get(`/api/articles/${id}`);
+      const a = response.data.article;
+      setArticle(a);
+      setEditTitle(a.title);
+      setEditContent(a.content);
     } catch (err: any) {
-      console.error('Error fetching entry:', err);
-      setError(err.response?.data?.message || 'Не удалось загрузить запись');
+      console.error('Error fetching article:', err);
+      setError(err.response?.data?.message || 'Не удалось загрузить статью');
     } finally {
       setLoading(false);
     }
@@ -63,9 +63,9 @@ const DiaryModal: React.FC<DiaryModalProps> = ({ entryId, onClose, onUpdate }) =
   };
 
   const startEdit = () => {
-    if (!entry) return;
-    setEditTitle(entry.title);
-    setEditContent(entry.content);
+    if (!article) return;
+    setEditTitle(article.title);
+    setEditContent(article.content);
     setIsEditing(true);
   };
 
@@ -74,38 +74,38 @@ const DiaryModal: React.FC<DiaryModalProps> = ({ entryId, onClose, onUpdate }) =
   };
 
   const saveEdit = async () => {
-    if (!entry) return;
+    if (!article) return;
     setSaving(true);
     try {
-      const response = await api.put(`/api/diary/${entry._id}`, {
+      const response = await api.put(`/api/articles/${article._id}`, {
         title: editTitle,
         content: editContent,
       });
-      setEntry(response.data.diaryEntry);
+      setArticle(response.data.article);
       setIsEditing(false);
       onUpdate();
     } catch (err) {
-      console.error('Error updating entry:', err);
+      console.error('Error updating article:', err);
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!entry) return;
-    if (!window.confirm('Удалить запись?')) return;
+    if (!article) return;
+    if (!window.confirm('Удалить статью?')) return;
     try {
-      await api.delete(`/api/diary/${entry._id}`);
+      await api.delete(`/api/articles/${article._id}`);
       onUpdate();
       onClose();
     } catch (err) {
-      console.error('Error deleting entry:', err);
+      console.error('Error deleting article:', err);
     }
   };
 
   const handleCopyLink = async () => {
-    if (!entry) return;
-    const url = `${window.location.origin}/diary?entry=${entry._id}`;
+    if (!article) return;
+    const url = `${window.location.origin}/knowledge?article=${article._id}`;
     try {
       await navigator.clipboard.writeText(url);
       setLinkCopied(true);
@@ -116,14 +116,14 @@ const DiaryModal: React.FC<DiaryModalProps> = ({ entryId, onClose, onUpdate }) =
   };
 
   const openFullPage = () => {
-    if (!entry) return;
+    if (!article) return;
     onClose();
-    navigate(`/diary/${entry._id}`);
+    navigate(`/knowledge/${article._id}`);
   };
 
-  const modalTitle = isEditing ? 'Редактирование записи' : (entry?.title || '');
+  const modalTitle = isEditing ? 'Редактирование статьи' : (article?.title || '');
 
-  const rail = entry && !loading && !error ? (
+  const rail = article && !loading && !error ? (
     <>
       <button
         type="button"
@@ -157,11 +157,11 @@ const DiaryModal: React.FC<DiaryModalProps> = ({ entryId, onClose, onUpdate }) =
   ) : null;
 
   return (
-    <Modal open={!!entryId} onClose={handleClose} title={modalTitle} wide rightRail={rail}>
+    <Modal open={!!articleId} onClose={handleClose} title={modalTitle} wide rightRail={rail}>
       {loading && <p>Загрузка...</p>}
       {error && <p style={{ color: 'var(--color-danger)' }}>{error}</p>}
 
-      {entry && !loading && !error && (
+      {article && !loading && !error && (
         <>
           {isEditing ? (
             <div className="form" style={{ maxWidth: '100%', margin: 0 }}>
@@ -204,17 +204,17 @@ const DiaryModal: React.FC<DiaryModalProps> = ({ entryId, onClose, onUpdate }) =
           ) : (
             <div>
               <div style={{ marginBottom: 'var(--space-lg)' }}>
-                <p style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', wordBreak: 'break-word', color: 'var(--color-text)', margin: 0 }}>{entry.content}</p>
+                <p style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', wordBreak: 'break-word', color: 'var(--color-text)', margin: 0 }}>{article.content}</p>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-md)' }}>
                 <div>
                   <p style={{ fontSize: '12px', textTransform: 'uppercase', color: 'var(--color-text-muted)', marginBottom: '4px' }}>Создано</p>
-                  <p style={{ color: 'var(--color-text)', fontSize: '15px' }}>{new Date(entry.createdAt).toLocaleString('ru-RU')}</p>
+                  <p style={{ color: 'var(--color-text)', fontSize: '15px' }}>{new Date(article.createdAt).toLocaleString('ru-RU')}</p>
                 </div>
                 <div>
                   <p style={{ fontSize: '12px', textTransform: 'uppercase', color: 'var(--color-text-muted)', marginBottom: '4px' }}>Обновлено</p>
-                  <p style={{ color: 'var(--color-text)', fontSize: '15px' }}>{new Date(entry.updatedAt).toLocaleString('ru-RU')}</p>
+                  <p style={{ color: 'var(--color-text)', fontSize: '15px' }}>{new Date(article.updatedAt).toLocaleString('ru-RU')}</p>
                 </div>
               </div>
 
@@ -244,4 +244,4 @@ const DiaryModal: React.FC<DiaryModalProps> = ({ entryId, onClose, onUpdate }) =
   );
 };
 
-export default DiaryModal;
+export default ArticleModal;

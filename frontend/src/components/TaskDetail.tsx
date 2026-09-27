@@ -1,62 +1,52 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../utils/api';
+import { PRIORITY_OPTIONS, getPriorityLabel } from '../utils/priority';
+import { Status } from '../utils/status';
 
 interface Task {
   _id: string;
   title: string;
   description: string;
-  status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
+  statusId: string;
   priority: number;
   createdAt: string;
   updatedAt: string;
-  dueDate?: string;
 }
-
-const statusMap: Record<string, string> = {
-  pending: 'В ожидании',
-  in_progress: 'В работе',
-  completed: 'Выполнено',
-  cancelled: 'Отменено',
-};
-
-const statusOptions: Array<Task['status']> = ['pending', 'in_progress', 'completed', 'cancelled'];
-
-const priorityLabel = (p: number): string => {
-  if (p <= 1) return 'Очень низкий';
-  if (p === 2) return 'Низкий';
-  if (p === 3) return 'Средний';
-  if (p === 4) return 'Высокий';
-  return 'Критичный';
-};
 
 const TaskDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
   const [task, setTask] = useState<Task | null>(null);
+  const [statuses, setStatuses] = useState<Status[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState('');
   const [editDescription, setEditDescription] = useState('');
-  const [editStatus, setEditStatus] = useState<Task['status']>('pending');
-  const [editPriority, setEditPriority] = useState(1);
+  const [editStatusId, setEditStatusId] = useState('');
+  const [editPriority, setEditPriority] = useState(2);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    fetchTask();
+    fetchData();
   }, [id]);
 
-  const fetchTask = async () => {
+  const fetchData = async () => {
     try {
-      const response = await api.get(`/api/tasks/${id}`);
-      setTask(response.data.task);
-      setEditTitle(response.data.task.title);
-      setEditDescription(response.data.task.description || '');
-      setEditStatus(response.data.task.status);
-      setEditPriority(response.data.task.priority);
+      const [taskRes, statusesRes] = await Promise.all([
+        api.get(`/api/tasks/${id}`),
+        api.get('/api/statuses'),
+      ]);
+      const t = taskRes.data.task;
+      setTask(t);
+      setStatuses(statusesRes.data.statuses);
+      setEditTitle(t.title);
+      setEditDescription(t.description || '');
+      setEditStatusId(t.statusId);
+      setEditPriority(t.priority);
       setLoading(false);
     } catch (err: any) {
       console.error('Error fetching task:', err);
@@ -69,7 +59,7 @@ const TaskDetail: React.FC = () => {
     if (!task) return;
     setEditTitle(task.title);
     setEditDescription(task.description || '');
-    setEditStatus(task.status);
+    setEditStatusId(task.statusId);
     setEditPriority(task.priority);
     setIsEditing(true);
   };
@@ -85,7 +75,7 @@ const TaskDetail: React.FC = () => {
       const response = await api.put(`/api/tasks/${task._id}`, {
         title: editTitle,
         description: editDescription,
-        status: editStatus,
+        statusId: editStatusId,
         priority: editPriority,
       });
       setTask(response.data.task);
@@ -108,10 +98,10 @@ const TaskDetail: React.FC = () => {
     }
   };
 
-  const quickChangeStatus = async (newStatus: Task['status']) => {
+  const quickChangeStatus = async (newStatusId: string) => {
     if (!task) return;
     try {
-      const response = await api.put(`/api/tasks/${task._id}`, { status: newStatus });
+      const response = await api.put(`/api/tasks/${task._id}`, { statusId: newStatusId });
       setTask(response.data.task);
     } catch (err) {
       console.error('Error changing status:', err);
@@ -144,23 +134,23 @@ const TaskDetail: React.FC = () => {
               placeholder="Описание"
             />
             <select
-              value={editStatus}
-              onChange={(e) => setEditStatus(e.target.value as Task['status'])}
+              value={editStatusId}
+              onChange={(e) => setEditStatusId(e.target.value)}
               className="input"
             >
-              {statusOptions.map((s) => (
-                <option key={s} value={s}>{statusMap[s]}</option>
+              {statuses.map((s) => (
+                <option key={s._id} value={s._id}>{s.name}</option>
               ))}
             </select>
-            <input
-              type="number"
-              min="1"
-              max="5"
+            <select
               value={editPriority}
-              onChange={(e) => setEditPriority(parseInt(e.target.value) || 1)}
+              onChange={(e) => setEditPriority(parseInt(e.target.value))}
               className="input"
-              placeholder="Приоритет (1-5)"
-            />
+            >
+              {PRIORITY_OPTIONS.map((p) => (
+                <option key={p.value} value={p.value}>{p.label}</option>
+              ))}
+            </select>
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
               <button
                 type="button"
@@ -216,19 +206,19 @@ const TaskDetail: React.FC = () => {
             <div>
               <p style={{ fontSize: '12px', textTransform: 'uppercase', color: 'var(--color-text-muted)', marginBottom: '4px' }}>Статус</p>
               <select
-                value={task.status}
-                onChange={(e) => quickChangeStatus(e.target.value as Task['status'])}
+                value={task.statusId}
+                onChange={(e) => quickChangeStatus(e.target.value)}
                 className="input"
                 style={{ padding: '6px 10px', fontSize: '14px' }}
               >
-                {statusOptions.map((s) => (
-                  <option key={s} value={s}>{statusMap[s]}</option>
+                {statuses.map((s) => (
+                  <option key={s._id} value={s._id}>{s.name}</option>
                 ))}
               </select>
             </div>
             <div>
               <p style={{ fontSize: '12px', textTransform: 'uppercase', color: 'var(--color-text-muted)', marginBottom: '4px' }}>Приоритет</p>
-              <p style={{ color: 'var(--color-text)', fontSize: '15px' }}>{task.priority} — {priorityLabel(task.priority)}</p>
+              <p style={{ color: 'var(--color-text)', fontSize: '15px' }}>{getPriorityLabel(task.priority)}</p>
             </div>
             <div>
               <p style={{ fontSize: '12px', textTransform: 'uppercase', color: 'var(--color-text-muted)', marginBottom: '4px' }}>Создано</p>
@@ -242,7 +232,7 @@ const TaskDetail: React.FC = () => {
 
           <div style={{ marginTop: 'var(--space-lg)', paddingTop: 'var(--space-md)', borderTop: '1px solid var(--color-border)' }}>
             <p style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
-              💡 Скоро: возможность связывать задачи с записями дневника
+              💡 Скоро: возможность связывать задачи со статьями
             </p>
           </div>
         </div>

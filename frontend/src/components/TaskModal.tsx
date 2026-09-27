@@ -286,7 +286,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ taskId, statuses, onClose, onUpda
 
               <div style={{ marginTop: 'var(--space-xl)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 'var(--space-md)', flexWrap: 'wrap' }}>
                 <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', margin: 0 }}>
-                  💡 Скоро: связь с дневником
+                  💡 Скоро: связь с базой знаний
                 </p>
                 <button
                   type="button"

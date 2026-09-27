@@ -1,18 +1,18 @@
 const express = require('express');
 const auth = require('../middleware/auth');
 const Task = require('../models/Task');
-const DiaryEntry = require('../models/DiaryEntry');
+const Article = require('../models/Article');
 const router = express.Router();
 
-// Поиск задач и записей дневника
+// Поиск задач и статей
 router.get('/', auth, async (req, res) => {
   try {
     const { q } = req.query;
-    
+
     if (!q) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        message: 'Search query is required' 
+        message: 'Search query is required'
       });
     }
 
@@ -25,8 +25,8 @@ router.get('/', auth, async (req, res) => {
       ]
     });
 
-    // Поиск записей дневника
-    const diaryEntries = await DiaryEntry.find({
+    // Поиск статей
+    const articles = await Article.find({
       userId: req.user._id,
       $or: [
         { title: { $regex: q, $options: 'i' } },
@@ -38,13 +38,13 @@ router.get('/', auth, async (req, res) => {
       success: true,
       results: {
         tasks,
-        diaryEntries
+        articles
       }
     });
   } catch (error) {
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      message: 'Server error' 
+      message: 'Server error'
     });
   }
 });

@@ -1,6 +1,6 @@
 const Task = require('../models/Task');
 const Status = require('../models/Status');
-const DiaryEntry = require('../models/DiaryEntry');
+const Article = require('../models/Article');
 
 // Получение агрегированных данных для дашборда
 const getDashboard = async (req, res) => {
@@ -24,7 +24,7 @@ const getDashboard = async (req, res) => {
 
     // Общие счётчики
     const totalTasks = await Task.countDocuments({ userId });
-    const totalDiary = await DiaryEntry.countDocuments({ userId });
+    const totalArticles = await Article.countDocuments({ userId });
 
     // Последние 5 задач по updatedAt
     const recentTasks = await Task.find({ userId })
@@ -32,8 +32,8 @@ const getDashboard = async (req, res) => {
       .limit(5)
       .select('_id title statusId priority updatedAt');
 
-    // Последние 5 записей дневника по createdAt
-    const recentDiary = await DiaryEntry.find({ userId })
+    // Последние 5 статей по createdAt
+    const recentArticles = await Article.find({ userId })
       .sort({ createdAt: -1 })
       .limit(5)
       .select('_id title createdAt');
@@ -43,9 +43,9 @@ const getDashboard = async (req, res) => {
       dashboard: {
         statusCounts,
         totalTasks,
-        totalDiary,
+        totalArticles,
         recentTasks,
-        recentDiary
+        recentArticles
       }
     });
   } catch (error) {

@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import api from '../utils/api';
 import Modal from './Modal';
-import DiaryModal from './DiaryModal';
-import DiaryFilterBar from './DiaryFilterBar';
+import ArticleModal from './ArticleModal';
+import ArticleFilterBar from './ArticleFilterBar';
 
-interface DiaryEntry {
+interface Article {
   _id: string;
   title: string;
   content: string;
@@ -14,16 +14,16 @@ interface DiaryEntry {
 
 const DEFAULT_SORT = 'createdAt_desc';
 
-const Diary: React.FC = () => {
+const Knowledge: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const openedEntryId = searchParams.get('entry');
+  const openedArticleId = searchParams.get('article');
   const q = searchParams.get('q') || '';
   const dateFrom = searchParams.get('dateFrom') || '';
   const dateTo = searchParams.get('dateTo') || '';
   const sortParam = searchParams.get('sort') || '';
 
-  const [entries, setEntries] = useState<DiaryEntry[]>([]);
+  const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [createOpen, setCreateOpen] = useState(false);
@@ -47,7 +47,7 @@ const Diary: React.FC = () => {
   }, [searchInput]);
 
   useEffect(() => {
-    fetchEntries();
+    fetchArticles();
   }, [q, dateFrom, dateTo, sortParam]);
 
   const updateQuery = (updates: Record<string, string | null>) => {
@@ -62,7 +62,7 @@ const Diary: React.FC = () => {
     setSearchParams(next, { replace: true });
   };
 
-  const fetchEntries = async () => {
+  const fetchArticles = async () => {
     try {
       const params = new URLSearchParams();
       if (q) params.set('q', q);
@@ -70,25 +70,25 @@ const Diary: React.FC = () => {
       if (dateTo) params.set('dateTo', dateTo);
       if (sortParam) params.set('sort', sortParam);
 
-      const url = '/api/diary' + (params.toString() ? '?' + params.toString() : '');
+      const url = '/api/articles' + (params.toString() ? '?' + params.toString() : '');
       const response = await api.get(url);
-      setEntries(response.data.diaryEntries);
+      setArticles(response.data.articles);
       setLoading(false);
     } catch (err) {
-      console.error('Error fetching diary entries:', err);
+      console.error('Error fetching articles:', err);
       setLoading(false);
     }
   };
 
-  const openEntry = (id: string) => {
+  const openArticle = (id: string) => {
     const next = new URLSearchParams(searchParams);
-    next.set('entry', id);
+    next.set('article', id);
     setSearchParams(next);
   };
 
-  const closeEntryModal = () => {
+  const closeArticleModal = () => {
     const next = new URLSearchParams(searchParams);
-    next.delete('entry');
+    next.delete('article');
     setSearchParams(next);
   };
 
@@ -112,12 +112,12 @@ const Diary: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.post('/api/diary', { title, content });
+      await api.post('/api/articles', { title, content });
       resetCreateForm();
       setCreateOpen(false);
-      fetchEntries();
+      fetchArticles();
     } catch (err) {
-      console.error('Error creating diary entry:', err);
+      console.error('Error creating article:', err);
     }
   };
 
@@ -150,17 +150,17 @@ const Diary: React.FC = () => {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-lg)', gap: 'var(--space-md)', flexWrap: 'wrap' }}>
-        <h2 className="page-title" style={{ margin: 0 }}>Дневник</h2>
+        <h2 className="page-title" style={{ margin: 0 }}>База знаний</h2>
         <button
           type="button"
           className="button"
           onClick={() => setCreateOpen(true)}
         >
-          + Добавить запись
+          + Добавить статью
         </button>
       </div>
 
-      <DiaryFilterBar
+      <ArticleFilterBar
         q={searchInput}
         onQChange={setSearchInput}
         dateFrom={dateFrom}
@@ -174,7 +174,7 @@ const Diary: React.FC = () => {
         onSortChange={(s) => updateQuery({ sort: s === DEFAULT_SORT ? null : s })}
       />
 
-      <Modal open={createOpen} onClose={handleCloseCreate} title="Новая запись">
+      <Modal open={createOpen} onClose={handleCloseCreate} title="Новая статья">
         <form onSubmit={handleSubmit} className="form">
           <input
             type="text"
@@ -207,39 +207,39 @@ const Diary: React.FC = () => {
         </form>
       </Modal>
 
-      <DiaryModal
-        entryId={openedEntryId}
-        onClose={closeEntryModal}
-        onUpdate={fetchEntries}
+      <ArticleModal
+        articleId={openedArticleId}
+        onClose={closeArticleModal}
+        onUpdate={fetchArticles}
       />
 
-      {entries.length === 0 && hasActiveFilters && (
+      {articles.length === 0 && hasActiveFilters && (
         <p style={{ color: 'var(--color-text-muted)', textAlign: 'center', padding: 'var(--space-xl)' }}>
           Ничего не найдено по вашим фильтрам
         </p>
       )}
 
-      {entries.length === 0 && !hasActiveFilters && (
-        <p style={{ color: 'var(--color-text-muted)' }}>Записей пока нет</p>
+      {articles.length === 0 && !hasActiveFilters && (
+        <p style={{ color: 'var(--color-text-muted)' }}>Статей пока нет</p>
       )}
 
-      {entries.length > 0 && (
-        <div className="diary-grid">
-          {entries.map((entry) => (
+      {articles.length > 0 && (
+        <div className="article-grid">
+          {articles.map((article) => (
             <div
-              key={entry._id}
-              className="diary-card"
-              onClick={() => openEntry(entry._id)}
+              key={article._id}
+              className="article-card"
+              onClick={() => openArticle(article._id)}
               role="button"
               tabIndex={0}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') openEntry(entry._id);
+                if (e.key === 'Enter') openArticle(article._id);
               }}
             >
-              <h3 className="diary-card-title">{entry.title}</h3>
-              <p className="diary-card-description">{entry.content}</p>
-              <div className="diary-card-meta">
-                Создано: {new Date(entry.createdAt).toLocaleDateString('ru-RU')}
+              <h3 className="article-card-title">{article.title}</h3>
+              <p className="article-card-description">{article.content}</p>
+              <div className="article-card-meta">
+                Создано: {new Date(article.createdAt).toLocaleDateString('ru-RU')}
               </div>
             </div>
           ))}
@@ -249,4 +249,4 @@ const Diary: React.FC = () => {
   );
 };
 
-export default Diary;
+export default Knowledge;

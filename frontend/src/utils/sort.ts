@@ -12,7 +12,7 @@ export const TASK_SORT_OPTIONS: SortOption[] = [
   { value: 'title_desc', label: 'Я → А' },
 ];
 
-export const DIARY_SORT_OPTIONS: SortOption[] = [
+export const ARTICLE_SORT_OPTIONS: SortOption[] = [
   { value: 'createdAt_desc', label: 'Сначала новые' },
   { value: 'createdAt_asc', label: 'Сначала старые' },
   { value: 'title_asc', label: 'А → Я' },

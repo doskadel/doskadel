@@ -10,10 +10,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Уровень 1 — корень, без стрелки
   const isRoot = location.pathname === '/';
 
-  // Родительский путь: отрезаем последний сегмент
   const getParentPath = (path: string): string => {
     const segments = path.split('/').filter(Boolean);
     if (segments.length <= 1) return '/';
@@ -34,7 +32,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const navItems = [
     { path: '/', label: 'Главная' },
     { path: '/tasks', label: 'Мои задачи' },
-    { path: '/diary', label: 'Дневник' },
+    { path: '/knowledge', label: 'База знаний' },
     { path: '/search', label: 'Поиск' },
   ];
 
