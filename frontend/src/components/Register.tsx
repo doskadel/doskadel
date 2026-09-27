@@ -20,19 +20,19 @@ const Register: React.FC = () => {
       
       navigate('/login');
     } catch (err) {
-      setError('Registration failed');
+      setError('Ошибка регистрации');
       console.error('Registration error:', err);
     }
   };
 
   return (
     <div className="card">
-      <h2>Register</h2>
+      <h2>Регистрация</h2>
       {error && <p style={{ color: 'red' }}>{error}</p>}
       <form onSubmit={handleSubmit} className="form">
         <input
           type="text"
-          placeholder="Username"
+          placeholder="Имя пользователя"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           className="input"
@@ -48,13 +48,13 @@ const Register: React.FC = () => {
         />
         <input
           type="password"
-          placeholder="Password"
+          placeholder="Пароль"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           className="input"
           required
         />
-        <button type="submit" className="button">Register</button>
+        <button type="submit" className="button">Зарегистрироваться</button>
       </form>
       <p style={{ marginTop: '15px' }}>
         Уже есть аккаунт? <Link to="/login">Войти</Link>

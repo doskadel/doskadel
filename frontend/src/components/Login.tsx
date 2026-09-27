@@ -22,14 +22,14 @@ const Login: React.FC = () => {
       setToken(token, remember);
       navigate('/');
     } catch (err) {
-      setError('Invalid credentials');
+      setError('Неверный email или пароль');
       console.error('Login error:', err);
     }
   };
 
   return (
     <div className="card">
-      <h2>Login</h2>
+      <h2>Вход</h2>
       {error && <p style={{ color: 'red' }}>{error}</p>}
       <form onSubmit={handleSubmit} className="form">
         <input
@@ -42,7 +42,7 @@ const Login: React.FC = () => {
         />
         <input
           type="password"
-          placeholder="Password"
+          placeholder="Пароль"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           className="input"
@@ -56,7 +56,7 @@ const Login: React.FC = () => {
           />
           Запомнить меня
         </label>
-        <button type="submit" className="button">Login</button>
+        <button type="submit" className="button">Войти</button>
       </form>
       <p style={{ marginTop: '15px' }}>
         Нет аккаунта? <Link to="/register">Зарегистрироваться</Link>

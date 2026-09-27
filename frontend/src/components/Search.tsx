@@ -39,28 +39,28 @@ const Search: React.FC = () => {
 
   return (
     <div>
-      <h2>Search</h2>
+      <h2>Поиск</h2>
       <form onSubmit={handleSearch} className="form">
         <input
           type="text"
-          placeholder="Search tasks and diary entries..."
+          placeholder="Поиск по задачам и дневнику..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="input"
         />
-        <button type="submit" className="button">Search</button>
+        <button type="submit" className="button">Найти</button>
       </form>
 
-      {loading && <p>Searching...</p>}
+      {loading && <p>Поиск...</p>}
       
       {results.length > 0 && (
         <div style={{ marginTop: '20px' }}>
-          <h3>Results:</h3>
+          <h3>Результаты:</h3>
           {results.map((result) => (
             <div key={result._id} className="card" style={{ marginBottom: '10px' }}>
               <h4>{result.title}</h4>
               <p>{result.description}</p>
-              <p>Type: {result.type}</p>
+              <p>Тип: {result.type === 'task' ? 'Задача' : 'Запись'}</p>
             </div>
           ))}
         </div>

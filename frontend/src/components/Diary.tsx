@@ -51,30 +51,30 @@ const Diary: React.FC = () => {
     }
   };
 
-  if (loading) return <p>Loading entries...</p>;
+  if (loading) return <p>Загрузка...</p>;
 
   return (
     <div>
-      <h2>Diary</h2>
+      <h2>Дневник</h2>
       
       <form onSubmit={handleSubmit} className="form">
         <input
           type="text"
-          placeholder="Title"
+          placeholder="Заголовок"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           className="input"
           required
         />
         <textarea
-          placeholder="Content"
+          placeholder="Содержимое"
           value={content}
           onChange={(e) => setContent(e.target.value)}
           className="input"
           rows={5}
           required
         />
-        <button type="submit" className="button">Add Entry</button>
+        <button type="submit" className="button">Добавить запись</button>
       </form>
 
       <div style={{ marginTop: '20px' }}>
@@ -82,7 +82,7 @@ const Diary: React.FC = () => {
           <div key={entry._id} className="card" style={{ marginBottom: '10px' }}>
             <h3>{entry.title}</h3>
             <p>{entry.content}</p>
-            <p>Date: {new Date(entry.createdAt).toLocaleDateString()}</p>
+            <p>Дата: {new Date(entry.createdAt).toLocaleDateString('ru-RU')}</p>
           </div>
         ))}
       </div>

@@ -10,6 +10,13 @@ interface Task {
   createdAt: string;
 }
 
+const statusMap: Record<string, string> = {
+  pending: 'В ожидании',
+  in_progress: 'В работе',
+  completed: 'Выполнено',
+  cancelled: 'Отменено',
+};
+
 const Tasks: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [title, setTitle] = useState('');
@@ -59,23 +66,23 @@ const Tasks: React.FC = () => {
     }
   };
 
-  if (loading) return <p>Loading tasks...</p>;
+  if (loading) return <p>Загрузка...</p>;
 
   return (
     <div>
-      <h2>Tasks</h2>
+      <h2>Мои задачи</h2>
       
       <form onSubmit={handleSubmit} className="form">
         <input
           type="text"
-          placeholder="Title"
+          placeholder="Название"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           className="input"
           required
         />
         <textarea
-          placeholder="Description"
+          placeholder="Описание"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           className="input"
@@ -86,22 +93,22 @@ const Tasks: React.FC = () => {
           onChange={(e) => setStatus(e.target.value as any)}
           className="input"
         >
-          <option value="pending">Pending</option>
-          <option value="in_progress">In Progress</option>
-          <option value="completed">Completed</option>
-          <option value="cancelled">Cancelled</option>
+          <option value="pending">В ожидании</option>
+          <option value="in_progress">В работе</option>
+          <option value="completed">Выполнено</option>
+          <option value="cancelled">Отменено</option>
         </select>
         <input
           type="number"
           min="1"
           max="5"
-          placeholder="Priority (1-5)"
+          placeholder="Приоритет (1-5)"
           value={priority}
           onChange={(e) => setPriority(parseInt(e.target.value) || 1)}
           className="input"
           required
         />
-        <button type="submit" className="button">Add Task</button>
+        <button type="submit" className="button">Добавить задачу</button>
       </form>
 
       <div style={{ marginTop: '20px' }}>
@@ -109,9 +116,9 @@ const Tasks: React.FC = () => {
           <div key={task._id} className="card" style={{ marginBottom: '10px' }}>
             <h3>{task.title}</h3>
             <p>{task.description}</p>
-            <p>Status: {task.status}</p>
-            <p>Priority: {task.priority}</p>
-            <p>Created: {new Date(task.createdAt).toLocaleDateString()}</p>
+            <p>Статус: {statusMap[task.status] || task.status}</p>
+            <p>Приоритет: {task.priority}</p>
+            <p>Создано: {new Date(task.createdAt).toLocaleDateString('ru-RU')}</p>
           </div>
         ))}
       </div>
