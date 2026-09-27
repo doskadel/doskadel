@@ -9,6 +9,7 @@ import FilterBar from './FilterBar';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { PRIORITY_OPTIONS, getPriorityLabel, getPriorityColor } from '../utils/priority';
 import { Status } from '../utils/status';
+import { formatDueDate, isOverdue } from '../utils/date';
 
 interface Task {
   _id: string;
@@ -17,6 +18,7 @@ interface Task {
   statusId: string;
   priority: number;
   order: number;
+  dueDate?: string | null;
   createdAt: string;
 }
 
@@ -55,6 +57,7 @@ const Tasks: React.FC = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState<number | ''>('');
+  const [dueDate, setDueDate] = useState('');
 
   const [searchInput, setSearchInput] = useState(q);
 
@@ -84,7 +87,6 @@ const Tasks: React.FC = () => {
     localStorage.setItem(VIEW_KEY, view);
   }, [view]);
 
-  // Открытие модалки создания через ?new=1 (с дашборда)
   useEffect(() => {
     if (newParam === '1') {
       setCreateOpen(true);
@@ -164,10 +166,16 @@ const Tasks: React.FC = () => {
     setTitle('');
     setDescription('');
     setPriority('');
+    setDueDate('');
   };
 
   const isCreateFormDirty = (): boolean => {
-    return title.trim() !== '' || description.trim() !== '' || priority !== '';
+    return (
+      title.trim() !== '' ||
+      description.trim() !== '' ||
+      priority !== '' ||
+      dueDate !== ''
+    );
   };
 
   const handleCloseCreate = () => {
@@ -182,7 +190,12 @@ const Tasks: React.FC = () => {
     e.preventDefault();
     if (priority === '') return;
     try {
-      await api.post('/api/tasks', { title, description, priority });
+      await api.post('/api/tasks', {
+        title,
+        description,
+        priority,
+        dueDate: dueDate ? new Date(dueDate).toISOString() : null,
+      });
       resetCreateForm();
       setCreateOpen(false);
       refreshAll();
@@ -343,6 +356,15 @@ const Tasks: React.FC = () => {
               <option key={p.value} value={p.value}>{p.label}</option>
             ))}
           </select>
+          <div>
+            <label className="input-label">Срок</label>
+            <input
+              type="datetime-local"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+              className="input"
+            />
+          </div>
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: 'var(--space-sm)' }}>
             <button
               type="button"
@@ -423,6 +445,14 @@ const Tasks: React.FC = () => {
                   <span className="task-card-meta-item">
                     Статус: {getStatusName(task.statusId)}
                   </span>
+                  {task.dueDate && isOverdue(task.dueDate) && (
+                    <span
+                      className="task-card-meta-item"
+                      style={{ color: 'var(--color-danger)', fontWeight: 500 }}
+                    >
+                      Срок до {formatDueDate(task.dueDate)}
+                    </span>
+                  )}
                   <span className="task-card-meta-item">
                     Создано: {new Date(task.createdAt).toLocaleDateString('ru-RU')}
                   </span>

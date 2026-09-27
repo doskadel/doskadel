@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../utils/api';
+import { toDateTimeLocalValue } from '../utils/date';
 
 export interface Task {
   _id: string;
@@ -7,6 +8,7 @@ export interface Task {
   description: string;
   statusId: string;
   priority: number;
+  dueDate?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -22,12 +24,14 @@ export interface UseTaskDetailResult {
   editDescription: string;
   editStatusId: string;
   editPriority: number;
+  editDueDate: string;
   saving: boolean;
 
   setEditTitle: (v: string) => void;
   setEditDescription: (v: string) => void;
   setEditStatusId: (v: string) => void;
   setEditPriority: (v: number) => void;
+  setEditDueDate: (v: string) => void;
 
   startEdit: () => void;
   cancelEdit: () => void;
@@ -51,6 +55,7 @@ export const useTaskDetail = (
   const [editDescription, setEditDescription] = useState('');
   const [editStatusId, setEditStatusId] = useState('');
   const [editPriority, setEditPriority] = useState(2);
+  const [editDueDate, setEditDueDate] = useState('');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -74,6 +79,7 @@ export const useTaskDetail = (
       setEditDescription(t.description || '');
       setEditStatusId(t.statusId);
       setEditPriority(t.priority);
+      setEditDueDate(toDateTimeLocalValue(t.dueDate));
     } catch (err: any) {
       console.error('Error fetching task:', err);
       setError(err.response?.data?.message || 'Не удалось загрузить задачу');
@@ -88,6 +94,7 @@ export const useTaskDetail = (
     setEditDescription(task.description || '');
     setEditStatusId(task.statusId);
     setEditPriority(task.priority);
+    setEditDueDate(toDateTimeLocalValue(task.dueDate));
     setIsEditing(true);
   };
 
@@ -104,6 +111,7 @@ export const useTaskDetail = (
         description: editDescription,
         statusId: editStatusId,
         priority: editPriority,
+        dueDate: editDueDate ? new Date(editDueDate).toISOString() : null,
       });
       setTask(response.data.task);
       setIsEditing(false);
@@ -159,11 +167,13 @@ export const useTaskDetail = (
     editDescription,
     editStatusId,
     editPriority,
+    editDueDate,
     saving,
     setEditTitle,
     setEditDescription,
     setEditStatusId,
     setEditPriority,
+    setEditDueDate,
     startEdit,
     cancelEdit,
     saveEdit,

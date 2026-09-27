@@ -19,6 +19,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { getPriorityColor } from '../utils/priority';
 import { Status } from '../utils/status';
+import { formatDueDate, isOverdue } from '../utils/date';
 
 export interface KanbanTask {
   _id: string;
@@ -27,6 +28,7 @@ export interface KanbanTask {
   statusId: string;
   priority: number;
   order: number;
+  dueDate?: string | null;
   createdAt: string;
 }
 
@@ -57,6 +59,8 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, statusColor, onOpen
     transition,
     opacity: isDragging ? 0.4 : 1,
   };
+
+  const overdue = isOverdue(task.dueDate);
 
   return (
     <div
@@ -93,6 +97,11 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, statusColor, onOpen
             title={`Приоритет: ${task.priority}`}
           />
         </div>
+        {task.dueDate && overdue && (
+          <div className="kanban-card-due kanban-card-due--overdue">
+            Срок до {formatDueDate(task.dueDate)}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -306,6 +315,11 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ tasks, statuses, onReorder, o
                   style={{ backgroundColor: getPriorityColor(activeTask.priority) }}
                 />
               </div>
+              {activeTask.dueDate && isOverdue(activeTask.dueDate) && (
+                <div className="kanban-card-due kanban-card-due--overdue">
+                  Срок до {formatDueDate(activeTask.dueDate)}
+                </div>
+              )}
             </div>
           </div>
         ) : null}

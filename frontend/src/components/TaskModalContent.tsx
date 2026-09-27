@@ -2,6 +2,7 @@ import React from 'react';
 import { Task } from '../hooks/useTaskDetail';
 import { PRIORITY_OPTIONS, getPriorityLabel } from '../utils/priority';
 import { Status } from '../utils/status';
+import { formatDueDate, isOverdue } from '../utils/date';
 
 interface TaskModalContentProps {
   task: Task | null;
@@ -14,12 +15,14 @@ interface TaskModalContentProps {
   editDescription: string;
   editStatusId: string;
   editPriority: number;
+  editDueDate: string;
   saving: boolean;
 
   setEditTitle: (v: string) => void;
   setEditDescription: (v: string) => void;
   setEditStatusId: (v: string) => void;
   setEditPriority: (v: number) => void;
+  setEditDueDate: (v: string) => void;
 
   onSave: () => void;
   onCancel: () => void;
@@ -36,11 +39,13 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
   editDescription,
   editStatusId,
   editPriority,
+  editDueDate,
   saving,
   setEditTitle,
   setEditDescription,
   setEditStatusId,
   setEditPriority,
+  setEditDueDate,
   onSave,
   onCancel,
   onQuickChangeStatus,
@@ -93,6 +98,15 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
             <option key={p.value} value={p.value}>{p.label}</option>
           ))}
         </select>
+        <div>
+          <label className="input-label">Срок</label>
+          <input
+            type="datetime-local"
+            value={editDueDate}
+            onChange={(e) => setEditDueDate(e.target.value)}
+            className="input"
+          />
+        </div>
         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
           <button
             type="button"
@@ -115,6 +129,9 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
       </div>
     );
   }
+
+  const due = task.dueDate;
+  const overdue = isOverdue(due);
 
   return (
     <div>
@@ -147,6 +164,20 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
         <div>
           <p style={{ fontSize: '12px', textTransform: 'uppercase', color: 'var(--color-text-muted)', marginBottom: '4px' }}>Приоритет</p>
           <p style={{ color: 'var(--color-text)', fontSize: '15px' }}>{getPriorityLabel(task.priority)}</p>
+        </div>
+        <div>
+          <p style={{ fontSize: '12px', textTransform: 'uppercase', color: 'var(--color-text-muted)', marginBottom: '4px' }}>Срок</p>
+          {due ? (
+            <p style={{
+              color: overdue ? 'var(--color-danger)' : 'var(--color-text)',
+              fontSize: '15px',
+              fontWeight: overdue ? 500 : 400,
+            }}>
+              📅 {formatDueDate(due)}
+            </p>
+          ) : (
+            <p style={{ color: 'var(--color-text-muted)', fontSize: '15px', fontStyle: 'italic' }}>Не указан</p>
+          )}
         </div>
         <div>
           <p style={{ fontSize: '12px', textTransform: 'uppercase', color: 'var(--color-text-muted)', marginBottom: '4px' }}>Создано</p>
