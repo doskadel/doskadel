@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { getToken } from '../utils/token';
 
 interface DiaryEntry {
   _id: string;
@@ -20,7 +21,7 @@ const Diary: React.FC = () => {
 
   const fetchEntries = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const response = await axios.get('http://localhost:5000/api/diary', {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -35,7 +36,7 @@ const Diary: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.post('http://localhost:5000/api/diary', {
         title,
         content
@@ -55,29 +56,32 @@ const Diary: React.FC = () => {
 
   return (
     <div>
-      <h2>Дневник</h2>
+      <h2 className="page-title">Дневник</h2>
       
-      <form onSubmit={handleSubmit} className="form">
-        <input
-          type="text"
-          placeholder="Заголовок"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className="input"
-          required
-        />
-        <textarea
-          placeholder="Содержимое"
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          className="input"
-          rows={5}
-          required
-        />
-        <button type="submit" className="button">Добавить запись</button>
-      </form>
+        <div className="form-wrapper">
+        <form onSubmit={handleSubmit} className="form">
+          <input
+            type="text"
+            placeholder="Заголовок"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="input"
+            required
+          />
+          <textarea
+            placeholder="Содержимое"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            className="input"
+            rows={5}
+            required
+          />
+          <button type="submit" className="button">Добавить запись</button>
+        </form>
+        </div>
 
-      <div style={{ marginTop: '20px' }}>
+      <h3 className="list-title">Записи</h3>
+      <div>
         {entries.map((entry) => (
           <div key={entry._id} className="card" style={{ marginBottom: '10px' }}>
             <h3>{entry.title}</h3>

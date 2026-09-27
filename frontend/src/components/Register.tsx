@@ -25,42 +25,23 @@ const Register: React.FC = () => {
     }
   };
 
-  return (
-    <div className="card">
+return (
+  <div className="auth-wrapper">
+    <div className="auth-card">
       <h2>Регистрация</h2>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {error && <p className="auth-error">{error}</p>}
       <form onSubmit={handleSubmit} className="form">
-        <input
-          type="text"
-          placeholder="Имя пользователя"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          className="input"
-          required
-        />
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="input"
-          required
-        />
-        <input
-          type="password"
-          placeholder="Пароль"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="input"
-          required
-        />
+        <input type="text" placeholder="Имя пользователя" value={username} onChange={(e) => setUsername(e.target.value)} className="input" required />
+        <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="input" required />
+        <input type="password" placeholder="Пароль" value={password} onChange={(e) => setPassword(e.target.value)} className="input" required />
         <button type="submit" className="button">Зарегистрироваться</button>
       </form>
-      <p style={{ marginTop: '15px' }}>
+      <p className="auth-footer">
         Уже есть аккаунт? <Link to="/login">Войти</Link>
       </p>
     </div>
-  );
+  </div>
+);
 };
 
 export default Register;

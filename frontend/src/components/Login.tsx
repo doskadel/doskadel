@@ -27,42 +27,26 @@ const Login: React.FC = () => {
     }
   };
 
-  return (
-    <div className="card">
+return (
+  <div className="auth-wrapper">
+    <div className="auth-card">
       <h2>Вход</h2>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {error && <p className="auth-error">{error}</p>}
       <form onSubmit={handleSubmit} className="form">
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="input"
-          required
-        />
-        <input
-          type="password"
-          placeholder="Пароль"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="input"
-          required
-        />
-        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-          <input
-            type="checkbox"
-            checked={remember}
-            onChange={(e) => setRemember(e.target.checked)}
-          />
+        <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="input" required />
+        <input type="password" placeholder="Пароль" value={password} onChange={(e) => setPassword(e.target.value)} className="input" required />
+        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px' }}>
+          <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
           Запомнить меня
         </label>
         <button type="submit" className="button">Войти</button>
       </form>
-      <p style={{ marginTop: '15px' }}>
+      <p className="auth-footer">
         Нет аккаунта? <Link to="/register">Зарегистрироваться</Link>
       </p>
     </div>
-  );
+  </div>
+);
 };
 
 export default Login;

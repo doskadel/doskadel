@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { getToken } from '../utils/token';
 
 interface SearchResult {
   _id: string;
@@ -19,7 +20,7 @@ const Search: React.FC = () => {
     
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const response = await axios.get(`http://localhost:5000/api/search?q=${encodeURIComponent(query)}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -39,17 +40,19 @@ const Search: React.FC = () => {
 
   return (
     <div>
-      <h2>Поиск</h2>
-      <form onSubmit={handleSearch} className="form">
-        <input
-          type="text"
-          placeholder="Поиск по задачам и дневнику..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="input"
-        />
-        <button type="submit" className="button">Найти</button>
-      </form>
+      <h2 className="page-title">Поиск</h2>
+        <div className="form-wrapper">
+        <form onSubmit={handleSearch} className="form">
+          <input
+            type="text"
+            placeholder="Поиск по задачам и дневнику..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="input"
+          />
+          <button type="submit" className="button">Найти</button>
+        </form>
+        </div>
 
       {loading && <p>Поиск...</p>}
       

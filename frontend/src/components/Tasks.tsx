@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { getToken } from '../utils/token';
 
 interface Task {
   _id: string;
@@ -31,7 +32,7 @@ const Tasks: React.FC = () => {
 
   const fetchTasks = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const response = await axios.get('http://localhost:5000/api/tasks', {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -46,7 +47,7 @@ const Tasks: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.post('http://localhost:5000/api/tasks', {
         title,
         description,
@@ -70,48 +71,51 @@ const Tasks: React.FC = () => {
 
   return (
     <div>
-      <h2>Мои задачи</h2>
+      <h2 className="page-title">Мои задачи</h2>
       
-      <form onSubmit={handleSubmit} className="form">
-        <input
-          type="text"
-          placeholder="Название"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className="input"
-          required
-        />
-        <textarea
-          placeholder="Описание"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          className="input"
-          rows={3}
-        />
-        <select
-          value={status}
-          onChange={(e) => setStatus(e.target.value as any)}
-          className="input"
-        >
-          <option value="pending">В ожидании</option>
-          <option value="in_progress">В работе</option>
-          <option value="completed">Выполнено</option>
-          <option value="cancelled">Отменено</option>
-        </select>
-        <input
-          type="number"
-          min="1"
-          max="5"
-          placeholder="Приоритет (1-5)"
-          value={priority}
-          onChange={(e) => setPriority(parseInt(e.target.value) || 1)}
-          className="input"
-          required
-        />
-        <button type="submit" className="button">Добавить задачу</button>
-      </form>
+        <div className="form-wrapper">
+        <form onSubmit={handleSubmit} className="form">
+          <input
+            type="text"
+            placeholder="Название"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="input"
+            required
+          />
+          <textarea
+            placeholder="Описание"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="input"
+            rows={3}
+          />
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value as any)}
+            className="input"
+          >
+            <option value="pending">В ожидании</option>
+            <option value="in_progress">В работе</option>
+            <option value="completed">Выполнено</option>
+            <option value="cancelled">Отменено</option>
+          </select>
+          <input
+            type="number"
+            min="1"
+            max="5"
+            placeholder="Приоритет (1-5)"
+            value={priority}
+            onChange={(e) => setPriority(parseInt(e.target.value) || 1)}
+            className="input"
+            required
+          />
+          <button type="submit" className="button">Добавить задачу</button>
+        </form>
+        </div>
 
-      <div style={{ marginTop: '20px' }}>
+      <h3 className="list-title">Список задач</h3>
+      <div>
         {tasks.map((task) => (
           <div key={task._id} className="card" style={{ marginBottom: '10px' }}>
             <h3>{task.title}</h3>

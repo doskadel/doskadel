@@ -273,3 +273,93 @@ z-index: 10;
     padding: var(--space-lg) var(--space-md);
   }
 }
+
+/* ==================== PAGES ==================== */
+.page-title {
+text-align: left;
+margin-bottom: var(--space-lg);
+font-size: 24px;
+font-weight: 600;
+color: var(--color-text);
+}
+
+/* Auth pages */
+.auth-wrapper {
+display: flex;
+align-items: center;
+justify-content: center;
+min-height: 100vh;
+padding: var(--space-lg);
+background: var(--color-bg);
+}
+
+.auth-card {
+background: var(--color-surface);
+border-radius: var(--radius-md);
+padding: var(--space-xl);
+box-shadow: var(--shadow-md);
+width: 100%;
+max-width: 420px;
+}
+
+.auth-card h2 {
+text-align: center;
+margin-bottom: var(--space-lg);
+font-size: 24px;
+color: var(--color-text);
+}
+
+.auth-card .form {
+max-width: none;
+}
+
+.auth-error {
+color: var(--color-danger);
+text-align: center;
+margin-bottom: var(--space-md);
+font-size: 14px;
+}
+
+.auth-footer {
+margin-top: var(--space-md);
+text-align: center;
+color: var(--color-text-muted);
+font-size: 14px;
+}
+
+/* Form wrapper */
+.form-wrapper {
+background: var(--color-surface);
+border-radius: var(--radius-md);
+padding: var(--space-lg);
+box-shadow: var(--shadow-sm);
+margin-bottom: var(--space-xl);
+}
+
+.form-wrapper .form {
+max-width: none;
+}
+
+/* Cards content */
+.card h3,
+.card h4 {
+margin-bottom: var(--space-sm);
+text-align: left;
+color: var(--color-text);
+}
+
+.card p {
+text-align: left;
+margin-bottom: var(--space-xs);
+color: var(--color-text-muted);
+font-size: 14px;
+}
+
+/* List section */
+.list-title {
+text-align: left;
+font-size: 18px;
+font-weight: 600;
+margin-bottom: var(--space-md);
+color: var(--color-text);
+}
