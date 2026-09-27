@@ -1,0 +1,33 @@
+const mongoose = require('mongoose');
+
+const statusSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+    index: true
+  },
+  name: {
+    type: String,
+    required: true,
+    trim: true,
+    maxlength: 50
+  },
+  color: {
+    type: String,
+    required: true,
+    default: '#9ca3af',
+    match: /^#[0-9a-fA-F]{6}$/
+  },
+  order: {
+    type: Number,
+    required: true,
+    default: 0
+  }
+}, {
+  timestamps: true
+});
+
+statusSchema.index({ userId: 1, order: 1 });
+
+module.exports = mongoose.model('Status', statusSchema);

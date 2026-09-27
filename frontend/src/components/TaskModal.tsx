@@ -3,33 +3,26 @@ import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import Modal from './Modal';
 import { PRIORITY_OPTIONS, getPriorityLabel } from '../utils/priority';
+import { Status } from '../utils/status';
 
 interface Task {
   _id: string;
   title: string;
   description: string;
-  status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
+  statusId: string;
   priority: number;
   createdAt: string;
   updatedAt: string;
 }
 
-const statusMap: Record<string, string> = {
-  pending: 'В ожидании',
-  in_progress: 'В работе',
-  completed: 'Выполнено',
-  cancelled: 'Отменено',
-};
-
-const statusOptions: Array<Task['status']> = ['pending', 'in_progress', 'completed', 'cancelled'];
-
 interface TaskModalProps {
   taskId: string | null;
+  statuses: Status[];
   onClose: () => void;
   onUpdate: () => void;
 }
 
-const TaskModal: React.FC<TaskModalProps> = ({ taskId, onClose, onUpdate }) => {
+const TaskModal: React.FC<TaskModalProps> = ({ taskId, statuses, onClose, onUpdate }) => {
   const navigate = useNavigate();
 
   const [task, setTask] = useState<Task | null>(null);
@@ -40,8 +33,8 @@ const TaskModal: React.FC<TaskModalProps> = ({ taskId, onClose, onUpdate }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState('');
   const [editDescription, setEditDescription] = useState('');
-  const [editStatus, setEditStatus] = useState<Task['status']>('pending');
-  const [editPriority, setEditPriority] = useState(1);
+  const [editStatusId, setEditStatusId] = useState('');
+  const [editPriority, setEditPriority] = useState(2);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -63,7 +56,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ taskId, onClose, onUpdate }) => {
       setTask(t);
       setEditTitle(t.title);
       setEditDescription(t.description || '');
-      setEditStatus(t.status);
+      setEditStatusId(t.statusId);
       setEditPriority(t.priority);
     } catch (err: any) {
       console.error('Error fetching task:', err);
@@ -82,7 +75,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ taskId, onClose, onUpdate }) => {
     if (!task) return;
     setEditTitle(task.title);
     setEditDescription(task.description || '');
-    setEditStatus(task.status);
+    setEditStatusId(task.statusId);
     setEditPriority(task.priority);
     setIsEditing(true);
   };
@@ -98,7 +91,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ taskId, onClose, onUpdate }) => {
       const response = await api.put(`/api/tasks/${task._id}`, {
         title: editTitle,
         description: editDescription,
-        status: editStatus,
+        statusId: editStatusId,
         priority: editPriority,
       });
       setTask(response.data.task);
@@ -111,10 +104,10 @@ const TaskModal: React.FC<TaskModalProps> = ({ taskId, onClose, onUpdate }) => {
     }
   };
 
-  const quickChangeStatus = async (newStatus: Task['status']) => {
+  const quickChangeStatus = async (newStatusId: string) => {
     if (!task) return;
     try {
-      const response = await api.put(`/api/tasks/${task._id}`, { status: newStatus });
+      const response = await api.put(`/api/tasks/${task._id}`, { statusId: newStatusId });
       setTask(response.data.task);
       onUpdate();
     } catch (err) {
@@ -150,6 +143,10 @@ const TaskModal: React.FC<TaskModalProps> = ({ taskId, onClose, onUpdate }) => {
     if (!task) return;
     onClose();
     navigate(`/tasks/${task._id}`);
+  };
+
+  const getStatusName = (statusId: string): string => {
+    return statuses.find((s) => s._id === statusId)?.name || 'Неизвестно';
   };
 
   const modalTitle = isEditing ? 'Редактирование задачи' : (task?.title || '');
@@ -212,12 +209,12 @@ const TaskModal: React.FC<TaskModalProps> = ({ taskId, onClose, onUpdate }) => {
                 placeholder="Описание"
               />
               <select
-                value={editStatus}
-                onChange={(e) => setEditStatus(e.target.value as Task['status'])}
+                value={editStatusId}
+                onChange={(e) => setEditStatusId(e.target.value)}
                 className="input"
               >
-                {statusOptions.map((s) => (
-                  <option key={s} value={s}>{statusMap[s]}</option>
+                {statuses.map((s) => (
+                  <option key={s._id} value={s._id}>{s.name}</option>
                 ))}
               </select>
               <select
@@ -263,13 +260,13 @@ const TaskModal: React.FC<TaskModalProps> = ({ taskId, onClose, onUpdate }) => {
                 <div>
                   <p style={{ fontSize: '12px', textTransform: 'uppercase', color: 'var(--color-text-muted)', marginBottom: '4px' }}>Статус</p>
                   <select
-                    value={task.status}
-                    onChange={(e) => quickChangeStatus(e.target.value as Task['status'])}
+                    value={task.statusId}
+                    onChange={(e) => quickChangeStatus(e.target.value)}
                     className="input"
                     style={{ padding: '6px 10px', fontSize: '14px' }}
                   >
-                    {statusOptions.map((s) => (
-                      <option key={s} value={s}>{statusMap[s]}</option>
+                    {statuses.map((s) => (
+                      <option key={s._id} value={s._id}>{s.name}</option>
                     ))}
                   </select>
                 </div>

@@ -1,29 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import api from '../utils/api';
 import KanbanBoard, { KanbanTask } from './KanbanBoard';
 import Modal from './Modal';
 import TaskModal from './TaskModal';
+import StatusManager from './StatusManager';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { PRIORITY_OPTIONS, getPriorityLabel, getPriorityColor } from '../utils/priority';
+import { Status } from '../utils/status';
 
 interface Task {
   _id: string;
   title: string;
   description: string;
-  status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
+  statusId: string;
   priority: number;
+  order: number;
   createdAt: string;
 }
-
-const statusMap: Record<string, string> = {
-  pending: 'В ожидании',
-  in_progress: 'В работе',
-  completed: 'Выполнено',
-  cancelled: 'Отменено',
-};
-
-const statusOptions: Array<Task['status']> = ['pending', 'in_progress', 'completed', 'cancelled'];
 
 const VIEW_KEY = 'worklist_tasks_view';
 
@@ -34,6 +28,7 @@ const Tasks: React.FC = () => {
   const openedTaskId = searchParams.get('task');
 
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [statuses, setStatuses] = useState<Status[]>([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<'list' | 'kanban'>(() => {
     const saved = localStorage.getItem(VIEW_KEY);
@@ -42,7 +37,7 @@ const Tasks: React.FC = () => {
   });
 
   const [createOpen, setCreateOpen] = useState(false);
-
+  const [statusManagerOpen, setStatusManagerOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState<number | ''>('');
@@ -50,28 +45,36 @@ const Tasks: React.FC = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editDescription, setEditDescription] = useState('');
-  const [editStatus, setEditStatus] = useState<Task['status']>('pending');
+  const [editStatusId, setEditStatusId] = useState<string>('');
   const [editPriority, setEditPriority] = useState<number>(2);
   const [savingEdit, setSavingEdit] = useState(false);
   const [originalTask, setOriginalTask] = useState<Task | null>(null);
 
   useEffect(() => {
-    fetchTasks();
+    fetchData();
   }, []);
 
   useEffect(() => {
     localStorage.setItem(VIEW_KEY, view);
   }, [view]);
 
-  const fetchTasks = async () => {
+  const fetchData = async () => {
     try {
-      const response = await api.get('/api/tasks');
-      setTasks(response.data.tasks);
+      const [tasksRes, statusesRes] = await Promise.all([
+        api.get('/api/tasks'),
+        api.get('/api/statuses'),
+      ]);
+      setTasks(tasksRes.data.tasks);
+      setStatuses(statusesRes.data.statuses);
       setLoading(false);
     } catch (err) {
-      console.error('Error fetching tasks:', err);
+      console.error('Error fetching data:', err);
       setLoading(false);
     }
+  };
+
+  const getStatusName = (statusId: string): string => {
+    return statuses.find((s) => s._id === statusId)?.name || 'Неизвестно';
   };
 
   const openTask = (id: string) => {
@@ -104,15 +107,10 @@ const Tasks: React.FC = () => {
     e.preventDefault();
     if (priority === '') return;
     try {
-      await api.post('/api/tasks', {
-        title,
-        description,
-        priority,
-        status: 'pending',
-      });
+      await api.post('/api/tasks', { title, description, priority });
       resetCreateForm();
       setCreateOpen(false);
-      fetchTasks();
+      fetchData();
     } catch (err) {
       console.error('Error creating task:', err);
     }
@@ -122,7 +120,7 @@ const Tasks: React.FC = () => {
     setEditingId(task._id);
     setEditTitle(task.title);
     setEditDescription(task.description || '');
-    setEditStatus(task.status);
+    setEditStatusId(task.statusId);
     setEditPriority(task.priority);
     setOriginalTask(task);
   };
@@ -132,7 +130,7 @@ const Tasks: React.FC = () => {
     return (
       editTitle !== originalTask.title ||
       editDescription !== (originalTask.description || '') ||
-      editStatus !== originalTask.status ||
+      editStatusId !== originalTask.statusId ||
       editPriority !== originalTask.priority
     );
   };
@@ -151,12 +149,12 @@ const Tasks: React.FC = () => {
       await api.put(`/api/tasks/${id}`, {
         title: editTitle,
         description: editDescription,
-        status: editStatus,
+        statusId: editStatusId,
         priority: editPriority,
       });
       setEditingId(null);
       setOriginalTask(null);
-      fetchTasks();
+      fetchData();
     } catch (err) {
       console.error('Error updating task:', err);
     } finally {
@@ -168,21 +166,29 @@ const Tasks: React.FC = () => {
     if (!window.confirm('Удалить задачу?')) return;
     try {
       await api.delete(`/api/tasks/${id}`);
-      fetchTasks();
+      fetchData();
     } catch (err) {
       console.error('Error deleting task:', err);
     }
   };
 
-  const handleChangeStatus = async (taskId: string, newStatus: Task['status']) => {
-    setTasks((prev) =>
-      prev.map((t) => (t._id === taskId ? { ...t, status: newStatus } : t))
-    );
+  const handleReorder = async (updates: Array<{ id: string; statusId: string; order: number }>) => {
+    setTasks((prev) => {
+      const next = [...prev];
+      updates.forEach((u) => {
+        const idx = next.findIndex((t) => t._id === u.id);
+        if (idx >= 0) {
+          next[idx] = { ...next[idx], statusId: u.statusId, order: u.order };
+        }
+      });
+      return next;
+    });
+
     try {
-      await api.put(`/api/tasks/${taskId}`, { status: newStatus });
+      await api.put('/api/tasks/reorder', { tasks: updates });
     } catch (err) {
-      console.error('Error changing status:', err);
-      fetchTasks();
+      console.error('Error reordering tasks:', err);
+      fetchData();
     }
   };
 
@@ -192,7 +198,7 @@ const Tasks: React.FC = () => {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-lg)', gap: 'var(--space-md)', flexWrap: 'wrap' }}>
         <h2 className="page-title" style={{ margin: 0 }}>Мои задачи</h2>
-        <div style={{ display: 'flex', gap: 'var(--space-md)', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 'var(--space-md)', alignItems: 'center', flexWrap: 'wrap' }}>
           {!isMobile && (
             <div className="view-toggle">
               <button
@@ -213,6 +219,15 @@ const Tasks: React.FC = () => {
               </button>
             </div>
           )}
+          <button
+            type="button"
+            className="button"
+            onClick={() => setStatusManagerOpen(true)}
+            style={{ backgroundColor: 'var(--color-text-muted)' }}
+            title="Управление статусами"
+          >
+            ⚙ Статусы
+          </button>
           <button
             type="button"
             className="button"
@@ -268,16 +283,25 @@ const Tasks: React.FC = () => {
         </form>
       </Modal>
 
+      <StatusManager
+        open={statusManagerOpen}
+        statuses={statuses}
+        onClose={() => setStatusManagerOpen(false)}
+        onChanged={fetchData}
+      />
+
       <TaskModal
         taskId={openedTaskId}
+        statuses={statuses}
         onClose={closeTaskModal}
-        onUpdate={fetchTasks}
+        onUpdate={fetchData}
       />
 
       {view === 'kanban' ? (
         <KanbanBoard
           tasks={tasks as KanbanTask[]}
-          onChangeStatus={handleChangeStatus}
+          statuses={statuses}
+          onReorder={handleReorder}
           onOpenTask={openTask}
         />
       ) : (
@@ -309,13 +333,13 @@ const Tasks: React.FC = () => {
                   />
                   <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
                     <select
-                      value={editStatus}
-                      onChange={(e) => setEditStatus(e.target.value as Task['status'])}
+                      value={editStatusId}
+                      onChange={(e) => setEditStatusId(e.target.value)}
                       className="input"
                       style={{ flex: 1 }}
                     >
-                      {statusOptions.map((s) => (
-                        <option key={s} value={s}>{statusMap[s]}</option>
+                      {statuses.map((s) => (
+                        <option key={s._id} value={s._id}>{s.name}</option>
                       ))}
                     </select>
                     <select
@@ -374,7 +398,7 @@ const Tasks: React.FC = () => {
                         <h3 style={{ margin: 0 }}>{task.title}</h3>
                       </div>
                       <p>{task.description}</p>
-                      <p>Статус: {statusMap[task.status] || task.status}</p>
+                      <p>Статус: {getStatusName(task.statusId)}</p>
                       <p>Приоритет: {getPriorityLabel(task.priority)}</p>
                       <p>Создано: {new Date(task.createdAt).toLocaleDateString('ru-RU')}</p>
                     </button>

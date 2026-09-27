@@ -1,5 +1,7 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const Status = require('../models/Status');
+const DEFAULT_STATUSES = require('../utils/defaultStatuses');
 const { validationResult } = require('express-validator');
 
 const generateToken = (userId) => {
@@ -11,29 +13,31 @@ const register = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        errors: errors.array() 
+        errors: errors.array()
       });
     }
 
     const { username, email, password } = req.body;
 
-    // Проверка наличия пользователя
-    const existingUser = await User.findOne({ 
-      $or: [{ email }, { username }] 
+    const existingUser = await User.findOne({
+      $or: [{ email }, { username }]
     });
 
     if (existingUser) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        message: 'User already exists' 
+        message: 'User already exists'
       });
     }
 
-    // Создание нового пользователя
     const user = new User({ username, email, password });
     await user.save();
+
+    // Создаём дефолтные статусы для нового пользователя
+    const statuses = DEFAULT_STATUSES.map(s => ({ ...s, userId: user._id }));
+    await Status.insertMany(statuses);
 
     const token = generateToken(user._id);
 
@@ -47,9 +51,10 @@ const register = async (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({ 
+    console.error('Registration error:', error);
+    res.status(500).json({
       success: false,
-      message: 'Server error' 
+      message: 'Server error'
     });
   }
 };
@@ -59,9 +64,9 @@ const login = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        errors: errors.array() 
+        errors: errors.array()
       });
     }
 
@@ -70,18 +75,18 @@ const login = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        message: 'Invalid credentials' 
+        message: 'Invalid credentials'
       });
     }
 
     const isMatch = await user.comparePassword(password);
 
     if (!isMatch) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        message: 'Invalid credentials' 
+        message: 'Invalid credentials'
       });
     }
 
@@ -98,9 +103,9 @@ const login = async (req, res) => {
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      message: 'Server error' 
+      message: 'Server error'
     });
   }
 };

@@ -743,13 +743,18 @@ color: var(--color-text);
   font-family: inherit;
 }
 
-.icon-button:hover {
+.icon-button:hover:not(:disabled) {
   background: var(--color-bg);
   border-color: var(--color-primary);
 }
 
-.icon-button:active {
+.icon-button:active:not(:disabled) {
   transform: translateY(1px);
+}
+
+.icon-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .icon-button--danger {
@@ -757,8 +762,77 @@ color: var(--color-text);
   color: var(--color-danger);
 }
 
-.icon-button--danger:hover {
+.icon-button--danger:hover:not(:disabled) {
   background: var(--color-danger);
   border-color: var(--color-danger);
   color: white;
+}
+
+.icon-button--sm {
+  width: 30px;
+  height: 30px;
+  font-size: 14px;
+}
+
+/* ==================== STATUS MANAGER ==================== */
+.status-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.status-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.status-row-color {
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.status-row-name {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.status-row-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* ==================== COLOR PALETTE ==================== */
+.color-palette {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: var(--space-sm);
+}
+
+.color-swatch {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: var(--radius-sm);
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.1s, border-color 0.15s;
+  padding: 0;
+}
+
+.color-swatch:hover {
+  transform: scale(1.08);
+}
+
+.color-swatch--active {
+  border-color: var(--color-text);
+  box-shadow: 0 0 0 2px var(--color-surface) inset;
 }

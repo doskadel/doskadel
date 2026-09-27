@@ -16,8 +16,8 @@ app.use(express.urlencoded({ extended: true }));
 
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
+  windowMs: 15 * 60 * 1000,
+  max: process.env.NODE_ENV === 'development' ? 1000 : 100
 });
 app.use(limiter);
 
@@ -42,16 +42,10 @@ app.get('/', (req, res) => {
   res.json({ message: 'WorkList Backend API' });
 });
 
-// Auth routes
 app.use('/api/auth', require('./src/routes/auth'));
-
-// Task routes
+app.use('/api/statuses', require('./src/routes/statuses'));
 app.use('/api/tasks', require('./src/routes/tasks'));
-
-// Diary routes
 app.use('/api/diary', require('./src/routes/diary'));
-
-// Search route
 app.use('/api/search', require('./src/routes/search'));
 
 // Error handling middleware
