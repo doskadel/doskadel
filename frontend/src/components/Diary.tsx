@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import api from '../utils/api';
 import Modal from './Modal';
+import DiaryModal from './DiaryModal';
 
 interface DiaryEntry {
   _id: string;
@@ -10,18 +12,15 @@ interface DiaryEntry {
 }
 
 const Diary: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const openedEntryId = searchParams.get('entry');
+
   const [entries, setEntries] = useState<DiaryEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [createOpen, setCreateOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editTitle, setEditTitle] = useState('');
-  const [editContent, setEditContent] = useState('');
-  const [savingEdit, setSavingEdit] = useState(false);
-  const [originalEntry, setOriginalEntry] = useState<DiaryEntry | null>(null);
 
   useEffect(() => {
     fetchEntries();
@@ -36,6 +35,14 @@ const Diary: React.FC = () => {
       console.error('Error fetching diary entries:', err);
       setLoading(false);
     }
+  };
+
+  const openEntry = (id: string) => {
+    setSearchParams({ entry: id });
+  };
+
+  const closeEntryModal = () => {
+    setSearchParams({});
   };
 
   const resetCreateForm = () => {
@@ -64,53 +71,6 @@ const Diary: React.FC = () => {
       fetchEntries();
     } catch (err) {
       console.error('Error creating diary entry:', err);
-    }
-  };
-
-  const startEdit = (entry: DiaryEntry) => {
-    setEditingId(entry._id);
-    setEditTitle(entry.title);
-    setEditContent(entry.content);
-    setOriginalEntry(entry);
-  };
-
-  const isEditFormDirty = (): boolean => {
-    if (!originalEntry) return false;
-    return editTitle !== originalEntry.title || editContent !== originalEntry.content;
-  };
-
-  const cancelEdit = () => {
-    if (isEditFormDirty()) {
-      if (!window.confirm('Есть несохранённые изменения. Отменить?')) return;
-    }
-    setEditingId(null);
-    setOriginalEntry(null);
-  };
-
-  const saveEdit = async (id: string) => {
-    setSavingEdit(true);
-    try {
-      await api.put(`/api/diary/${id}`, {
-        title: editTitle,
-        content: editContent,
-      });
-      setEditingId(null);
-      setOriginalEntry(null);
-      fetchEntries();
-    } catch (err) {
-      console.error('Error updating diary entry:', err);
-    } finally {
-      setSavingEdit(false);
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    if (!window.confirm('Удалить запись?')) return;
-    try {
-      await api.delete(`/api/diary/${id}`);
-      fetchEntries();
-    } catch (err) {
-      console.error('Error deleting diary entry:', err);
     }
   };
 
@@ -162,90 +122,35 @@ const Diary: React.FC = () => {
         </form>
       </Modal>
 
+      <DiaryModal
+        entryId={openedEntryId}
+        onClose={closeEntryModal}
+        onUpdate={fetchEntries}
+      />
+
       <div>
-        {entries.map((entry) => {
-          const isEditing = editingId === entry._id;
-
-          if (isEditing) {
-            return (
-              <div
-                key={entry._id}
-                className="card"
-                style={{ marginBottom: '10px', border: '1px solid var(--color-primary)' }}
-              >
-                <input
-                  type="text"
-                  value={editTitle}
-                  onChange={(e) => setEditTitle(e.target.value)}
-                  className="input"
-                  style={{ marginBottom: '8px', fontWeight: 600 }}
-                  required
-                />
-                <textarea
-                  value={editContent}
-                  onChange={(e) => setEditContent(e.target.value)}
-                  className="input"
-                  rows={5}
-                  style={{ marginBottom: '8px' }}
-                  required
-                />
-                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                  <button
-                    type="button"
-                    className="button"
-                    onClick={cancelEdit}
-                    style={{ backgroundColor: 'var(--color-text-muted)' }}
-                    disabled={savingEdit}
-                  >
-                    Отмена
-                  </button>
-                  <button
-                    type="button"
-                    className="button"
-                    onClick={() => saveEdit(entry._id)}
-                    disabled={savingEdit || !editTitle.trim() || !editContent.trim()}
-                  >
-                    {savingEdit ? 'Сохранение...' : 'Сохранить'}
-                  </button>
-                </div>
-              </div>
-            );
-          }
-
-          return (
-            <div key={entry._id} className="card" style={{ marginBottom: '10px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <h3 style={{ marginBottom: 'var(--space-sm)' }}>{entry.title}</h3>
-                  <p style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', wordBreak: 'break-word' }}>{entry.content}</p>
-                  <p>Дата: {new Date(entry.createdAt).toLocaleDateString('ru-RU')}</p>
-                </div>
-                <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
-                  <button
-                    type="button"
-                    className="button"
-                    onClick={() => startEdit(entry)}
-                    style={{ padding: '6px 12px', fontSize: '13px' }}
-                  >
-                    Редактировать
-                  </button>
-                  <button
-                    type="button"
-                    className="button"
-                    onClick={() => handleDelete(entry._id)}
-                    style={{
-                      padding: '6px 12px',
-                      fontSize: '13px',
-                      backgroundColor: 'var(--color-danger)',
-                    }}
-                  >
-                    Удалить
-                  </button>
-                </div>
-              </div>
-            </div>
-          );
-        })}
+        {entries.map((entry) => (
+          <div key={entry._id} className="card" style={{ marginBottom: '10px' }}>
+            <button
+              type="button"
+              onClick={() => openEntry(entry._id)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                padding: 0,
+                textAlign: 'left',
+                cursor: 'pointer',
+                color: 'inherit',
+                fontFamily: 'inherit',
+                width: '100%',
+              }}
+            >
+              <h3 style={{ marginBottom: 'var(--space-sm)' }}>{entry.title}</h3>
+              <p style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', wordBreak: 'break-word' }}>{entry.content}</p>
+              <p>Дата: {new Date(entry.createdAt).toLocaleDateString('ru-RU')}</p>
+            </button>
+          </div>
+        ))}
       </div>
     </div>
   );

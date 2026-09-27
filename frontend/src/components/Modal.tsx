@@ -1,4 +1,4 @@
-import React, { useEffect, ReactNode } from 'react';
+import React, { useEffect, useRef, ReactNode } from 'react';
 
 interface ModalProps {
   open: boolean;
@@ -10,6 +10,9 @@ interface ModalProps {
 }
 
 const Modal: React.FC<ModalProps> = ({ open, onClose, title, wide, rightRail, children }) => {
+  const backdropRef = useRef<HTMLDivElement>(null);
+  const mouseDownOnBackdropRef = useRef(false);
+
   useEffect(() => {
     if (!open) return;
 
@@ -28,8 +31,26 @@ const Modal: React.FC<ModalProps> = ({ open, onClose, title, wide, rightRail, ch
 
   if (!open) return null;
 
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    // true только если mousedown был именно на backdrop (не на дочернем элементе)
+    mouseDownOnBackdropRef.current = e.target === e.currentTarget;
+  };
+
+  const handleMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Закрываем, только если mousedown тоже был на backdrop
+    if (mouseDownOnBackdropRef.current && e.target === e.currentTarget) {
+      onClose();
+    }
+    mouseDownOnBackdropRef.current = false;
+  };
+
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <div
+      ref={backdropRef}
+      className="modal-backdrop"
+      onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
+    >
       <div
         className={wide ? 'modal-content modal-content--wide' : 'modal-content'}
         onClick={(e) => e.stopPropagation()}

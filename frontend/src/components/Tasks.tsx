@@ -42,14 +42,6 @@ const Tasks: React.FC = () => {
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState<number | ''>('');
 
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editTitle, setEditTitle] = useState('');
-  const [editDescription, setEditDescription] = useState('');
-  const [editStatusId, setEditStatusId] = useState<string>('');
-  const [editPriority, setEditPriority] = useState<number>(2);
-  const [savingEdit, setSavingEdit] = useState(false);
-  const [originalTask, setOriginalTask] = useState<Task | null>(null);
-
   useEffect(() => {
     fetchData();
   }, []);
@@ -113,62 +105,6 @@ const Tasks: React.FC = () => {
       fetchData();
     } catch (err) {
       console.error('Error creating task:', err);
-    }
-  };
-
-  const startEdit = (task: Task) => {
-    setEditingId(task._id);
-    setEditTitle(task.title);
-    setEditDescription(task.description || '');
-    setEditStatusId(task.statusId);
-    setEditPriority(task.priority);
-    setOriginalTask(task);
-  };
-
-  const isEditFormDirty = (): boolean => {
-    if (!originalTask) return false;
-    return (
-      editTitle !== originalTask.title ||
-      editDescription !== (originalTask.description || '') ||
-      editStatusId !== originalTask.statusId ||
-      editPriority !== originalTask.priority
-    );
-  };
-
-  const cancelEdit = () => {
-    if (isEditFormDirty()) {
-      if (!window.confirm('Есть несохранённые изменения. Отменить?')) return;
-    }
-    setEditingId(null);
-    setOriginalTask(null);
-  };
-
-  const saveEdit = async (id: string) => {
-    setSavingEdit(true);
-    try {
-      await api.put(`/api/tasks/${id}`, {
-        title: editTitle,
-        description: editDescription,
-        statusId: editStatusId,
-        priority: editPriority,
-      });
-      setEditingId(null);
-      setOriginalTask(null);
-      fetchData();
-    } catch (err) {
-      console.error('Error updating task:', err);
-    } finally {
-      setSavingEdit(false);
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    if (!window.confirm('Удалить задачу?')) return;
-    try {
-      await api.delete(`/api/tasks/${id}`);
-      fetchData();
-    } catch (err) {
-      console.error('Error deleting task:', err);
     }
   };
 
@@ -306,129 +242,41 @@ const Tasks: React.FC = () => {
         />
       ) : (
         <div>
-          {tasks.map((task) => {
-            const isEditing = editingId === task._id;
-
-            if (isEditing) {
-              return (
-                <div
-                  key={task._id}
-                  className="card"
-                  style={{ marginBottom: '10px', border: '1px solid var(--color-primary)' }}
-                >
-                  <input
-                    type="text"
-                    value={editTitle}
-                    onChange={(e) => setEditTitle(e.target.value)}
-                    className="input"
-                    style={{ marginBottom: '8px', fontWeight: 600 }}
-                    required
+          {tasks.map((task) => (
+            <div key={task._id} className="card" style={{ marginBottom: '10px' }}>
+              <button
+                type="button"
+                onClick={() => openTask(task._id)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  padding: 0,
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  color: 'inherit',
+                  fontFamily: 'inherit',
+                  width: '100%',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: 'var(--space-sm)' }}>
+                  <span
+                    style={{
+                      width: '10px',
+                      height: '10px',
+                      borderRadius: '50%',
+                      backgroundColor: getPriorityColor(task.priority),
+                      flexShrink: 0,
+                    }}
                   />
-                  <textarea
-                    value={editDescription}
-                    onChange={(e) => setEditDescription(e.target.value)}
-                    className="input"
-                    rows={3}
-                    style={{ marginBottom: '8px' }}
-                  />
-                  <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
-                    <select
-                      value={editStatusId}
-                      onChange={(e) => setEditStatusId(e.target.value)}
-                      className="input"
-                      style={{ flex: 1 }}
-                    >
-                      {statuses.map((s) => (
-                        <option key={s._id} value={s._id}>{s.name}</option>
-                      ))}
-                    </select>
-                    <select
-                      value={editPriority}
-                      onChange={(e) => setEditPriority(parseInt(e.target.value))}
-                      className="input"
-                      style={{ flex: 1 }}
-                    >
-                      {PRIORITY_OPTIONS.map((p) => (
-                        <option key={p.value} value={p.value}>{p.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                    <button
-                      type="button"
-                      className="button"
-                      onClick={cancelEdit}
-                      style={{ backgroundColor: 'var(--color-text-muted)' }}
-                      disabled={savingEdit}
-                    >
-                      Отмена
-                    </button>
-                    <button
-                      type="button"
-                      className="button"
-                      onClick={() => saveEdit(task._id)}
-                      disabled={savingEdit || !editTitle.trim()}
-                    >
-                      {savingEdit ? 'Сохранение...' : 'Сохранить'}
-                    </button>
-                  </div>
+                  <h3 style={{ margin: 0 }}>{task.title}</h3>
                 </div>
-              );
-            }
-
-            return (
-              <div key={task._id} className="card" style={{ marginBottom: '10px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <button
-                      type="button"
-                      onClick={() => openTask(task._id)}
-                      style={{ background: 'transparent', border: 'none', padding: 0, textAlign: 'left', cursor: 'pointer', color: 'inherit', fontFamily: 'inherit', width: '100%' }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: 'var(--space-sm)' }}>
-                        <span
-                          style={{
-                            width: '10px',
-                            height: '10px',
-                            borderRadius: '50%',
-                            backgroundColor: getPriorityColor(task.priority),
-                            flexShrink: 0,
-                          }}
-                        />
-                        <h3 style={{ margin: 0 }}>{task.title}</h3>
-                      </div>
-                      <p>{task.description}</p>
-                      <p>Статус: {getStatusName(task.statusId)}</p>
-                      <p>Приоритет: {getPriorityLabel(task.priority)}</p>
-                      <p>Создано: {new Date(task.createdAt).toLocaleDateString('ru-RU')}</p>
-                    </button>
-                  </div>
-                  <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
-                    <button
-                      type="button"
-                      className="button"
-                      onClick={() => startEdit(task)}
-                      style={{ padding: '6px 12px', fontSize: '13px' }}
-                    >
-                      Редактировать
-                    </button>
-                    <button
-                      type="button"
-                      className="button"
-                      onClick={() => handleDelete(task._id)}
-                      style={{
-                        padding: '6px 12px',
-                        fontSize: '13px',
-                        backgroundColor: 'var(--color-danger)',
-                      }}
-                    >
-                      Удалить
-                    </button>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+                <p>{task.description}</p>
+                <p>Статус: {getStatusName(task.statusId)}</p>
+                <p>Приоритет: {getPriorityLabel(task.priority)}</p>
+                <p>Создано: {new Date(task.createdAt).toLocaleDateString('ru-RU')}</p>
+              </button>
+            </div>
+          ))}
         </div>
       )}
     </div>
