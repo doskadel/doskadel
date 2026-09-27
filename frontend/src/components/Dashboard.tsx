@@ -32,14 +32,6 @@ interface DashboardData {
   recentArticles: RecentArticle[];
 }
 
-const pluralize = (n: number, one: string, few: string, many: string): string => {
-  const mod10 = n % 10;
-  const mod100 = n % 100;
-  if (mod10 === 1 && mod100 !== 11) return one;
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return few;
-  return many;
-};
-
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
 
@@ -84,17 +76,27 @@ const Dashboard: React.FC = () => {
 
   const isEmpty = data.totalTasks === 0 && data.totalArticles === 0;
 
-  const tasksLabel = pluralize(data.totalTasks, 'задача', 'задачи', 'задач');
-  const articlesLabel = pluralize(
-    data.totalArticles,
-    'статья',
-    'статьи',
-    'статей'
-  );
-
   return (
     <div className="dashboard">
-      <h2 className="page-title">Главная</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-lg)', gap: 'var(--space-md)', flexWrap: 'wrap' }}>
+        <h2 className="page-title" style={{ margin: 0 }}>Главная</h2>
+        <div style={{ display: 'flex', gap: 'var(--space-md)', alignItems: 'center', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            className="button"
+            onClick={() => navigate('/tasks?new=1')}
+          >
+            + Добавить задачу
+          </button>
+          <button
+            type="button"
+            className="button button--outline"
+            onClick={() => navigate('/knowledge?new=1')}
+          >
+            + Добавить статью
+          </button>
+        </div>
+      </div>
 
       {isEmpty ? (
         <div className="dashboard-empty">
@@ -106,15 +108,14 @@ const Dashboard: React.FC = () => {
             <button
               type="button"
               className="button"
-              onClick={() => navigate('/tasks')}
+              onClick={() => navigate('/tasks?new=1')}
             >
               + Добавить задачу
             </button>
             <button
               type="button"
-              className="button"
-              style={{ backgroundColor: 'var(--color-text-muted)' }}
-              onClick={() => navigate('/knowledge')}
+              className="button button--outline"
+              onClick={() => navigate('/knowledge?new=1')}
             >
               + Добавить статью
             </button>
@@ -122,31 +123,6 @@ const Dashboard: React.FC = () => {
         </div>
       ) : (
         <>
-          {/* --- Верхние карточки-счётчики --- */}
-          <div className="dashboard-counters">
-            <div
-              className="dashboard-counter"
-              onClick={() => navigate('/tasks')}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => e.key === 'Enter' && navigate('/tasks')}
-            >
-              <div className="dashboard-counter-value">{data.totalTasks}</div>
-              <div className="dashboard-counter-label">{tasksLabel}</div>
-            </div>
-
-            <div
-              className="dashboard-counter"
-              onClick={() => navigate('/knowledge')}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => e.key === 'Enter' && navigate('/knowledge')}
-            >
-              <div className="dashboard-counter-value">{data.totalArticles}</div>
-              <div className="dashboard-counter-label">{articlesLabel}</div>
-            </div>
-          </div>
-
           {/* --- Плашки по статусам --- */}
           {data.statusCounts.length > 0 && (
             <div className="dashboard-section">

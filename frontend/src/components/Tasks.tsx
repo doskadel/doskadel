@@ -34,6 +34,7 @@ const Tasks: React.FC = () => {
   const dateFrom = searchParams.get('dateFrom') || '';
   const dateTo = searchParams.get('dateTo') || '';
   const sortParam = searchParams.get('sort') || '';
+  const newParam = searchParams.get('new');
 
   const statusIds = statusesParam ? statusesParam.split(',').filter(Boolean) : [];
   const priorityFilter = priorityParam
@@ -82,6 +83,16 @@ const Tasks: React.FC = () => {
   useEffect(() => {
     localStorage.setItem(VIEW_KEY, view);
   }, [view]);
+
+  // Открытие модалки создания через ?new=1 (с дашборда)
+  useEffect(() => {
+    if (newParam === '1') {
+      setCreateOpen(true);
+      const next = new URLSearchParams(searchParams);
+      next.delete('new');
+      setSearchParams(next, { replace: true });
+    }
+  }, [newParam]);
 
   const updateQuery = (updates: Record<string, string | null>) => {
     const next = new URLSearchParams(searchParams);

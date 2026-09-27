@@ -22,6 +22,7 @@ const Knowledge: React.FC = () => {
   const dateFrom = searchParams.get('dateFrom') || '';
   const dateTo = searchParams.get('dateTo') || '';
   const sortParam = searchParams.get('sort') || '';
+  const newParam = searchParams.get('new');
 
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,6 +50,16 @@ const Knowledge: React.FC = () => {
   useEffect(() => {
     fetchArticles();
   }, [q, dateFrom, dateTo, sortParam]);
+
+  // Открытие модалки создания через ?new=1 (с дашборда)
+  useEffect(() => {
+    if (newParam === '1') {
+      setCreateOpen(true);
+      const next = new URLSearchParams(searchParams);
+      next.delete('new');
+      setSearchParams(next, { replace: true });
+    }
+  }, [newParam]);
 
   const updateQuery = (updates: Record<string, string | null>) => {
     const next = new URLSearchParams(searchParams);
