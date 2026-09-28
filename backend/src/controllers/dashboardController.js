@@ -22,6 +22,42 @@ const getDashboard = async (req, res) => {
       })
     );
 
+    // Активные статусы (не финальные)
+    const activeStatusIds = statuses
+      .filter((s) => !s.isFinal)
+      .map((s) => s._id);
+
+    const now = new Date();
+    const upcomingLimit = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+
+    // Просроченные: активные, dueDate < now, сортировка по dueDate asc
+    const overdueFilter = {
+      userId,
+      statusId: { $in: activeStatusIds },
+      dueDate: { $ne: null, $lt: now }
+    };
+
+    const overdueTasks = await Task.find(overdueFilter)
+      .sort({ dueDate: 1 })
+      .limit(5)
+      .select('_id title statusId priority dueDate');
+
+    const overdueCount = await Task.countDocuments(overdueFilter);
+
+    // Ближайшие: активные, now <= dueDate <= now + 3 дня, сортировка по dueDate asc
+    const upcomingFilter = {
+      userId,
+      statusId: { $in: activeStatusIds },
+      dueDate: { $gte: now, $lte: upcomingLimit }
+    };
+
+    const upcomingTasks = await Task.find(upcomingFilter)
+      .sort({ dueDate: 1 })
+      .limit(5)
+      .select('_id title statusId priority dueDate');
+
+    const upcomingCount = await Task.countDocuments(upcomingFilter);
+
     // Общие счётчики
     const totalTasks = await Task.countDocuments({ userId });
     const totalArticles = await Article.countDocuments({ userId });
@@ -45,7 +81,11 @@ const getDashboard = async (req, res) => {
         totalTasks,
         totalArticles,
         recentTasks,
-        recentArticles
+        recentArticles,
+        overdueTasks,
+        overdueCount,
+        upcomingTasks,
+        upcomingCount
       }
     });
   } catch (error) {

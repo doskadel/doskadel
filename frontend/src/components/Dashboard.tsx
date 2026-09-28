@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { getPriorityColor } from '../utils/priority';
+import { formatDueDate } from '../utils/date';
 
 interface StatusCount {
   statusId: string;
@@ -18,6 +19,14 @@ interface RecentTask {
   updatedAt: string;
 }
 
+interface DueTask {
+  _id: string;
+  title: string;
+  statusId: string;
+  priority: number;
+  dueDate: string;
+}
+
 interface RecentArticle {
   _id: string;
   title: string;
@@ -30,6 +39,10 @@ interface DashboardData {
   totalArticles: number;
   recentTasks: RecentTask[];
   recentArticles: RecentArticle[];
+  overdueTasks: DueTask[];
+  overdueCount: number;
+  upcomingTasks: DueTask[];
+  upcomingCount: number;
 }
 
 const Dashboard: React.FC = () => {
@@ -107,6 +120,85 @@ const Dashboard: React.FC = () => {
         </div>
       ) : (
         <>
+          {/* --- ПРОСРОЧЕНО --- */}
+          {data.overdueCount > 0 && (
+            <div className="dashboard-section">
+              <div className="dashboard-section-header">
+                <h3 className="dashboard-section-title dashboard-section-title--danger">
+                  ⚠️ Просрочено ({data.overdueCount})
+                </h3>
+                <button
+                  type="button"
+                  className="dashboard-section-link"
+                  onClick={() => navigate('/tasks?overdue=1')}
+                >
+                  Все →
+                </button>
+              </div>
+              <div className="dashboard-list">
+                {data.overdueTasks.map((t) => (
+                  <div
+                    key={t._id}
+                    className="dashboard-item"
+                    onClick={() => navigate(`/tasks?task=${t._id}`)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => e.key === 'Enter' && navigate(`/tasks?task=${t._id}`)}
+                  >
+                    <span
+                      className="dashboard-item-priority"
+                      style={{ backgroundColor: getPriorityColor(t.priority) }}
+                    />
+                    <span className="dashboard-item-title">{t.title}</span>
+                    <span className="dashboard-item-date dashboard-item-date--danger">
+                      Срок до {formatDueDate(t.dueDate)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* --- БЛИЖАЙШИЕ СРОКИ --- */}
+          {data.upcomingCount > 0 && (
+            <div className="dashboard-section">
+              <div className="dashboard-section-header">
+                <h3 className="dashboard-section-title">
+                  📅 Ближайшие сроки ({data.upcomingCount})
+                </h3>
+                <button
+                  type="button"
+                  className="dashboard-section-link"
+                  onClick={() => navigate('/tasks?dueSoon=1')}
+                >
+                  Все →
+                </button>
+              </div>
+              <div className="dashboard-list">
+                {data.upcomingTasks.map((t) => (
+                  <div
+                    key={t._id}
+                    className="dashboard-item"
+                    onClick={() => navigate(`/tasks?task=${t._id}`)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => e.key === 'Enter' && navigate(`/tasks?task=${t._id}`)}
+                  >
+                    <span
+                      className="dashboard-item-priority"
+                      style={{ backgroundColor: getPriorityColor(t.priority) }}
+                    />
+                    <span className="dashboard-item-title">{t.title}</span>
+                    <span className="dashboard-item-date">
+                      Срок до {formatDueDate(t.dueDate)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* --- ЗАДАЧИ ПО СТАТУСАМ --- */}
           {data.statusCounts.length > 0 && (
             <div className="dashboard-section">
               <h3 className="dashboard-section-title">Задачи по статусам</h3>
@@ -134,6 +226,7 @@ const Dashboard: React.FC = () => {
             </div>
           )}
 
+          {/* --- ПОСЛЕДНИЕ ЗАДАЧИ --- */}
           {data.recentTasks.length > 0 && (
             <div className="dashboard-section">
               <div className="dashboard-section-header">
@@ -168,6 +261,7 @@ const Dashboard: React.FC = () => {
             </div>
           )}
 
+          {/* --- ПОСЛЕДНИЕ СТАТЬИ --- */}
           {data.recentArticles.length > 0 && (
             <div className="dashboard-section">
               <div className="dashboard-section-header">

@@ -37,11 +37,16 @@ const Tasks: React.FC = () => {
   const dateTo = searchParams.get('dateTo') || '';
   const sortParam = searchParams.get('sort') || '';
   const newParam = searchParams.get('new');
+  const overdueParam = searchParams.get('overdue') || '';
+  const dueSoonParam = searchParams.get('dueSoon') || '';
 
   const statusIds = statusesParam ? statusesParam.split(',').filter(Boolean) : [];
   const priorityFilter = priorityParam
     ? priorityParam.split(',').map((p) => parseInt(p, 10)).filter((p) => p >= 1 && p <= 3)
     : [];
+
+  const dueFilter: 'overdue' | 'dueSoon' | null =
+    overdueParam === '1' ? 'overdue' : dueSoonParam === '1' ? 'dueSoon' : null;
 
   const [tasks, setTasks] = useState<Task[]>([]);
   const [statuses, setStatuses] = useState<Status[]>([]);
@@ -81,7 +86,7 @@ const Tasks: React.FC = () => {
 
   useEffect(() => {
     fetchTasks();
-  }, [q, statusesParam, priorityParam, dateFrom, dateTo, sortParam]);
+  }, [q, statusesParam, priorityParam, dateFrom, dateTo, sortParam, overdueParam, dueSoonParam]);
 
   useEffect(() => {
     localStorage.setItem(VIEW_KEY, view);
@@ -126,6 +131,8 @@ const Tasks: React.FC = () => {
       if (dateFrom) params.set('dateFrom', dateFrom);
       if (dateTo) params.set('dateTo', dateTo);
       if (sortParam) params.set('sort', sortParam);
+      if (overdueParam === '1') params.set('overdue', 'true');
+      if (dueSoonParam === '1') params.set('dueSoon', 'true');
 
       const url = '/api/tasks' + (params.toString() ? '?' + params.toString() : '');
       const res = await api.get(url);
@@ -232,8 +239,14 @@ const Tasks: React.FC = () => {
       dateFrom: null,
       dateTo: null,
       sort: null,
+      overdue: null,
+      dueSoon: null,
     });
     setSearchInput('');
+  };
+
+  const handleClearDueFilter = () => {
+    updateQuery({ overdue: null, dueSoon: null });
   };
 
   const handleDateFromChange = (value: string) => {
@@ -258,7 +271,8 @@ const Tasks: React.FC = () => {
     statusIds.length > 0 ||
     priorityFilter.length > 0 ||
     dateFrom ||
-    dateTo
+    dateTo ||
+    dueFilter
   );
 
   if (loading) return <p>Загрузка...</p>;
@@ -325,6 +339,8 @@ const Tasks: React.FC = () => {
         sort={sortParam || DEFAULT_SORT}
         onSortChange={(s) => updateQuery({ sort: s === DEFAULT_SORT ? null : s })}
         hideSort={view === 'kanban'}
+        dueFilter={dueFilter}
+        onDueFilterClear={handleClearDueFilter}
       />
 
       <Modal open={createOpen} onClose={handleCloseCreate} title="Новая задача">

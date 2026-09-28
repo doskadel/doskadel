@@ -22,6 +22,8 @@ interface FilterBarProps {
   sort: string;
   onSortChange: (sort: string) => void;
   hideSort?: boolean;
+  dueFilter?: 'overdue' | 'dueSoon' | null;
+  onDueFilterClear?: () => void;
 }
 
 type OpenPopover = 'search' | 'sort' | 'dates' | null;
@@ -44,6 +46,8 @@ const FilterBar: React.FC<FilterBarProps> = ({
   sort,
   onSortChange,
   hideSort = false,
+  dueFilter = null,
+  onDueFilterClear,
 }) => {
   const [open, setOpen] = useState<OpenPopover>(null);
   const [searchLocal, setSearchLocal] = useState(q);
@@ -58,7 +62,6 @@ const FilterBar: React.FC<FilterBarProps> = ({
 
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      // Игнорируем клики внутри попапа или по иконке-триггеру
       if (target.closest('.filter-popover') || target.closest('.filter-icon-wrap')) {
         return;
       }
@@ -112,8 +115,25 @@ const FilterBar: React.FC<FilterBarProps> = ({
   return (
     <div className="filter-bar">
       <div className="filter-bar-row">
-        {/* --- ЛЕВАЯ ЧАСТЬ: фильтры-селекторы + календарь --- */}
+        {/* --- ЛЕВАЯ ЧАСТЬ: чип + фильтры-селекторы + календарь --- */}
         <div className="filter-bar-left">
+          {dueFilter && (
+            <div className="filter-chip filter-chip--active">
+              <span className="filter-chip-label">
+                {dueFilter === 'overdue' ? '⚠️ Просрочено' : '📅 Ближайшие 3 дня'}
+              </span>
+              <button
+                type="button"
+                className="filter-chip-close"
+                onClick={onDueFilterClear}
+                aria-label="Убрать фильтр"
+                title="Убрать фильтр"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+
           <MultiSelect
             label="Статус"
             options={statusOptions}
@@ -130,7 +150,6 @@ const FilterBar: React.FC<FilterBarProps> = ({
             placeholder="Все"
           />
 
-          {/* --- Даты (левая часть, в конце) --- */}
           <div className="filter-icon-wrap filter-icon-wrap--left">
             <button
               type="button"
@@ -198,7 +217,6 @@ const FilterBar: React.FC<FilterBarProps> = ({
 
         {/* --- ПРАВАЯ ЧАСТЬ: поиск, сортировка, сброс --- */}
         <div className="filter-bar-right">
-          {/* --- Поиск (первый) --- */}
           <div className="filter-icon-wrap filter-icon-wrap--right">
             <button
               type="button"
@@ -230,7 +248,6 @@ const FilterBar: React.FC<FilterBarProps> = ({
             )}
           </div>
 
-          {/* --- Сортировка (второй) --- */}
           {!hideSort && (
             <div className="filter-icon-wrap filter-icon-wrap--right">
               <button
@@ -270,7 +287,6 @@ const FilterBar: React.FC<FilterBarProps> = ({
             </div>
           )}
 
-          {/* --- Сброс --- */}
           {hasActiveFilters && (
             <button
               type="button"

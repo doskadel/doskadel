@@ -49,7 +49,17 @@ const createTask = async (req, res) => {
 // Получение задач с фильтрами и сортировкой
 const getTasks = async (req, res) => {
   try {
-    const { q, priority, statusId, statusIds, dateFrom, dateTo, sort } = req.query;
+    const {
+      q,
+      priority,
+      statusId,
+      statusIds,
+      dateFrom,
+      dateTo,
+      sort,
+      overdue,
+      dueSoon
+    } = req.query;
 
     const filter = { userId: req.user._id };
 
@@ -97,34 +107,62 @@ const getTasks = async (req, res) => {
       }
     }
 
-    // Сортировка
-    let sortObj = { createdAt: -1 };
-    switch (sort) {
-      case 'createdAt_asc':
-        sortObj = { createdAt: 1 };
-        break;
-      case 'priority_desc':
-        sortObj = { priority: -1, createdAt: -1 };
-        break;
-      case 'priority_asc':
-        sortObj = { priority: 1, createdAt: -1 };
-        break;
-      case 'title_asc':
-        sortObj = { title: 1 };
-        break;
-      case 'title_desc':
-        sortObj = { title: -1 };
-        break;
-      case 'createdAt_desc':
-      default:
-        sortObj = { createdAt: -1 };
-        break;
+    // Фильтры по дедлайну (overdue / dueSoon) — только активные статусы
+    const wantsOverdue = overdue === 'true';
+    const wantsDueSoon = dueSoon === 'true';
+
+    if (wantsOverdue || wantsDueSoon) {
+      const statuses = await Status.find({ userId: req.user._id });
+      const activeStatusIds = statuses
+        .filter((s) => !s.isFinal)
+        .map((s) => s._id);
+
+      filter.statusId = { $in: activeStatusIds };
+      filter.dueDate = { $ne: null };
+
+      const now = new Date();
+
+      if (wantsOverdue) {
+        filter.dueDate.$lt = now;
+      } else {
+        const upcomingLimit = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+        filter.dueDate.$gte = now;
+        filter.dueDate.$lte = upcomingLimit;
+      }
     }
 
-    // Collation для корректной сортировки по алфавиту (русский + игнор регистра)
+    // Сортировка
+    let sortObj = { createdAt: -1 };
+    if (wantsOverdue || wantsDueSoon) {
+      sortObj = { dueDate: 1 };
+    } else {
+      switch (sort) {
+        case 'createdAt_asc':
+          sortObj = { createdAt: 1 };
+          break;
+        case 'priority_desc':
+          sortObj = { priority: -1, createdAt: -1 };
+          break;
+        case 'priority_asc':
+          sortObj = { priority: 1, createdAt: -1 };
+          break;
+        case 'title_asc':
+          sortObj = { title: 1 };
+          break;
+        case 'title_desc':
+          sortObj = { title: -1 };
+          break;
+        case 'createdAt_desc':
+        default:
+          sortObj = { createdAt: -1 };
+          break;
+      }
+    }
+
+    // Collation для корректной сортировки по алфавиту
     const isTitleSort = sort === 'title_asc' || sort === 'title_desc';
     const query = Task.find(filter).sort(sortObj);
-    if (isTitleSort) {
+    if (isTitleSort && !wantsOverdue && !wantsDueSoon) {
       query.collation({ locale: 'ru', strength: 2 });
     }
 
