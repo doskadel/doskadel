@@ -3,6 +3,7 @@ import Modal from './Modal';
 import TaskModalContent from './TaskModalContent';
 import TaskModalRail from './TaskModalRail';
 import { useTaskDetail } from '../hooks/useTaskDetail';
+import { useConfirm } from './ConfirmProvider';
 import { Status } from '../utils/status';
 
 interface TaskModalProps {
@@ -13,7 +14,8 @@ interface TaskModalProps {
 }
 
 const TaskModal: React.FC<TaskModalProps> = ({ taskId, statuses, onClose, onUpdate }) => {
-  const detail = useTaskDetail(taskId, onUpdate);
+  const confirm = useConfirm();
+  const detail = useTaskDetail(taskId, onUpdate, confirm);
 
   const handleClose = () => {
     detail.cancelEdit();
@@ -21,8 +23,8 @@ const TaskModal: React.FC<TaskModalProps> = ({ taskId, statuses, onClose, onUpda
   };
 
   const handleDelete = async () => {
-    await detail.handleDelete();
-    onClose();
+    const deleted = await detail.handleDelete();
+    if (deleted) onClose();
   };
 
   const modalTitle = detail.isEditing

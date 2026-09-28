@@ -37,13 +37,19 @@ export interface UseTaskDetailResult {
   cancelEdit: () => void;
   saveEdit: () => Promise<void>;
   quickChangeStatus: (statusId: string) => Promise<void>;
-  handleDelete: () => Promise<void>;
+  handleDelete: () => Promise<boolean>;
   handleCopyLink: () => Promise<void>;
 }
 
 export const useTaskDetail = (
   taskId: string | null,
-  onUpdate?: () => void
+  onUpdate?: () => void,
+  onConfirm?: (options: {
+    title: string;
+    message?: string;
+    confirmLabel?: string;
+    danger?: boolean;
+  }) => Promise<boolean>
 ): UseTaskDetailResult => {
   const [task, setTask] = useState<Task | null>(null);
   const [loading, setLoading] = useState(false);
@@ -134,14 +140,24 @@ export const useTaskDetail = (
     }
   };
 
-  const handleDelete = async () => {
-    if (!task) return;
-    if (!window.confirm('Удалить задачу?')) return;
+  const handleDelete = async (): Promise<boolean> => {
+    if (!task) return false;
+    if (onConfirm) {
+      const ok = await onConfirm({
+        title: 'Удалить задачу?',
+        message: 'Это действие нельзя отменить.',
+        confirmLabel: 'Удалить',
+        danger: true,
+      });
+      if (!ok) return false;
+    }
     try {
       await api.delete(`/api/tasks/${task._id}`);
       onUpdate?.();
+      return true;
     } catch (err) {
       console.error('Error deleting task:', err);
+      return false;
     }
   };
 

@@ -10,6 +10,7 @@ import { useMediaQuery } from '../hooks/useMediaQuery';
 import { PRIORITY_OPTIONS, getPriorityLabel, getPriorityColor } from '../utils/priority';
 import { Status } from '../utils/status';
 import { formatDueDate, isOverdue } from '../utils/date';
+import { useConfirm } from './ConfirmProvider';
 
 interface Task {
   _id: string;
@@ -28,6 +29,7 @@ const DEFAULT_SORT = 'createdAt_desc';
 const Tasks: React.FC = () => {
   const isMobile = useMediaQuery('(max-width: 640px)');
   const [searchParams, setSearchParams] = useSearchParams();
+  const confirm = useConfirm();
 
   const openedTaskId = searchParams.get('task');
   const q = searchParams.get('q') || '';
@@ -185,9 +187,15 @@ const Tasks: React.FC = () => {
     );
   };
 
-  const handleCloseCreate = () => {
+  const handleCloseCreate = async () => {
     if (isCreateFormDirty()) {
-      if (!window.confirm('Есть несохранённые данные. Закрыть?')) return;
+      const ok = await confirm({
+        title: 'Есть несохранённые данные',
+        message: 'Изменения будут потеряны. Закрыть форму?',
+        confirmLabel: 'Закрыть',
+        danger: true,
+      });
+      if (!ok) return;
     }
     resetCreateForm();
     setCreateOpen(false);

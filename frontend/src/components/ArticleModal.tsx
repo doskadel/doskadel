@@ -3,6 +3,7 @@ import Modal from './Modal';
 import ArticleModalContent from './ArticleModalContent';
 import ArticleModalRail from './ArticleModalRail';
 import { useArticleDetail } from '../hooks/useArticleDetail';
+import { useConfirm } from './ConfirmProvider';
 
 interface ArticleModalProps {
   articleId: string | null;
@@ -11,7 +12,8 @@ interface ArticleModalProps {
 }
 
 const ArticleModal: React.FC<ArticleModalProps> = ({ articleId, onClose, onUpdate }) => {
-  const detail = useArticleDetail(articleId, onUpdate);
+  const confirm = useConfirm();
+  const detail = useArticleDetail(articleId, onUpdate, confirm);
 
   const handleClose = () => {
     detail.cancelEdit();
@@ -19,8 +21,8 @@ const ArticleModal: React.FC<ArticleModalProps> = ({ articleId, onClose, onUpdat
   };
 
   const handleDelete = async () => {
-    await detail.handleDelete();
-    onClose();
+    const deleted = await detail.handleDelete();
+    if (deleted) onClose();
   };
 
   const modalTitle = detail.isEditing

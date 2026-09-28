@@ -4,6 +4,7 @@ import api from '../utils/api';
 import Modal from './Modal';
 import ArticleModal from './ArticleModal';
 import ArticleFilterBar from './ArticleFilterBar';
+import { useConfirm } from './ConfirmProvider';
 
 interface Article {
   _id: string;
@@ -16,6 +17,7 @@ const DEFAULT_SORT = 'createdAt_desc';
 
 const Knowledge: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const confirm = useConfirm();
 
   const openedArticleId = searchParams.get('article');
   const q = searchParams.get('q') || '';
@@ -51,7 +53,6 @@ const Knowledge: React.FC = () => {
     fetchArticles();
   }, [q, dateFrom, dateTo, sortParam]);
 
-  // Открытие модалки создания через ?new=1 (с дашборда)
   useEffect(() => {
     if (newParam === '1') {
       setCreateOpen(true);
@@ -112,9 +113,15 @@ const Knowledge: React.FC = () => {
     return title.trim() !== '' || content.trim() !== '';
   };
 
-  const handleCloseCreate = () => {
+  const handleCloseCreate = async () => {
     if (isCreateFormDirty()) {
-      if (!window.confirm('Есть несохранённые данные. Закрыть?')) return;
+      const ok = await confirm({
+        title: 'Есть несохранённые данные',
+        message: 'Изменения будут потеряны. Закрыть форму?',
+        confirmLabel: 'Закрыть',
+        danger: true,
+      });
+      if (!ok) return;
     }
     resetCreateForm();
     setCreateOpen(false);

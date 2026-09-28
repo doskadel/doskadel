@@ -26,13 +26,19 @@ export interface UseArticleDetailResult {
   startEdit: () => void;
   cancelEdit: () => void;
   saveEdit: () => Promise<void>;
-  handleDelete: () => Promise<void>;
+  handleDelete: () => Promise<boolean>;
   handleCopyLink: () => Promise<void>;
 }
 
 export const useArticleDetail = (
   articleId: string | null,
-  onUpdate?: () => void
+  onUpdate?: () => void,
+  onConfirm?: (options: {
+    title: string;
+    message?: string;
+    confirmLabel?: string;
+    danger?: boolean;
+  }) => Promise<boolean>
 ): UseArticleDetailResult => {
   const [article, setArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(false);
@@ -100,14 +106,24 @@ export const useArticleDetail = (
     }
   };
 
-  const handleDelete = async () => {
-    if (!article) return;
-    if (!window.confirm('Удалить статью?')) return;
+  const handleDelete = async (): Promise<boolean> => {
+    if (!article) return false;
+    if (onConfirm) {
+      const ok = await onConfirm({
+        title: 'Удалить статью?',
+        message: 'Это действие нельзя отменить.',
+        confirmLabel: 'Удалить',
+        danger: true,
+      });
+      if (!ok) return false;
+    }
     try {
       await api.delete(`/api/articles/${article._id}`);
       onUpdate?.();
+      return true;
     } catch (err) {
       console.error('Error deleting article:', err);
+      return false;
     }
   };
 

@@ -2291,3 +2291,75 @@ color: var(--color-text);
   background: var(--color-primary);
   color: white;
 }
+
+/* ==================== CONFIRM DIALOG ==================== */
+.confirm-dialog-title-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+.confirm-dialog-icon {
+  font-size: 22px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.confirm-dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.confirm-dialog-message {
+  font-size: 15px;
+  color: var(--color-text);
+  line-height: 1.5;
+}
+
+.confirm-dialog-message p {
+  margin: 0;
+}
+
+.confirm-dialog-message p + p {
+  margin-top: var(--space-sm);
+}
+
+.confirm-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.confirm-dialog-extra {
+  margin-right: auto;
+}
+
+.confirm-dialog-buttons {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .confirm-dialog-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .confirm-dialog-extra {
+    margin-right: 0;
+  }
+
+  .confirm-dialog-buttons {
+    width: 100%;
+  }
+
+  .confirm-dialog-buttons .button {
+    flex: 1;
+  }
+}

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { PRIORITY_OPTIONS, getPriorityLabel } from '../utils/priority';
 import { Status } from '../utils/status';
+import { useConfirm } from './ConfirmProvider';
 
 interface Task {
   _id: string;
@@ -17,6 +18,7 @@ interface Task {
 const TaskDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const confirm = useConfirm();
 
   const [task, setTask] = useState<Task | null>(null);
   const [statuses, setStatuses] = useState<Status[]>([]);
@@ -89,7 +91,13 @@ const TaskDetail: React.FC = () => {
 
   const handleDelete = async () => {
     if (!task) return;
-    if (!window.confirm('Удалить задачу?')) return;
+    const ok = await confirm({
+      title: 'Удалить задачу?',
+      message: 'Это действие нельзя отменить.',
+      confirmLabel: 'Удалить',
+      danger: true,
+    });
+    if (!ok) return;
     try {
       await api.delete(`/api/tasks/${task._id}`);
       navigate('/tasks');

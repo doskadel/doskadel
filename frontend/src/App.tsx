@@ -11,24 +11,27 @@ import Knowledge from './components/Knowledge';
 import ArticleDetail from './components/ArticleDetail';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
+import { ConfirmProvider } from './components/ConfirmProvider';
 import { getToken } from './utils/token';
 
 function App() {
   const token = getToken();
 
   return (
-    <div className="App">
-      <Routes>
-        <Route path="/login" element={token ? <Navigate to="/" replace /> : <Login />} />
-        <Route path="/register" element={token ? <Navigate to="/" replace /> : <Register />} />
-        <Route path="/" element={<ProtectedRoute><Layout><Dashboard /></Layout></ProtectedRoute>} />
-        <Route path="/tasks" element={<ProtectedRoute><Layout><Tasks /></Layout></ProtectedRoute>} />
-        <Route path="/tasks/:id" element={<ProtectedRoute><Layout><TaskDetail /></Layout></ProtectedRoute>} />
-        <Route path="/knowledge" element={<ProtectedRoute><Layout><Knowledge /></Layout></ProtectedRoute>} />
-        <Route path="/knowledge/:id" element={<ProtectedRoute><Layout><ArticleDetail /></Layout></ProtectedRoute>} />
-        <Route path="/search" element={<Navigate to="/" replace />} />
-      </Routes>
-    </div>
+    <ConfirmProvider>
+      <div className="App">
+        <Routes>
+          <Route path="/login" element={token ? <Navigate to="/" replace /> : <Login />} />
+          <Route path="/register" element={token ? <Navigate to="/" replace /> : <Register />} />
+          <Route path="/" element={<ProtectedRoute><Layout><Dashboard /></Layout></ProtectedRoute>} />
+          <Route path="/tasks" element={<ProtectedRoute><Layout><Tasks /></Layout></ProtectedRoute>} />
+          <Route path="/tasks/:id" element={<ProtectedRoute><Layout><TaskDetail /></Layout></ProtectedRoute>} />
+          <Route path="/knowledge" element={<ProtectedRoute><Layout><Knowledge /></Layout></ProtectedRoute>} />
+          <Route path="/knowledge/:id" element={<ProtectedRoute><Layout><ArticleDetail /></Layout></ProtectedRoute>} />
+          <Route path="/search" element={<Navigate to="/" replace />} />
+        </Routes>
+      </div>
+    </ConfirmProvider>
   );
 }
 

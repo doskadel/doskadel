@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../utils/api';
+import { useConfirm } from './ConfirmProvider';
 
 interface Article {
   _id: string;
@@ -13,6 +14,7 @@ interface Article {
 const ArticleDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const confirm = useConfirm();
 
   const [article, setArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
@@ -71,7 +73,13 @@ const ArticleDetail: React.FC = () => {
 
   const handleDelete = async () => {
     if (!article) return;
-    if (!window.confirm('Удалить статью?')) return;
+    const ok = await confirm({
+      title: 'Удалить статью?',
+      message: 'Это действие нельзя отменить.',
+      confirmLabel: 'Удалить',
+      danger: true,
+    });
+    if (!ok) return;
     try {
       await api.delete(`/api/articles/${article._id}`);
       navigate('/knowledge');

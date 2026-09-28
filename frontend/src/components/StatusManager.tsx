@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import api from '../utils/api';
 import Modal from './Modal';
 import { Status, STATUS_COLOR_PALETTE } from '../utils/status';
+import { useConfirm } from './ConfirmProvider';
 
 interface StatusManagerProps {
   open: boolean;
@@ -13,6 +14,8 @@ interface StatusManagerProps {
 type ViewMode = 'list' | 'edit' | 'create';
 
 const StatusManager: React.FC<StatusManagerProps> = ({ open, statuses, onClose, onChanged }) => {
+  const confirm = useConfirm();
+
   const [mode, setMode] = useState<ViewMode>('list');
   const [editingStatus, setEditingStatus] = useState<Status | null>(null);
   const [name, setName] = useState('');
@@ -105,7 +108,14 @@ const StatusManager: React.FC<StatusManagerProps> = ({ open, statuses, onClose, 
   };
 
   const handleDelete = async (status: Status) => {
-    if (!window.confirm(`Удалить статус «${status.name}»?`)) return;
+    const ok = await confirm({
+      title: `Удалить статус «${status.name}»?`,
+      message: 'Это действие нельзя отменить.',
+      confirmLabel: 'Удалить',
+      danger: true,
+    });
+    if (!ok) return;
+
     setDeletingId(status._id);
     setError('');
     try {
