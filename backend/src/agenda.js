@@ -459,6 +459,9 @@ const startAgenda = async () => {
   // ВАЖНО: сначала start(), потом every()
   // ==========================================================
   await agenda.start();
+  
+// Даём Agenda время на инициализацию _collection
+await new Promise((resolve) => setTimeout(resolve, 2000));
 
   // Каждую минуту
   await agenda.every('* * * * *', 'generate recurring occurrences');
