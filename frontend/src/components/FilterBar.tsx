@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import MultiSelect from './MultiSelect';
+import ClearableInput from './ClearableInput';
 import { Status } from '../utils/status';
 import { PRIORITY_OPTIONS } from '../utils/priority';
 import { TASK_SORT_OPTIONS } from '../utils/sort';
+
+export type TaskTypeFilter = 'single' | 'recurring' | null;
 
 interface FilterBarProps {
   q: string;
@@ -11,16 +14,20 @@ interface FilterBarProps {
   onStatusIdsChange: (ids: string[]) => void;
   priorityFilter: number[];
   onPriorityFilterChange: (priorities: number[]) => void;
+  taskType: TaskTypeFilter;
+  onTaskTypeChange: (v: TaskTypeFilter) => void;
   dateFrom: string;
   dateTo: string;
   onDateFromChange: (date: string) => void;
   onDateToChange: (date: string) => void;
+  onDatesClear: () => void;
   statuses: Status[];
   onReset: () => void;
   hasActiveFilters: boolean;
   dateError: string;
   sort: string;
   onSortChange: (sort: string) => void;
+  defaultSort: string;
   hideSort?: boolean;
   dueFilter?: 'overdue' | 'dueSoon' | null;
   onDueFilterClear?: () => void;
@@ -35,27 +42,26 @@ const FilterBar: React.FC<FilterBarProps> = ({
   onStatusIdsChange,
   priorityFilter,
   onPriorityFilterChange,
+  taskType,
+  onTaskTypeChange,
   dateFrom,
   dateTo,
   onDateFromChange,
   onDateToChange,
+  onDatesClear,
   statuses,
   onReset,
   hasActiveFilters,
   dateError,
   sort,
   onSortChange,
+  defaultSort,
   hideSort = false,
   dueFilter = null,
   onDueFilterClear,
 }) => {
   const [open, setOpen] = useState<OpenPopover>(null);
-  const [searchLocal, setSearchLocal] = useState(q);
   const searchInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    setSearchLocal(q);
-  }, [q]);
 
   useEffect(() => {
     if (!open) return;
@@ -89,11 +95,6 @@ const FilterBar: React.FC<FilterBarProps> = ({
     setOpen((prev) => (prev === which ? null : which));
   };
 
-  const commitSearch = (value: string) => {
-    setSearchLocal(value);
-    onQChange(value);
-  };
-
   const statusOptions = statuses.map((s) => ({
     value: s._id,
     label: s.name,
@@ -106,8 +107,24 @@ const FilterBar: React.FC<FilterBarProps> = ({
     color: p.color,
   }));
 
+  const taskTypeOptions = [
+    { value: 'single', label: 'Разовые' },
+    { value: 'recurring', label: 'Повторяющиеся' },
+  ];
+
+  const taskTypeSelected = taskType ? [taskType] : [];
+
+  const handleTaskTypeChange = (values: Array<string | number>) => {
+    if (values.length === 0) {
+      onTaskTypeChange(null);
+    } else {
+      onTaskTypeChange(values[values.length - 1] as TaskTypeFilter);
+    }
+  };
+
   const isSearchActive = q.trim() !== '';
   const isDatesActive = !!(dateFrom || dateTo);
+  const isSortActive = sort !== defaultSort;
 
   const activeSortLabel =
     TASK_SORT_OPTIONS.find((o) => o.value === sort)?.label || 'Сортировка';
@@ -115,7 +132,6 @@ const FilterBar: React.FC<FilterBarProps> = ({
   return (
     <div className="filter-bar">
       <div className="filter-bar-row">
-        {/* --- ЛЕВАЯ ЧАСТЬ: чип + фильтры-селекторы + календарь --- */}
         <div className="filter-bar-left">
           {dueFilter && (
             <div className="filter-chip filter-chip--active">
@@ -147,6 +163,14 @@ const FilterBar: React.FC<FilterBarProps> = ({
             options={priorityOptions}
             selected={priorityFilter}
             onChange={(values) => onPriorityFilterChange(values as number[])}
+            placeholder="Все"
+          />
+
+          <MultiSelect
+            label="Тип"
+            options={taskTypeOptions}
+            selected={taskTypeSelected}
+            onChange={handleTaskTypeChange}
             placeholder="Все"
           />
 
@@ -201,10 +225,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
                     <button
                       type="button"
                       className="filter-bar-reset"
-                      onClick={() => {
-                        onDateFromChange('');
-                        onDateToChange('');
-                      }}
+                      onClick={onDatesClear}
                     >
                       Очистить даты
                     </button>
@@ -215,7 +236,6 @@ const FilterBar: React.FC<FilterBarProps> = ({
           </div>
         </div>
 
-        {/* --- ПРАВАЯ ЧАСТЬ: поиск, сортировка, сброс --- */}
         <div className="filter-bar-right">
           <div className="filter-icon-wrap filter-icon-wrap--right">
             <button
@@ -236,13 +256,12 @@ const FilterBar: React.FC<FilterBarProps> = ({
 
             {open === 'search' && (
               <div className="filter-popover filter-popover--search">
-                <input
-                  ref={searchInputRef}
+                <ClearableInput
                   type="text"
+                  value={q}
+                  onChange={onQChange}
                   placeholder="Поиск по задачам..."
-                  value={searchLocal}
-                  onChange={(e) => commitSearch(e.target.value)}
-                  className="input"
+                  inputRef={searchInputRef}
                 />
               </div>
             )}
@@ -254,6 +273,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
                 type="button"
                 className={
                   'filter-icon-btn' +
+                  (isSortActive ? ' filter-icon-btn--active' : '') +
                   (open === 'sort' ? ' filter-icon-btn--open' : '')
                 }
                 onClick={() => toggle('sort')}
@@ -263,6 +283,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
               >
                 ⇅
               </button>
+              {isSortActive && <span className="filter-icon-dot" />}
 
               {open === 'sort' && (
                 <div className="filter-popover filter-popover--sort">

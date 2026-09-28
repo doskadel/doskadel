@@ -41,7 +41,6 @@ const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
   const bodyRef = useRef<HTMLDivElement>(null);
   const savedScrollRef = useRef(0);
 
-  // Search mode state
   const [query, setQuery] = useState('');
   const [tasks, setTasks] = useState<SearchTask[]>([]);
   const [articles, setArticles] = useState<SearchArticle[]>([]);
@@ -53,15 +52,12 @@ const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
   const [tasksVisible, setTasksVisible] = useState(INITIAL_VISIBLE);
   const [articlesVisible, setArticlesVisible] = useState(INITIAL_VISIBLE);
 
-  // Detail mode state
   const [mode, setMode] = useState<Mode>('search');
   const [detailType, setDetailType] = useState<DetailType>('task');
   const [detailId, setDetailId] = useState<string | null>(null);
 
-  // Statuses для TaskModalContent
   const [statuses, setStatuses] = useState<Status[]>([]);
 
-  // Хуки деталей — только когда открыт detail
   const taskDetail = useTaskDetail(
     mode === 'detail' && detailType === 'task' ? detailId : null,
     () => refetchSearch()
@@ -71,21 +67,18 @@ const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
     () => refetchSearch()
   );
 
-  // Фокус на input при открытии в режиме search
   useEffect(() => {
     if (open && mode === 'search') {
       setTimeout(() => inputRef.current?.focus(), 0);
     }
   }, [open, mode]);
 
-  // Восстановление скролла при возврате из detail
   useLayoutEffect(() => {
     if (mode === 'search' && bodyRef.current) {
       bodyRef.current.scrollTop = savedScrollRef.current;
     }
   }, [mode]);
 
-  // Сброс при закрытии
   useEffect(() => {
     if (!open) {
       setQuery('');
@@ -102,7 +95,6 @@ const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
     }
   }, [open]);
 
-  // Загрузка статусов один раз
   useEffect(() => {
     if (open && statuses.length === 0) {
       api.get('/api/statuses')
@@ -111,7 +103,6 @@ const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
     }
   }, [open, statuses.length]);
 
-  // Esc: в detail → в search, в search → закрыть
   useEffect(() => {
     if (!open) return;
     const handleEsc = (e: KeyboardEvent) => {
@@ -132,9 +123,6 @@ const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
     };
   }, [open, mode, onClose]);
 
-  // Debounce поиска
-  // mode НЕ в зависимостях — чтобы при возврате из detail
-  // запрос не перезапускался и не сбрасывал tasksVisible/articlesVisible
   useEffect(() => {
     if (!open || mode !== 'search') return;
 
@@ -250,12 +238,15 @@ const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
         <TaskModalRail
           linkCopied={taskDetail.linkCopied}
           isEditing={taskDetail.isEditing}
+          isRecurring={false}
+          pendingCount={0}
           onCopyLink={taskDetail.handleCopyLink}
           onEdit={taskDetail.startEdit}
           onDelete={async () => {
             await taskDetail.handleDelete();
             closeDetail();
           }}
+          onOpenOccurrences={() => {}}
         />
       ) : (
         <ArticleModalRail
@@ -300,12 +291,14 @@ const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
                   editStatusId={taskDetail.editStatusId}
                   editPriority={taskDetail.editPriority}
                   editDueDate={taskDetail.editDueDate}
+                  editRecurrence={taskDetail.editRecurrence}
                   saving={taskDetail.saving}
                   setEditTitle={taskDetail.setEditTitle}
                   setEditDescription={taskDetail.setEditDescription}
                   setEditStatusId={taskDetail.setEditStatusId}
                   setEditPriority={taskDetail.setEditPriority}
                   setEditDueDate={taskDetail.setEditDueDate}
+                  setEditRecurrence={taskDetail.setEditRecurrence}
                   onSave={taskDetail.saveEdit}
                   onCancel={taskDetail.cancelEdit}
                   onQuickChangeStatus={taskDetail.quickChangeStatus}

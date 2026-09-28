@@ -3,6 +3,9 @@ import { Task } from '../hooks/useTaskDetail';
 import { PRIORITY_OPTIONS, getPriorityLabel } from '../utils/priority';
 import { Status } from '../utils/status';
 import { formatDueDate, isOverdue } from '../utils/date';
+import { formatRecurrence, getDefaultRecurrence, Recurrence } from '../utils/recurrence';
+import RecurrencePicker from './RecurrencePicker';
+import ClearableField from './ClearableField';
 
 interface TaskModalContentProps {
   task: Task | null;
@@ -16,6 +19,7 @@ interface TaskModalContentProps {
   editStatusId: string;
   editPriority: number;
   editDueDate: string;
+  editRecurrence: Recurrence | null;
   saving: boolean;
 
   setEditTitle: (v: string) => void;
@@ -23,10 +27,12 @@ interface TaskModalContentProps {
   setEditStatusId: (v: string) => void;
   setEditPriority: (v: number) => void;
   setEditDueDate: (v: string) => void;
+  setEditRecurrence: (v: Recurrence | null) => void;
 
   onSave: () => void;
   onCancel: () => void;
   onQuickChangeStatus: (statusId: string) => void;
+  pendingCount?: number;
 }
 
 const TaskModalContent: React.FC<TaskModalContentProps> = ({
@@ -40,27 +46,22 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
   editStatusId,
   editPriority,
   editDueDate,
+  editRecurrence,
   saving,
   setEditTitle,
   setEditDescription,
   setEditStatusId,
   setEditPriority,
   setEditDueDate,
+  setEditRecurrence,
   onSave,
   onCancel,
   onQuickChangeStatus,
+  pendingCount = 0,
 }) => {
-  if (loading) {
-    return <p>Загрузка...</p>;
-  }
-
-  if (error) {
-    return <p style={{ color: 'var(--color-danger)' }}>{error}</p>;
-  }
-
-  if (!task) {
-    return null;
-  }
+  if (loading) return <p>Загрузка...</p>;
+  if (error) return <p style={{ color: 'var(--color-danger)' }}>{error}</p>;
+  if (!task) return null;
 
   if (isEditing) {
     return (
@@ -98,15 +99,41 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
             <option key={p.value} value={p.value}>{p.label}</option>
           ))}
         </select>
+
         <div>
-          <label className="input-label">Срок</label>
-          <input
-            type="datetime-local"
-            value={editDueDate}
-            onChange={(e) => setEditDueDate(e.target.value)}
+          <label className="input-label">Тип задачи</label>
+          <select
             className="input"
-          />
+            value={editRecurrence ? 'recurring' : 'single'}
+            onChange={(e) => {
+              if (e.target.value === 'single') {
+                setEditRecurrence(null);
+              } else {
+                setEditRecurrence(getDefaultRecurrence('daily'));
+              }
+            }}
+          >
+            <option value="single">Разовое</option>
+            <option value="recurring">Повторяющееся</option>
+          </select>
         </div>
+
+        {editRecurrence ? (
+          <RecurrencePicker value={editRecurrence} onChange={setEditRecurrence} />
+        ) : (
+          <div>
+            <label className="input-label">Срок</label>
+            <ClearableField onClear={() => setEditDueDate('')} showClear={!!editDueDate}>
+              <input
+                type="datetime-local"
+                value={editDueDate}
+                onChange={(e) => setEditDueDate(e.target.value)}
+                className="input"
+              />
+            </ClearableField>
+          </div>
+        )}
+
         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
           <button
             type="button"
@@ -132,6 +159,7 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
 
   const due = task.dueDate;
   const overdue = isOverdue(due);
+  const isRecurring = !!task.recurrence;
 
   return (
     <div>
@@ -165,34 +193,45 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
           <p style={{ fontSize: '12px', textTransform: 'uppercase', color: 'var(--color-text-muted)', marginBottom: '4px' }}>Приоритет</p>
           <p style={{ color: 'var(--color-text)', fontSize: '15px' }}>{getPriorityLabel(task.priority)}</p>
         </div>
-        <div>
-          <p style={{ fontSize: '12px', textTransform: 'uppercase', color: 'var(--color-text-muted)', marginBottom: '4px' }}>Срок</p>
-          {due ? (
-            <p style={{
-              color: overdue ? 'var(--color-danger)' : 'var(--color-text)',
-              fontSize: '15px',
-              fontWeight: overdue ? 500 : 400,
-            }}>
-              📅 {formatDueDate(due)}
+
+        {isRecurring ? (
+          <div>
+            <p style={{ fontSize: '12px', textTransform: 'uppercase', color: 'var(--color-text-muted)', marginBottom: '4px' }}>Повторение</p>
+            <p style={{ color: 'var(--color-text)', fontSize: '15px', margin: 0 }}>
+              🔄 {formatRecurrence(task.recurrence)}
             </p>
-          ) : (
-            <p style={{ color: 'var(--color-text-muted)', fontSize: '15px', fontStyle: 'italic' }}>Не указан</p>
-          )}
-        </div>
+            {pendingCount > 0 && (
+              <p className="task-pending-badge">
+                ⚠️ {pendingCount} не подтверждено
+              </p>
+            )}
+          </div>
+        ) : (
+          <div>
+            <p style={{ fontSize: '12px', textTransform: 'uppercase', color: 'var(--color-text-muted)', marginBottom: '4px' }}>Срок</p>
+            {due ? (
+              <p style={{
+                color: overdue ? 'var(--color-danger)' : 'var(--color-text)',
+                fontSize: '15px',
+                fontWeight: overdue ? 500 : 400,
+                margin: 0,
+              }}>
+                📅 {formatDueDate(due)}
+              </p>
+            ) : (
+              <p style={{ color: 'var(--color-text-muted)', fontSize: '15px', fontStyle: 'italic', margin: 0 }}>Не указан</p>
+            )}
+          </div>
+        )}
+
         <div>
           <p style={{ fontSize: '12px', textTransform: 'uppercase', color: 'var(--color-text-muted)', marginBottom: '4px' }}>Создано</p>
-          <p style={{ color: 'var(--color-text)', fontSize: '15px' }}>{new Date(task.createdAt).toLocaleString('ru-RU')}</p>
+          <p style={{ color: 'var(--color-text)', fontSize: '15px', margin: 0 }}>{new Date(task.createdAt).toLocaleString('ru-RU')}</p>
         </div>
         <div>
           <p style={{ fontSize: '12px', textTransform: 'uppercase', color: 'var(--color-text-muted)', marginBottom: '4px' }}>Обновлено</p>
-          <p style={{ color: 'var(--color-text)', fontSize: '15px' }}>{new Date(task.updatedAt).toLocaleString('ru-RU')}</p>
+          <p style={{ color: 'var(--color-text)', fontSize: '15px', margin: 0 }}>{new Date(task.updatedAt).toLocaleString('ru-RU')}</p>
         </div>
-      </div>
-
-      <div style={{ marginTop: 'var(--space-xl)', display: 'flex', justifyContent: 'flex-start', alignItems: 'center', gap: 'var(--space-md)', flexWrap: 'wrap' }}>
-        <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', margin: 0 }}>
-          💡 Скоро: связь с базой знаний
-        </p>
       </div>
     </div>
   );

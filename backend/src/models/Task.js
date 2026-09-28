@@ -30,6 +30,40 @@ const taskSchema = new mongoose.Schema({
   dueDate: {
     type: Date
   },
+  recurrence: {
+    type: {
+      type: String,
+      enum: ['daily', 'weekly', 'monthly']
+    },
+    time: {
+      type: String,
+      match: /^([01]\d|2[0-3]):[0-5]\d$/
+    },
+    dayOfWeek: {
+      type: Number,
+      min: 0,
+      max: 6
+    },
+    dayOfMonth: {
+      type: Number,
+      min: 1,
+      max: 31
+    }
+  },
+  notifications: {
+    enabled: {
+      type: Boolean,
+      default: true
+    }
+  },
+  // Флаги: какие пуши уже отправлены по этой задаче (для разовых)
+  // null = не отправляли; Date = когда отправили
+  notificationsSent: {
+    dayBefore: { type: Date, default: null },
+    beforeDue: { type: Date, default: null },
+    atDue: { type: Date, default: null },
+    overdue: { type: Date, default: null }
+  },
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
@@ -40,5 +74,7 @@ const taskSchema = new mongoose.Schema({
 });
 
 taskSchema.index({ userId: 1, statusId: 1, order: 1 });
+taskSchema.index({ userId: 1, 'recurrence.type': 1 });
+taskSchema.index({ userId: 1, dueDate: 1 }); // для выборки разовых с близким dueDate
 
 module.exports = mongoose.model('Task', taskSchema);

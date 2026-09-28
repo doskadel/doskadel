@@ -154,6 +154,10 @@ const Knowledge: React.FC = () => {
     updateQuery({ dateTo: value || null });
   };
 
+  const handleDatesClear = () => {
+    updateQuery({ dateFrom: null, dateTo: null });
+  };
+
   const dateError = (() => {
     if (dateFrom && dateTo && dateFrom > dateTo) {
       return 'Дата «По» не может быть раньше даты «С»';
@@ -161,7 +165,7 @@ const Knowledge: React.FC = () => {
     return '';
   })();
 
-  const hasActiveFilters = !!(q || dateFrom || dateTo);
+  const hasActiveFilters = !!(q || dateFrom || dateTo || (sortParam && sortParam !== DEFAULT_SORT));
 
   if (loading) return <p>Загрузка...</p>;
 
@@ -185,11 +189,13 @@ const Knowledge: React.FC = () => {
         dateTo={dateTo}
         onDateFromChange={handleDateFromChange}
         onDateToChange={handleDateToChange}
+        onDatesClear={handleDatesClear}
         onReset={handleResetFilters}
         hasActiveFilters={hasActiveFilters}
         dateError={dateError}
         sort={sortParam || DEFAULT_SORT}
         onSortChange={(s) => updateQuery({ sort: s === DEFAULT_SORT ? null : s })}
+        defaultSort={DEFAULT_SORT}
       />
 
       <Modal open={createOpen} onClose={handleCloseCreate} title="Новая статья">

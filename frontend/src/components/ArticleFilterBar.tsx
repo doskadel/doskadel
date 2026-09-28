@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import ClearableInput from './ClearableInput';
 import { ARTICLE_SORT_OPTIONS } from '../utils/sort';
 
 interface ArticleFilterBarProps {
@@ -8,11 +9,13 @@ interface ArticleFilterBarProps {
   dateTo: string;
   onDateFromChange: (date: string) => void;
   onDateToChange: (date: string) => void;
+  onDatesClear: () => void;
   onReset: () => void;
   hasActiveFilters: boolean;
   dateError: string;
   sort: string;
   onSortChange: (sort: string) => void;
+  defaultSort: string;
 }
 
 type OpenPopover = 'search' | 'sort' | 'dates' | null;
@@ -24,19 +27,16 @@ const ArticleFilterBar: React.FC<ArticleFilterBarProps> = ({
   dateTo,
   onDateFromChange,
   onDateToChange,
+  onDatesClear,
   onReset,
   hasActiveFilters,
   dateError,
   sort,
   onSortChange,
+  defaultSort,
 }) => {
   const [open, setOpen] = useState<OpenPopover>(null);
-  const [searchLocal, setSearchLocal] = useState(q);
   const searchInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    setSearchLocal(q);
-  }, [q]);
 
   useEffect(() => {
     if (!open) return;
@@ -70,13 +70,9 @@ const ArticleFilterBar: React.FC<ArticleFilterBarProps> = ({
     setOpen((prev) => (prev === which ? null : which));
   };
 
-  const commitSearch = (value: string) => {
-    setSearchLocal(value);
-    onQChange(value);
-  };
-
   const isSearchActive = q.trim() !== '';
   const isDatesActive = !!(dateFrom || dateTo);
+  const isSortActive = sort !== defaultSort;
 
   const activeSortLabel =
     ARTICLE_SORT_OPTIONS.find((o) => o.value === sort)?.label || 'Сортировка';
@@ -84,7 +80,6 @@ const ArticleFilterBar: React.FC<ArticleFilterBarProps> = ({
   return (
     <div className="filter-bar">
       <div className="filter-bar-row">
-        {/* --- ЛЕВАЯ ЧАСТЬ: календарь --- */}
         <div className="filter-bar-left">
           <div className="filter-icon-wrap filter-icon-wrap--left">
             <button
@@ -137,10 +132,7 @@ const ArticleFilterBar: React.FC<ArticleFilterBarProps> = ({
                     <button
                       type="button"
                       className="filter-bar-reset"
-                      onClick={() => {
-                        onDateFromChange('');
-                        onDateToChange('');
-                      }}
+                      onClick={onDatesClear}
                     >
                       Очистить даты
                     </button>
@@ -151,9 +143,7 @@ const ArticleFilterBar: React.FC<ArticleFilterBarProps> = ({
           </div>
         </div>
 
-        {/* --- ПРАВАЯ ЧАСТЬ: поиск, сортировка, сброс --- */}
         <div className="filter-bar-right">
-          {/* --- Поиск --- */}
           <div className="filter-icon-wrap filter-icon-wrap--right">
             <button
               type="button"
@@ -173,24 +163,23 @@ const ArticleFilterBar: React.FC<ArticleFilterBarProps> = ({
 
             {open === 'search' && (
               <div className="filter-popover filter-popover--search">
-                <input
-                  ref={searchInputRef}
+                <ClearableInput
                   type="text"
+                  value={q}
+                  onChange={onQChange}
                   placeholder="Поиск по базе знаний..."
-                  value={searchLocal}
-                  onChange={(e) => commitSearch(e.target.value)}
-                  className="input"
+                  inputRef={searchInputRef}
                 />
               </div>
             )}
           </div>
 
-          {/* --- Сортировка --- */}
           <div className="filter-icon-wrap filter-icon-wrap--right">
             <button
               type="button"
               className={
                 'filter-icon-btn' +
+                (isSortActive ? ' filter-icon-btn--active' : '') +
                 (open === 'sort' ? ' filter-icon-btn--open' : '')
               }
               onClick={() => toggle('sort')}
@@ -200,6 +189,7 @@ const ArticleFilterBar: React.FC<ArticleFilterBarProps> = ({
             >
               ⇅
             </button>
+            {isSortActive && <span className="filter-icon-dot" />}
 
             {open === 'sort' && (
               <div className="filter-popover filter-popover--sort">
@@ -223,7 +213,6 @@ const ArticleFilterBar: React.FC<ArticleFilterBarProps> = ({
             )}
           </div>
 
-          {/* --- Сброс --- */}
           {hasActiveFilters && (
             <button
               type="button"

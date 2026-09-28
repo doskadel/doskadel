@@ -5,11 +5,14 @@ import KanbanBoard, { KanbanTask } from './KanbanBoard';
 import Modal from './Modal';
 import TaskModal from './TaskModal';
 import StatusManager from './StatusManager';
-import FilterBar from './FilterBar';
+import FilterBar, { TaskTypeFilter } from './FilterBar';
+import RecurrencePicker from './RecurrencePicker';
+import ClearableField from './ClearableField';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { PRIORITY_OPTIONS, getPriorityLabel, getPriorityColor } from '../utils/priority';
 import { Status } from '../utils/status';
 import { formatDueDate, isOverdue } from '../utils/date';
+import { Recurrence, isRecurrenceValid, formatRecurrenceShort, getDefaultRecurrence } from '../utils/recurrence';
 import { useConfirm } from './ConfirmProvider';
 
 interface Task {
@@ -20,6 +23,9 @@ interface Task {
   priority: number;
   order: number;
   dueDate?: string | null;
+  recurrence?: Recurrence | null;
+  pendingOccurrenceCount?: number;
+  nextOccurrenceDueAt?: string | null;
   createdAt: string;
 }
 
@@ -35,6 +41,7 @@ const Tasks: React.FC = () => {
   const q = searchParams.get('q') || '';
   const statusesParam = searchParams.get('statuses') || '';
   const priorityParam = searchParams.get('priority') || '';
+  const taskTypeParam = searchParams.get('taskType') || '';
   const dateFrom = searchParams.get('dateFrom') || '';
   const dateTo = searchParams.get('dateTo') || '';
   const sortParam = searchParams.get('sort') || '';
@@ -46,6 +53,9 @@ const Tasks: React.FC = () => {
   const priorityFilter = priorityParam
     ? priorityParam.split(',').map((p) => parseInt(p, 10)).filter((p) => p >= 1 && p <= 3)
     : [];
+
+  const taskType: TaskTypeFilter =
+    taskTypeParam === 'single' || taskTypeParam === 'recurring' ? taskTypeParam : null;
 
   const dueFilter: 'overdue' | 'dueSoon' | null =
     overdueParam === '1' ? 'overdue' : dueSoonParam === '1' ? 'dueSoon' : null;
@@ -65,6 +75,8 @@ const Tasks: React.FC = () => {
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState<number | ''>('');
   const [dueDate, setDueDate] = useState('');
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurrence, setRecurrence] = useState<Recurrence | null>(null);
 
   const [searchInput, setSearchInput] = useState(q);
 
@@ -78,7 +90,6 @@ const Tasks: React.FC = () => {
         updateQuery({ q: searchInput || null });
       }
     }, 300);
-
     return () => clearTimeout(timer);
   }, [searchInput]);
 
@@ -88,7 +99,7 @@ const Tasks: React.FC = () => {
 
   useEffect(() => {
     fetchTasks();
-  }, [q, statusesParam, priorityParam, dateFrom, dateTo, sortParam, overdueParam, dueSoonParam]);
+  }, [q, statusesParam, priorityParam, taskTypeParam, dateFrom, dateTo, sortParam, overdueParam, dueSoonParam]);
 
   useEffect(() => {
     localStorage.setItem(VIEW_KEY, view);
@@ -106,11 +117,8 @@ const Tasks: React.FC = () => {
   const updateQuery = (updates: Record<string, string | null>) => {
     const next = new URLSearchParams(searchParams);
     Object.entries(updates).forEach(([key, value]) => {
-      if (value === null || value === '') {
-        next.delete(key);
-      } else {
-        next.set(key, value);
-      }
+      if (value === null || value === '') next.delete(key);
+      else next.set(key, value);
     });
     setSearchParams(next, { replace: true });
   };
@@ -130,6 +138,7 @@ const Tasks: React.FC = () => {
       if (q) params.set('q', q);
       if (statusIds.length > 0) params.set('statusIds', statusIds.join(','));
       if (priorityFilter.length > 0) params.set('priority', priorityFilter.join(','));
+      if (taskType) params.set('taskType', taskType);
       if (dateFrom) params.set('dateFrom', dateFrom);
       if (dateTo) params.set('dateTo', dateTo);
       if (sortParam) params.set('sort', sortParam);
@@ -137,8 +146,25 @@ const Tasks: React.FC = () => {
       if (dueSoonParam === '1') params.set('dueSoon', 'true');
 
       const url = '/api/tasks' + (params.toString() ? '?' + params.toString() : '');
-      const res = await api.get(url);
-      setTasks(res.data.tasks);
+      const [tasksRes, pendingRes] = await Promise.all([
+        api.get(url),
+        api.get('/api/occurrences/pending'),
+      ]);
+
+      const now = Date.now();
+      const counts: Record<string, number> = {};
+      (pendingRes.data.occurrences || []).forEach((o: any) => {
+        if (new Date(o.dueAt).getTime() <= now) {
+          counts[o.taskId] = (counts[o.taskId] || 0) + 1;
+        }
+      });
+
+      const enriched = (tasksRes.data.tasks || []).map((t: Task) => ({
+        ...t,
+        pendingOccurrenceCount: counts[t._id] || 0,
+      }));
+
+      setTasks(enriched);
       setLoading(false);
     } catch (err) {
       console.error('Error fetching tasks:', err);
@@ -151,13 +177,11 @@ const Tasks: React.FC = () => {
     fetchTasks();
   };
 
-  const getStatusName = (statusId: string): string => {
-    return statuses.find((s) => s._id === statusId)?.name || 'Неизвестно';
-  };
+  const getStatusName = (statusId: string): string =>
+    statuses.find((s) => s._id === statusId)?.name || 'Неизвестно';
 
-  const getStatusColor = (statusId: string): string => {
-    return statuses.find((s) => s._id === statusId)?.color || 'var(--color-border)';
-  };
+  const getStatusColor = (statusId: string): string =>
+    statuses.find((s) => s._id === statusId)?.color || 'var(--color-border)';
 
   const openTask = (id: string) => {
     const next = new URLSearchParams(searchParams);
@@ -176,16 +200,16 @@ const Tasks: React.FC = () => {
     setDescription('');
     setPriority('');
     setDueDate('');
+    setIsRecurring(false);
+    setRecurrence(null);
   };
 
-  const isCreateFormDirty = (): boolean => {
-    return (
-      title.trim() !== '' ||
-      description.trim() !== '' ||
-      priority !== '' ||
-      dueDate !== ''
-    );
-  };
+  const isCreateFormDirty = (): boolean =>
+    title.trim() !== '' ||
+    description.trim() !== '' ||
+    priority !== '' ||
+    dueDate !== '' ||
+    isRecurring;
 
   const handleCloseCreate = async () => {
     if (isCreateFormDirty()) {
@@ -204,13 +228,30 @@ const Tasks: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (priority === '') return;
+
+    if (isRecurring) {
+      if (!recurrence || !isRecurrenceValid(recurrence)) {
+        alert('Заполните параметры повторения корректно');
+        return;
+      }
+    }
+
     try {
-      await api.post('/api/tasks', {
+      const payload: any = {
         title,
         description,
         priority,
-        dueDate: dueDate ? new Date(dueDate).toISOString() : null,
-      });
+      };
+
+      if (isRecurring && recurrence) {
+        payload.recurrence = recurrence;
+        payload.dueDate = null;
+      } else {
+        payload.recurrence = null;
+        payload.dueDate = dueDate ? new Date(dueDate).toISOString() : null;
+      }
+
+      await api.post('/api/tasks', payload);
       resetCreateForm();
       setCreateOpen(false);
       refreshAll();
@@ -224,13 +265,10 @@ const Tasks: React.FC = () => {
       const next = [...prev];
       updates.forEach((u) => {
         const idx = next.findIndex((t) => t._id === u.id);
-        if (idx >= 0) {
-          next[idx] = { ...next[idx], statusId: u.statusId, order: u.order };
-        }
+        if (idx >= 0) next[idx] = { ...next[idx], statusId: u.statusId, order: u.order };
       });
       return next;
     });
-
     try {
       await api.put('/api/tasks/reorder', { tasks: updates });
     } catch (err) {
@@ -241,14 +279,9 @@ const Tasks: React.FC = () => {
 
   const handleResetFilters = () => {
     updateQuery({
-      q: null,
-      priority: null,
-      statuses: null,
-      dateFrom: null,
-      dateTo: null,
-      sort: null,
-      overdue: null,
-      dueSoon: null,
+      q: null, priority: null, statuses: null, taskType: null,
+      dateFrom: null, dateTo: null, sort: null,
+      overdue: null, dueSoon: null,
     });
     setSearchInput('');
   };
@@ -261,16 +294,16 @@ const Tasks: React.FC = () => {
     if (value && dateTo && value > dateTo) return;
     updateQuery({ dateFrom: value || null });
   };
-
   const handleDateToChange = (value: string) => {
     if (value && dateFrom && value < dateFrom) return;
     updateQuery({ dateTo: value || null });
   };
+  const handleDatesClear = () => {
+    updateQuery({ dateFrom: null, dateTo: null });
+  };
 
   const dateError = (() => {
-    if (dateFrom && dateTo && dateFrom > dateTo) {
-      return 'Дата «По» не может быть раньше даты «С»';
-    }
+    if (dateFrom && dateTo && dateFrom > dateTo) return 'Дата «По» не может быть раньше даты «С»';
     return '';
   })();
 
@@ -278,9 +311,11 @@ const Tasks: React.FC = () => {
     q ||
     statusIds.length > 0 ||
     priorityFilter.length > 0 ||
+    taskType ||
     dateFrom ||
     dateTo ||
-    dueFilter
+    dueFilter ||
+    (sortParam && sortParam !== DEFAULT_SORT)
   );
 
   if (loading) return <p>Загрузка...</p>;
@@ -336,16 +371,20 @@ const Tasks: React.FC = () => {
         onStatusIdsChange={(ids) => updateQuery({ statuses: ids.length > 0 ? ids.join(',') : null })}
         priorityFilter={priorityFilter}
         onPriorityFilterChange={(priorities) => updateQuery({ priority: priorities.length > 0 ? priorities.join(',') : null })}
+        taskType={taskType}
+        onTaskTypeChange={(v) => updateQuery({ taskType: v })}
         dateFrom={dateFrom}
         dateTo={dateTo}
         onDateFromChange={handleDateFromChange}
         onDateToChange={handleDateToChange}
+        onDatesClear={handleDatesClear}
         statuses={statuses}
         onReset={handleResetFilters}
         hasActiveFilters={hasActiveFilters}
         dateError={dateError}
         sort={sortParam || DEFAULT_SORT}
         onSortChange={(s) => updateQuery({ sort: s === DEFAULT_SORT ? null : s })}
+        defaultSort={DEFAULT_SORT}
         hideSort={view === 'kanban'}
         dueFilter={dueFilter}
         onDueFilterClear={handleClearDueFilter}
@@ -380,15 +419,44 @@ const Tasks: React.FC = () => {
               <option key={p.value} value={p.value}>{p.label}</option>
             ))}
           </select>
+
           <div>
-            <label className="input-label">Срок</label>
-            <input
-              type="datetime-local"
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
+            <label className="input-label">Тип задачи</label>
+            <select
               className="input"
-            />
+              value={isRecurring ? 'recurring' : 'single'}
+              onChange={(e) => {
+                const recurring = e.target.value === 'recurring';
+                setIsRecurring(recurring);
+                if (recurring && !recurrence) {
+                  setRecurrence(getDefaultRecurrence('daily'));
+                }
+                if (!recurring) {
+                  setRecurrence(null);
+                }
+              }}
+            >
+              <option value="single">Разовое</option>
+              <option value="recurring">Повторяющееся</option>
+            </select>
           </div>
+
+          {isRecurring ? (
+            <RecurrencePicker value={recurrence} onChange={setRecurrence} />
+          ) : (
+            <div>
+              <label className="input-label">Срок</label>
+              <ClearableField onClear={() => setDueDate('')} showClear={!!dueDate}>
+                <input
+                  type="datetime-local"
+                  value={dueDate}
+                  onChange={(e) => setDueDate(e.target.value)}
+                  className="input"
+                />
+              </ClearableField>
+            </div>
+          )}
+
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: 'var(--space-sm)' }}>
             <button
               type="button"
@@ -436,54 +504,94 @@ const Tasks: React.FC = () => {
 
       {tasks.length > 0 && view === 'list' && (
         <div>
-          {tasks.map((task) => (
-            <div
-              key={task._id}
-              className="task-card"
-              onClick={() => openTask(task._id)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') openTask(task._id);
-              }}
-            >
+          {tasks.map((task) => {
+            // Для overdue/dueSoon показываем nextOccurrenceDueAt (дата самого срочного вхождения)
+            // для повторяющихся, либо dueDate для разовых
+            const displayDate = task.nextOccurrenceDueAt || task.dueDate;
+
+            return (
               <div
-                className="task-card-status-rail"
-                style={{ backgroundColor: getStatusColor(task.statusId) }}
-              />
-              <div className="task-card-content">
-                <h3 className="task-card-title">{task.title}</h3>
-
-                {task.description && (
-                  <p className="task-card-description">{task.description}</p>
-                )}
-
-                <div className="task-card-meta">
-                  <span className="task-card-meta-item">
-                    <span
-                      className="task-card-priority-dot"
-                      style={{ backgroundColor: getPriorityColor(task.priority) }}
-                    />
-                    Приоритет: {getPriorityLabel(task.priority)}
-                  </span>
-                  <span className="task-card-meta-item">
-                    Статус: {getStatusName(task.statusId)}
-                  </span>
-                  {task.dueDate && isOverdue(task.dueDate) && (
-                    <span
-                      className="task-card-meta-item"
-                      style={{ color: 'var(--color-danger)', fontWeight: 500 }}
-                    >
-                      Срок до {formatDueDate(task.dueDate)}
-                    </span>
+                key={task._id}
+                className="task-card"
+                onClick={() => openTask(task._id)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => { if (e.key === 'Enter') openTask(task._id); }}
+              >
+                <div
+                  className="task-card-status-rail"
+                  style={{ backgroundColor: getStatusColor(task.statusId) }}
+                />
+                <div className="task-card-content">
+                  <h3 className="task-card-title">{task.title}</h3>
+                  {task.description && (
+                    <p className="task-card-description">{task.description}</p>
                   )}
-                  <span className="task-card-meta-item">
-                    Создано: {new Date(task.createdAt).toLocaleDateString('ru-RU')}
-                  </span>
+                  <div className="task-card-meta">
+                    <span className="task-card-meta-item">
+                      <span
+                        className="task-card-priority-dot"
+                        style={{ backgroundColor: getPriorityColor(task.priority) }}
+                      />
+                      Приоритет: {getPriorityLabel(task.priority)}
+                    </span>
+                    <span className="task-card-meta-item">
+                      Статус: {getStatusName(task.statusId)}
+                    </span>
+
+                    {task.recurrence ? (
+                      <>
+                        <span className="task-card-meta-item">
+                          🔄 {formatRecurrenceShort(task.recurrence)}
+                        </span>
+                        {dueFilter && displayDate && (
+                          <span
+                            className="task-card-meta-item"
+                            style={{
+                              color: dueFilter === 'overdue' ? 'var(--color-danger)' : 'var(--color-text-muted)',
+                              fontWeight: dueFilter === 'overdue' ? 500 : 400,
+                            }}
+                          >
+                            {dueFilter === 'overdue' ? 'Просрочено до' : 'Срок до'} {formatDueDate(displayDate)}
+                          </span>
+                        )}
+                        {(task.pendingOccurrenceCount || 0) > 0 && !dueFilter && (
+                          <span className="task-pending-badge task-pending-badge--sm">
+                            {task.pendingOccurrenceCount}
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      dueFilter && displayDate ? (
+                        <span
+                          className="task-card-meta-item"
+                          style={{
+                            color: dueFilter === 'overdue' ? 'var(--color-danger)' : 'var(--color-text-muted)',
+                            fontWeight: dueFilter === 'overdue' ? 500 : 400,
+                          }}
+                        >
+                          {dueFilter === 'overdue' ? 'Просрочено до' : 'Срок до'} {formatDueDate(displayDate)}
+                        </span>
+                      ) : (
+                        task.dueDate && isOverdue(task.dueDate) && (
+                          <span
+                            className="task-card-meta-item"
+                            style={{ color: 'var(--color-danger)', fontWeight: 500 }}
+                          >
+                            Срок до {formatDueDate(task.dueDate)}
+                          </span>
+                        )
+                      )
+                    )}
+
+                    <span className="task-card-meta-item">
+                      Создано: {new Date(task.createdAt).toLocaleDateString('ru-RU')}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

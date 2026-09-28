@@ -1,7 +1,8 @@
-import React, { ReactNode, useState } from 'react';
+import React, { ReactNode, useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { clearToken } from '../utils/token';
 import SearchModal from './SearchModal';
+import ProfileModal from './ProfileModal';
+import api from '../utils/api';
 
 interface LayoutProps {
   children: ReactNode;
@@ -11,6 +12,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [searchOpen, setSearchOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   const isRoot = location.pathname === '/';
 
@@ -22,14 +24,38 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   const parentPath = getParentPath(location.pathname);
 
-  const handleLogout = () => {
-    clearToken();
-    window.location.href = '/login';
-  };
-
   const handleBack = () => {
     navigate(parentPath);
   };
+
+  // ============================================================
+  // SW → CONFIRM_OCCURRENCE: подтверждаем occurrence из пуша
+  // ============================================================
+  useEffect(() => {
+    if (!('serviceWorker' in navigator)) return;
+
+    const handleMessage = async (event: MessageEvent) => {
+      const data = event.data;
+      if (!data || data.type !== 'CONFIRM_OCCURRENCE') return;
+
+      const occurrenceId = data.occurrenceId;
+      if (!occurrenceId) return;
+
+      try {
+        await api.put('/api/occurrences/confirm', { ids: [occurrenceId] });
+        console.log('[SW-MSG] Occurrence confirmed:', occurrenceId);
+        // Дадим окну знать, что данные изменились — оно перезапросит задачи
+        window.dispatchEvent(new CustomEvent('worklist:occurrence-updated'));
+      } catch (err) {
+        console.error('[SW-MSG] Failed to confirm occurrence:', err);
+      }
+    };
+
+    navigator.serviceWorker.addEventListener('message', handleMessage);
+    return () => {
+      navigator.serviceWorker.removeEventListener('message', handleMessage);
+    };
+  }, []);
 
   const navItems = [
     { path: '/', label: 'Главная' },
@@ -77,8 +103,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           >
             Поиск
           </button>
-          <button onClick={handleLogout} className="layout-logout">
-            Выйти
+          <button
+            type="button"
+            className="layout-avatar"
+            onClick={() => setProfileOpen(true)}
+            title="Профиль"
+            aria-label="Профиль"
+          >
+            <span className="layout-avatar-inner">👤</span>
           </button>
         </nav>
       </header>
@@ -86,6 +118,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <div className="layout-container">{children}</div>
       </main>
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
+      <ProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} />
     </div>
   );
 };

@@ -21,15 +21,30 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     minlength: 6
+  },
+  avatar: {
+    type: String,
+    default: null
+  },
+  notificationSettings: {
+    enabled: { type: Boolean, default: true },
+    beforeDue: { type: Boolean, default: true },
+    atDue: { type: Boolean, default: true },
+    overdueReminder: { type: Boolean, default: false },
+    dailyDigest: { type: Boolean, default: true },
+    dailyDigestTime: { type: String, default: '09:00' },
+    quietHours: {
+      enabled: { type: Boolean, default: true },
+      from: { type: String, default: '22:00' },
+      to: { type: String, default: '08:00' }
+    }
   }
 }, {
   timestamps: true
 });
 
-// Хеширование пароля перед сохранением
 userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
-  
   try {
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
@@ -39,7 +54,6 @@ userSchema.pre('save', async function(next) {
   }
 });
 
-// Сравнение паролей
 userSchema.methods.comparePassword = async function(candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };

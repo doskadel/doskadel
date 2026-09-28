@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../utils/api';
 import { toDateTimeLocalValue } from '../utils/date';
+import { Recurrence } from '../utils/recurrence';
 
 export interface Task {
   _id: string;
@@ -9,6 +10,8 @@ export interface Task {
   statusId: string;
   priority: number;
   dueDate?: string | null;
+  recurrence?: Recurrence | null;
+  notifications?: { enabled: boolean };
   createdAt: string;
   updatedAt: string;
 }
@@ -25,6 +28,7 @@ export interface UseTaskDetailResult {
   editStatusId: string;
   editPriority: number;
   editDueDate: string;
+  editRecurrence: Recurrence | null;
   saving: boolean;
 
   setEditTitle: (v: string) => void;
@@ -32,6 +36,7 @@ export interface UseTaskDetailResult {
   setEditStatusId: (v: string) => void;
   setEditPriority: (v: number) => void;
   setEditDueDate: (v: string) => void;
+  setEditRecurrence: (v: Recurrence | null) => void;
 
   startEdit: () => void;
   cancelEdit: () => void;
@@ -62,6 +67,7 @@ export const useTaskDetail = (
   const [editStatusId, setEditStatusId] = useState('');
   const [editPriority, setEditPriority] = useState(2);
   const [editDueDate, setEditDueDate] = useState('');
+  const [editRecurrence, setEditRecurrence] = useState<Recurrence | null>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -86,6 +92,9 @@ export const useTaskDetail = (
       setEditStatusId(t.statusId);
       setEditPriority(t.priority);
       setEditDueDate(toDateTimeLocalValue(t.dueDate));
+      // recurrence.time уже в UTC — оставляем как есть.
+      // RecurrencePicker сам конвертирует UTC → локальное для показа.
+      setEditRecurrence(t.recurrence || null);
     } catch (err: any) {
       console.error('Error fetching task:', err);
       setError(err.response?.data?.message || 'Не удалось загрузить задачу');
@@ -101,6 +110,7 @@ export const useTaskDetail = (
     setEditStatusId(task.statusId);
     setEditPriority(task.priority);
     setEditDueDate(toDateTimeLocalValue(task.dueDate));
+    setEditRecurrence(task.recurrence || null);
     setIsEditing(true);
   };
 
@@ -112,13 +122,23 @@ export const useTaskDetail = (
     if (!task) return;
     setSaving(true);
     try {
-      const response = await api.put(`/api/tasks/${task._id}`, {
+      const payload: any = {
         title: editTitle,
         description: editDescription,
         statusId: editStatusId,
         priority: editPriority,
-        dueDate: editDueDate ? new Date(editDueDate).toISOString() : null,
-      });
+      };
+
+      if (editRecurrence) {
+        // editRecurrence.time уже в UTC (RecurrencePicker конвертирует)
+        payload.recurrence = editRecurrence;
+        payload.dueDate = null;
+      } else {
+        payload.recurrence = null;
+        payload.dueDate = editDueDate ? new Date(editDueDate).toISOString() : null;
+      }
+
+      const response = await api.put(`/api/tasks/${task._id}`, payload);
       setTask(response.data.task);
       setIsEditing(false);
       onUpdate?.();
@@ -184,12 +204,14 @@ export const useTaskDetail = (
     editStatusId,
     editPriority,
     editDueDate,
+    editRecurrence,
     saving,
     setEditTitle,
     setEditDescription,
     setEditStatusId,
     setEditPriority,
     setEditDueDate,
+    setEditRecurrence,
     startEdit,
     cancelEdit,
     saveEdit,

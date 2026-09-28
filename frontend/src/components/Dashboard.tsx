@@ -25,6 +25,8 @@ interface DueTask {
   statusId: string;
   priority: number;
   dueDate: string;
+  occurrenceCount?: number;
+  isRecurring?: boolean;
 }
 
 interface RecentArticle {
@@ -41,8 +43,10 @@ interface DashboardData {
   recentArticles: RecentArticle[];
   overdueTasks: DueTask[];
   overdueCount: number;
+  overdueDistinctTasks?: number;
   upcomingTasks: DueTask[];
   upcomingCount: number;
+  upcomingDistinctTasks?: number;
 }
 
 const Dashboard: React.FC = () => {
@@ -89,6 +93,12 @@ const Dashboard: React.FC = () => {
 
   const isEmpty = data.totalTasks === 0 && data.totalArticles === 0;
 
+  // Сколько ещё вхождений, кроме той, что показываем
+  const extraOccurrences = (t: DueTask): number => {
+    if (!t.occurrenceCount || t.occurrenceCount <= 1) return 0;
+    return t.occurrenceCount - 1;
+  };
+
   return (
     <div className="dashboard">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-lg)', gap: 'var(--space-md)', flexWrap: 'wrap' }}>
@@ -121,11 +131,11 @@ const Dashboard: React.FC = () => {
       ) : (
         <>
           {/* --- ПРОСРОЧЕНО --- */}
-          {data.overdueCount > 0 && (
+          {data.overdueTasks.length > 0 && (
             <div className="dashboard-section">
               <div className="dashboard-section-header">
                 <h3 className="dashboard-section-title dashboard-section-title--danger">
-                  ⚠️ Просрочено ({data.overdueCount})
+                  ⚠️ Просрочено ({data.overdueDistinctTasks ?? data.overdueTasks.length})
                 </h3>
                 <button
                   type="button"
@@ -136,35 +146,41 @@ const Dashboard: React.FC = () => {
                 </button>
               </div>
               <div className="dashboard-list">
-                {data.overdueTasks.map((t) => (
-                  <div
-                    key={t._id}
-                    className="dashboard-item"
-                    onClick={() => navigate(`/tasks?task=${t._id}`)}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => e.key === 'Enter' && navigate(`/tasks?task=${t._id}`)}
-                  >
-                    <span
-                      className="dashboard-item-priority"
-                      style={{ backgroundColor: getPriorityColor(t.priority) }}
-                    />
-                    <span className="dashboard-item-title">{t.title}</span>
-                    <span className="dashboard-item-date dashboard-item-date--danger">
-                      Срок до {formatDueDate(t.dueDate)}
-                    </span>
-                  </div>
-                ))}
+                {data.overdueTasks.map((t) => {
+                  const extra = extraOccurrences(t);
+                  return (
+                    <div
+                      key={t._id}
+                      className="dashboard-item"
+                      onClick={() => navigate(`/tasks?task=${t._id}`)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => e.key === 'Enter' && navigate(`/tasks?task=${t._id}`)}
+                    >
+                      <span
+                        className="dashboard-item-priority"
+                        style={{ backgroundColor: getPriorityColor(t.priority) }}
+                      />
+                      <span className="dashboard-item-title">{t.title}</span>
+                      <span className="dashboard-item-date dashboard-item-date--danger">
+                        Срок до {formatDueDate(t.dueDate)}
+                        {extra > 0 && (
+                          <span className="dashboard-item-extra"> · + ещё {extra}</span>
+                        )}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
 
           {/* --- БЛИЖАЙШИЕ СРОКИ --- */}
-          {data.upcomingCount > 0 && (
+          {data.upcomingTasks.length > 0 && (
             <div className="dashboard-section">
               <div className="dashboard-section-header">
                 <h3 className="dashboard-section-title">
-                  📅 Ближайшие сроки ({data.upcomingCount})
+                  📅 Ближайшие сроки ({data.upcomingDistinctTasks ?? data.upcomingTasks.length})
                 </h3>
                 <button
                   type="button"
@@ -175,25 +191,31 @@ const Dashboard: React.FC = () => {
                 </button>
               </div>
               <div className="dashboard-list">
-                {data.upcomingTasks.map((t) => (
-                  <div
-                    key={t._id}
-                    className="dashboard-item"
-                    onClick={() => navigate(`/tasks?task=${t._id}`)}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => e.key === 'Enter' && navigate(`/tasks?task=${t._id}`)}
-                  >
-                    <span
-                      className="dashboard-item-priority"
-                      style={{ backgroundColor: getPriorityColor(t.priority) }}
-                    />
-                    <span className="dashboard-item-title">{t.title}</span>
-                    <span className="dashboard-item-date">
-                      Срок до {formatDueDate(t.dueDate)}
-                    </span>
-                  </div>
-                ))}
+                {data.upcomingTasks.map((t) => {
+                  const extra = extraOccurrences(t);
+                  return (
+                    <div
+                      key={t._id}
+                      className="dashboard-item"
+                      onClick={() => navigate(`/tasks?task=${t._id}`)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => e.key === 'Enter' && navigate(`/tasks?task=${t._id}`)}
+                    >
+                      <span
+                        className="dashboard-item-priority"
+                        style={{ backgroundColor: getPriorityColor(t.priority) }}
+                      />
+                      <span className="dashboard-item-title">{t.title}</span>
+                      <span className="dashboard-item-date">
+                        Срок до {formatDueDate(t.dueDate)}
+                        {extra > 0 && (
+                          <span className="dashboard-item-extra"> · + ещё {extra}</span>
+                        )}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}

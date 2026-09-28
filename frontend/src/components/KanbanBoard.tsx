@@ -20,6 +20,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { getPriorityColor } from '../utils/priority';
 import { Status } from '../utils/status';
 import { formatDueDate, isOverdue } from '../utils/date';
+import { Recurrence, formatRecurrenceShort } from '../utils/recurrence';
 
 export interface KanbanTask {
   _id: string;
@@ -29,6 +30,8 @@ export interface KanbanTask {
   priority: number;
   order: number;
   dueDate?: string | null;
+  recurrence?: Recurrence | null;
+  pendingOccurrenceCount?: number;
   createdAt: string;
 }
 
@@ -61,6 +64,8 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, statusColor, onOpen
   };
 
   const overdue = isOverdue(task.dueDate);
+  const isRecurring = !!task.recurrence;
+  const pendingCount = task.pendingOccurrenceCount || 0;
 
   return (
     <div
@@ -97,7 +102,21 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, statusColor, onOpen
             title={`Приоритет: ${task.priority}`}
           />
         </div>
-        {task.dueDate && overdue && (
+
+        {isRecurring && (
+          <div className="kanban-card-recurring">
+            <span className="kanban-card-recurring-label">
+              🔄 {formatRecurrenceShort(task.recurrence)}
+            </span>
+            {pendingCount > 0 && (
+              <span className="task-pending-badge task-pending-badge--sm">
+                {pendingCount}
+              </span>
+            )}
+          </div>
+        )}
+
+        {!isRecurring && task.dueDate && overdue && (
           <div className="kanban-card-due kanban-card-due--overdue">
             Срок до {formatDueDate(task.dueDate)}
           </div>
@@ -315,7 +334,14 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ tasks, statuses, onReorder, o
                   style={{ backgroundColor: getPriorityColor(activeTask.priority) }}
                 />
               </div>
-              {activeTask.dueDate && isOverdue(activeTask.dueDate) && (
+              {activeTask.recurrence && (
+                <div className="kanban-card-recurring">
+                  <span className="kanban-card-recurring-label">
+                    🔄 {formatRecurrenceShort(activeTask.recurrence)}
+                  </span>
+                </div>
+              )}
+              {!activeTask.recurrence && activeTask.dueDate && isOverdue(activeTask.dueDate) && (
                 <div className="kanban-card-due kanban-card-due--overdue">
                   Срок до {formatDueDate(activeTask.dueDate)}
                 </div>

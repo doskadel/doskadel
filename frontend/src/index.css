@@ -1517,6 +1517,12 @@ color: var(--color-text);
   gap: var(--space-xl);
 }
 
+.dashboard-item-extra {
+  color: var(--color-text-muted);
+  font-weight: 400;
+  font-size: 12px;
+}
+
 /* Пустое состояние */
 .dashboard-empty {
   background: var(--color-surface);
@@ -2234,6 +2240,425 @@ color: var(--color-text);
   }
 }
 
+/* ==================== RECURRENCE PICKER ==================== */
+.recurrence-picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.recurrence-hint-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: 11px;
+  cursor: help;
+  margin-left: 4px;
+  font-style: italic;
+  vertical-align: middle;
+}
+
+.recurrence-hint-icon:hover {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+/* ==================== OCCURRENCE BADGES ==================== */
+.task-pending-badge {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 2px 8px;
+  background: var(--color-danger);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
+.task-pending-badge--sm {
+  margin-top: 0;
+  padding: 1px 6px;
+  font-size: 11px;
+}
+
+/* Rail badge on ⏱ button */
+.modal-rail-btn--badge {
+  position: relative;
+}
+
+.modal-rail-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  background: var(--color-danger);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  pointer-events: none;
+}
+
+/* Kanban card recurring line */
+.kanban-card-recurring {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.kanban-card-recurring-label {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+/* ==================== OCCURRENCE CONFIRM MODAL ==================== */
+.occ-modal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  max-height: 70vh;
+}
+
+.occ-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.occ-tab {
+  position: relative;
+  flex: 1;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  color: var(--color-text-muted);
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.occ-tab:hover {
+  color: var(--color-text);
+}
+
+.occ-tab--active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+}
+
+.occ-tab-badge {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: var(--color-danger);
+  border-radius: 50%;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+/* Date filter — sticky сверху */
+.occ-filter {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.occ-filter-label {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.occ-filter-input {
+  padding: 6px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-family: inherit;
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.occ-filter-reset {
+  margin-left: auto;
+  padding: 4px 10px;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 12px;
+  font-family: inherit;
+  color: var(--color-text-muted);
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.occ-filter-reset:hover {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+/* Action bar */
+.occ-action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: 8px 0;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.occ-select-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  user-select: none;
+}
+
+.occ-select-all input[type="checkbox"] {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-primary);
+}
+
+/* List */
+.occ-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+}
+
+.occ-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: background-color 0.1s;
+  font-size: 14px;
+}
+
+.occ-row:last-child {
+  border-bottom: none;
+}
+
+.occ-row:hover {
+  background: var(--color-bg);
+}
+
+.occ-row input[type="checkbox"] {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.occ-row-status {
+  flex-shrink: 0;
+}
+
+.occ-row-date {
+  color: var(--color-text);
+}
+
+.occ-row-confirmed {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.occ-empty {
+  padding: var(--space-lg);
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  margin: 0;
+}
+
+/* ==================== CLEARABLE INPUT ==================== */
+.clearable-input {
+  position: relative;
+  display: inline-flex;
+  width: 100%;
+}
+
+.clearable-input__field {
+  width: 100%;
+  padding: 8px 32px 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-family: inherit;
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.clearable-input__field:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  background: var(--color-surface);
+  box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.15);
+}
+
+.clearable-input__field:hover {
+  border-color: var(--color-primary);
+}
+
+.clearable-input__btn {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-size: 12px;
+  font-family: inherit;
+  line-height: 1;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.clearable-input__btn:hover {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.clearable-input--flex {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ==================== CLEARABLE FIELD (кнопка под полем) ==================== */
+.clearable-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+.clearable-field__clear {
+  align-self: flex-end;
+  padding: 2px 6px;
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-size: 12px;
+  font-family: inherit;
+  line-height: 1.2;
+  border-radius: var(--radius-sm);
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.clearable-field__clear:hover {
+  background: var(--color-bg);
+  color: var(--color-danger);
+}
+
+/* ==================== MULTI SELECT — ALL / RESET ==================== */
+.multi-select-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: 4px 4px 4px 6px;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: var(--space-xs);
+}
+
+.multi-select-item--all {
+  flex: 1;
+  padding: 6px 4px;
+}
+
+.multi-select-item--all:hover {
+  background: transparent;
+}
+
+.multi-select-reset {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-size: 14px;
+  font-family: inherit;
+  line-height: 1;
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+
+.multi-select-reset:hover {
+  background: var(--color-bg);
+  color: var(--color-text);
+  border-color: var(--color-text-muted);
+}
+
+.multi-select-dot {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  border: 1px solid var(--color-surface);
+  pointer-events: none;
+}
+
+.multi-select-trigger {
+  position: relative;
+}
 /* ==================== STATUS ROW FINAL BADGE ==================== */
 .status-row-final-badge {
   font-size: 12px;
@@ -2362,4 +2787,340 @@ color: var(--color-text);
   .confirm-dialog-buttons .button {
     flex: 1;
   }
+}
+
+/* ==================== LAYOUT AVATAR (кружок в шапке) ==================== */
+.layout-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  margin-left: var(--space-sm);
+  transition: background-color 0.15s, transform 0.05s;
+  flex-shrink: 0;
+  padding: 0;
+  font-family: inherit;
+}
+
+.layout-avatar:hover {
+  background: var(--color-primary-hover);
+}
+
+.layout-avatar:active {
+  transform: translateY(1px);
+}
+
+.layout-avatar-inner {
+  line-height: 1;
+}
+
+@media (max-width: 640px) {
+  .layout-avatar {
+    width: 30px;
+    height: 30px;
+    font-size: 14px;
+    margin-left: var(--space-xs);
+  }
+}
+
+/* ==================== PROFILE MODAL ==================== */
+.profile-view {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.profile-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  padding-bottom: var(--space-md);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.profile-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--color-primary);
+}
+
+.profile-avatar--initials {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--color-primary);
+}
+
+.profile-username {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.profile-email {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.profile-menu {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.profile-menu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: 12px 16px;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 15px;
+  font-family: inherit;
+  color: var(--color-text);
+  text-align: left;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.profile-menu-item:hover {
+  background: var(--color-bg);
+  border-color: var(--color-primary);
+}
+
+.profile-menu-item--danger {
+  color: var(--color-danger);
+  border-color: var(--color-danger);
+}
+
+.profile-menu-item--danger:hover {
+  background: var(--color-danger);
+  color: #fff;
+  border-color: var(--color-danger);
+}
+
+.profile-menu-icon {
+  font-size: 18px;
+  width: 24px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.profile-menu-label {
+  flex: 1;
+}
+
+.profile-menu-arrow {
+  font-size: 20px;
+  color: var(--color-text-muted);
+  line-height: 1;
+}
+
+/* ==================== SETTINGS VIEW (заглушка) ==================== */
+.settings-view {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.settings-back {
+  align-self: flex-start;
+  background: transparent;
+  border: none;
+  color: var(--color-primary);
+  cursor: pointer;
+  font-size: 14px;
+  font-family: inherit;
+  padding: 4px 0;
+  transition: color 0.15s;
+}
+
+.settings-back:hover {
+  color: var(--color-primary-hover);
+}
+
+.settings-placeholder {
+  color: var(--color-text-muted);
+  font-size: 14px;
+  font-style: italic;
+  padding: var(--space-lg);
+  text-align: center;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+/* ==================== SETTINGS — SECTIONS ==================== */
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.settings-section-title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-muted);
+  margin: 0 0 var(--space-xs) 0;
+}
+
+.settings-warning {
+  font-size: 13px;
+  color: var(--color-danger);
+  margin: 0;
+}
+
+.settings-message {
+  font-size: 13px;
+  color: var(--color-primary);
+  margin: var(--space-xs) 0 0 0;
+}
+
+.settings-actions {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  margin-top: var(--space-xs);
+}
+
+/* ==================== SETTINGS — ROWS ==================== */
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: 10px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.settings-row:last-child {
+  border-bottom: none;
+}
+
+.settings-row--toggle {
+  cursor: pointer;
+}
+
+.settings-row-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.settings-row-label {
+  font-size: 14px;
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.settings-row-description {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  line-height: 1.3;
+}
+
+.settings-row--two {
+  display: flex;
+  gap: var(--space-md);
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.settings-row-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.settings-time-input {
+  padding: 6px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-family: inherit;
+  background: var(--color-surface);
+  color: var(--color-text);
+  width: 100%;
+  max-width: 140px;
+}
+
+/* ==================== TOGGLE (переключатель) ==================== */
+.toggle {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  inset: 0;
+  background: var(--color-border);
+  border-radius: 22px;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  left: 2px;
+  top: 2px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.15s;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.toggle--on .toggle-slider {
+  background: var(--color-primary);
+}
+
+.toggle--on .toggle-slider::before {
+  transform: translateX(18px);
+}
+
+/* ==================== SETTINGS — FOOTER ==================== */
+.settings-footer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding-top: var(--space-sm);
+}
+
+.settings-saved {
+  font-size: 13px;
+  color: var(--color-success);
 }
