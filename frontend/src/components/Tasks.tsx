@@ -6,7 +6,7 @@ import { DndContext, closestCenter, PointerSensor, TouchSensor, KeyboardSensor, 
 import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, X, Plus, Settings, CalendarDays, Columns, List, Info } from 'lucide-react';
+import { GripVertical, X, Plus, Settings, CalendarDays, Columns, List, Info, LayoutList } from 'lucide-react';
 
 interface SortableViewRowProps {
   id: TaskView;
@@ -125,6 +125,7 @@ const Tasks: React.FC = () => {
   });
   const [viewsEditOpen, setViewsEditOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
+  const [settingsView, setSettingsView] = useState<'main' | 'views'>('main');
   const infoRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
@@ -467,7 +468,7 @@ const Tasks: React.FC = () => {
         <button
           type="button"
           className="icon-button settings-btn"
-          onClick={() => setViewsEditOpen(true)}
+          onClick={() => { setSettingsView('main'); setViewsEditOpen(true); }}
           title="Настроить вкладки"
           aria-label="Настроить вкладки"
         >
@@ -589,7 +590,7 @@ const Tasks: React.FC = () => {
         statuses={statuses}
         onClose={() => setStatusManagerOpen(false)}
         onChanged={refreshAll}
-        onBack={() => { setStatusManagerOpen(false); setViewsEditOpen(true); }}
+        onBack={() => { setStatusManagerOpen(false); setSettingsView('main'); setViewsEditOpen(true); }}
       />
 
       <TaskModal
@@ -711,10 +712,23 @@ const Tasks: React.FC = () => {
         <CalendarView tasks={tasks as any} onOpenTask={openTask} />
       )}
 
-      {viewsEditOpen && (
+      {viewsEditOpen && settingsView === 'main' && (
         <Modal open onClose={() => setViewsEditOpen(false)} title="Настройки задач">
+          <button type="button" className="ve-action" onClick={() => setSettingsView('views')}>
+            <LayoutList size={20} />
+            <span>Виды отображения задач</span>
+          </button>
+          <button type="button" className="ve-action" style={{ marginTop: 8 }} onClick={() => { setViewsEditOpen(false); setStatusManagerOpen(true); }}>
+            <Settings size={20} />
+            <span>Управление статусами</span>
+          </button>
+        </Modal>
+      )}
+
+      {viewsEditOpen && settingsView === 'views' && (
+        <Modal open onClose={() => setViewsEditOpen(false)} title="Виды отображения задач" onBack={() => setSettingsView('main')}>
           <p style={{ color: 'var(--color-text-muted)', fontSize: 14, marginTop: 0 }}>
-            Показывайте и перетаскивайте вкладки (за ручку ⋮⋮).
+            Включайте виды переключателем, меняйте порядок перетаскиванием за ручку.
           </p>
           <DndContext
             sensors={dndSensors}
@@ -766,11 +780,6 @@ const Tasks: React.FC = () => {
             </>
           )}
 
-          <div className="ve-divider" />
-          <button type="button" className="ve-action" onClick={() => { setViewsEditOpen(false); setStatusManagerOpen(true); }}>
-            <Settings size={20} />
-            <span>Управление статусами</span>
-          </button>
         </Modal>
       )}
     </div>
