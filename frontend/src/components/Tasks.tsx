@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import PullToRefresh from './PullToRefresh';
 import LoadingOverlay from './LoadingOverlay';
+import CalendarView from './CalendarView';
 import { useSearchParams } from 'react-router-dom';
 import api from '../utils/api';
 import KanbanBoard, { KanbanTask } from './KanbanBoard';
@@ -31,7 +32,13 @@ interface Task {
   createdAt: string;
 }
 
+type TaskView = 'board' | 'list' | 'calendar';
+
+const ALL_VIEWS: TaskView[] = ['calendar', 'board', 'list'];
+const VIEW_LABELS: Record<TaskView, string> = { calendar: '📅 Календарь', board: '▦ Доска', list: '☰ Список' };
+
 const VIEW_KEY = 'doskadel_tasks_view';
+const VIEW_TABS_KEY = 'doskadel_tasks_view_tabs';
 const DEFAULT_SORT = 'createdAt_desc';
 
 const Tasks: React.FC = () => {
@@ -65,11 +72,22 @@ const Tasks: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [statuses, setStatuses] = useState<Status[]>([]);
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState<'list' | 'kanban'>(() => {
+  const [view, setView] = useState<TaskView>(() => {
     const saved = localStorage.getItem(VIEW_KEY);
-    if (saved === 'kanban' || saved === 'list') return saved;
-    return window.matchMedia('(max-width: 640px)').matches ? 'list' : 'kanban';
+    if (saved === 'board' || saved === 'list' || saved === 'calendar') return saved;
+    return window.matchMedia('(max-width: 640px)').matches ? 'list' : 'board';
   });
+  const [viewTabs, setViewTabs] = useState<TaskView[]>(() => {
+    try {
+      const saved = localStorage.getItem(VIEW_TABS_KEY);
+      if (saved) {
+        const arr = JSON.parse(saved);
+        if (Array.isArray(arr) && arr.length > 0 && arr.every((v: any) => ALL_VIEWS.includes(v))) return arr;
+      }
+    } catch {}
+    return ALL_VIEWS;
+  });
+  const [viewsEditOpen, setViewsEditOpen] = useState(false);
 
   const [createOpen, setCreateOpen] = useState(false);
   const [statusManagerOpen, setStatusManagerOpen] = useState(false);
@@ -106,6 +124,10 @@ const Tasks: React.FC = () => {
   useEffect(() => {
     localStorage.setItem(VIEW_KEY, view);
   }, [view]);
+
+  useEffect(() => {
+    localStorage.setItem(VIEW_TABS_KEY, JSON.stringify(viewTabs));
+  }, [viewTabs]);
 
   useEffect(() => {
     if (newParam === '1') {
@@ -332,26 +354,28 @@ const Tasks: React.FC = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-lg)', gap: 'var(--space-md)', flexWrap: 'wrap' }}>
         <h2 className="page-title" style={{ margin: 0 }}>Мои задачи</h2>
         <div style={{ display: 'flex', gap: 'var(--space-md)', alignItems: 'center', flexWrap: 'wrap' }}>
-          {!isMobile && (
-            <div className="view-toggle">
+          <div className="view-toggle">
+            {viewTabs.map((v) => (
               <button
+                key={v}
                 type="button"
-                className={view === 'kanban' ? 'view-toggle-btn view-toggle-btn--active' : 'view-toggle-btn'}
-                onClick={() => setView('kanban')}
-                title="Канбан"
+                className={view === v ? 'view-toggle-btn view-toggle-btn--active' : 'view-toggle-btn'}
+                onClick={() => setView(v)}
+                title={VIEW_LABELS[v].replace(/^\S+\s/, '')}
               >
-                ▦ Канбан
+                {VIEW_LABELS[v]}
               </button>
-              <button
-                type="button"
-                className={view === 'list' ? 'view-toggle-btn view-toggle-btn--active' : 'view-toggle-btn'}
-                onClick={() => setView('list')}
-                title="Список"
-              >
-                ☰ Список
-              </button>
-            </div>
-          )}
+            ))}
+            <button
+              type="button"
+              className="view-toggle-btn view-toggle-edit"
+              onClick={() => setViewsEditOpen(true)}
+              title="Настроить вкладки"
+              aria-label="Настроить вкладки"
+            >
+              ⚙
+            </button>
+          </div>
           <button
             type="button"
             className="button"
@@ -392,7 +416,7 @@ const Tasks: React.FC = () => {
         sort={sortParam || DEFAULT_SORT}
         onSortChange={(s) => updateQuery({ sort: s === DEFAULT_SORT ? null : s })}
         defaultSort={DEFAULT_SORT}
-        hideSort={view === 'kanban'}
+        hideSort={view === 'board'}
         dueFilter={dueFilter}
         onDueFilterClear={handleClearDueFilter}
       />
@@ -500,7 +524,7 @@ const Tasks: React.FC = () => {
         </p>
       )}
 
-      {tasks.length > 0 && view === 'kanban' && (
+      {tasks.length > 0 && view === 'board' && (
         <KanbanBoard
           tasks={tasks as KanbanTask[]}
           statuses={statuses}
@@ -600,6 +624,52 @@ const Tasks: React.FC = () => {
             );
           })}
         </div>
+      )}
+
+      {view === 'calendar' && (
+        <CalendarView tasks={tasks as any} onOpenTask={openTask} />
+      )}
+
+      {viewsEditOpen && (
+        <Modal open onClose={() => setViewsEditOpen(false)} title="Вкладки отображения">
+          <p style={{ color: 'var(--color-text-muted)', fontSize: 14, marginTop: 0 }}>
+            Отметьте, какие вкладки показывать, и меняйте порядок стрелками.
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
+            {ALL_VIEWS.map((v) => {
+              const idx = viewTabs.indexOf(v);
+              const active = idx >= 0;
+              return (
+                <div key={v} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
+                  <label style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <input
+                      type="checkbox"
+                      checked={active}
+                      onChange={() => {
+                        const next = active ? viewTabs.filter((x) => x !== v) : [...viewTabs, v];
+                        if (next.length === 0) return; // хотя бы одна
+                        setViewTabs(next);
+                        if (!next.includes(view)) setView(next[0]);
+                      }}
+                    />
+                    {VIEW_LABELS[v]}
+                  </label>
+                  {active && (
+                    <>
+                      <button type="button" className="button button--ghost" disabled={idx === 0}
+                        onClick={() => { const n = [...viewTabs]; [n[idx - 1], n[idx]] = [n[idx], n[idx - 1]]; setViewTabs(n); }}>↑</button>
+                      <button type="button" className="button button--ghost" disabled={idx === viewTabs.length - 1}
+                        onClick={() => { const n = [...viewTabs]; [n[idx + 1], n[idx]] = [n[idx], n[idx + 1]]; setViewTabs(n); }}>↓</button>
+                    </>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          <div style={{ marginTop: 'var(--space-lg)', textAlign: 'right' }}>
+            <button type="button" className="button" onClick={() => setViewsEditOpen(false)}>Готово</button>
+          </div>
+        </Modal>
       )}
     </div>
     </PullToRefresh>
