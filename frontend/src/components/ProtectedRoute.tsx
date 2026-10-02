@@ -1,18 +1,40 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { getToken } from '../utils/token';
+import axios from 'axios';
+import { getToken, setToken } from '../utils/token';
 
 interface ProtectedRouteProps {
   children: ReactNode;
 }
 
+// При старте access-токена в памяти нет (он не в localStorage).
+// Пробуем получить его через refresh-cookie; если не вышло — на логин.
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const token = getToken();
+  const [state, setState] = useState<'checking' | 'ok' | 'no'>(getToken() ? 'ok' : 'checking');
 
-  if (!token) {
+  useEffect(() => {
+    if (state !== 'checking') return;
+    let cancelled = false;
+    axios.post('/api/auth/refresh', {}, { withCredentials: true })
+      .then((resp) => {
+        if (cancelled) return;
+        if (resp.data?.token) {
+          setToken(resp.data.token);
+          setState('ok');
+        } else {
+          setState('no');
+        }
+      })
+      .catch(() => { if (!cancelled) setState('no'); });
+    return () => { cancelled = true; };
+  }, [state]);
+
+  if (state === 'checking') {
+    return <div style={{ padding: 24, color: 'var(--color-text-muted)' }}>Загрузка...</div>;
+  }
+  if (state === 'no') {
     return <Navigate to="/login" replace />;
   }
-
   return <>{children}</>;
 };
 

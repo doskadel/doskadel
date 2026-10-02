@@ -3,7 +3,7 @@ import { Moon, Sun, Settings, LogOut, Bell } from 'lucide-react';
 import { useTheme } from '../hooks/useTheme';
 import Modal from './Modal';
 import api from '../utils/api';
-import { clearAuth, getRefreshToken } from '../utils/token';
+import { clearToken } from '../utils/token';
 import {
   isPushSupported,
   isSubscribed,
@@ -112,14 +112,11 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ open, onClose }) => {
 
   const handleLogout = async () => {
     try {
-      const refreshToken = getRefreshToken();
-      if (refreshToken) {
-        await api.post('/api/auth/logout', { refreshToken });
-      }
+      await api.post('/api/auth/logout', {});
     } catch {
       // даже если сервер недоступен — выходим локально
     }
-    clearAuth();
+    clearToken();
     window.location.href = '/login';
   };
 

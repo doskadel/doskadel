@@ -1,28 +1,12 @@
-export const getToken = (): string | null => {
-  return localStorage.getItem('token');
-};
+// Access-токен — в памяти (не localStorage). Refresh — в httpOnly cookie (ставит сервер).
+let accessToken: string | null = null;
+
+export const getToken = (): string | null => accessToken;
 
 export const setToken = (token: string): void => {
-  localStorage.setItem('token', token);
+  accessToken = token;
 };
 
 export const clearToken = (): void => {
-  localStorage.removeItem('token');
-};
-
-export const getRefreshToken = (): string | null => {
-  return localStorage.getItem('refreshToken');
-};
-
-export const setRefreshToken = (token: string): void => {
-  localStorage.setItem('refreshToken', token);
-};
-
-export const clearRefreshToken = (): void => {
-  localStorage.removeItem('refreshToken');
-};
-
-export const clearAuth = (): void => {
-  clearToken();
-  clearRefreshToken();
+  accessToken = null;
 };

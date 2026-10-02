@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import api from '../utils/api';
 import { useNavigate, Link } from 'react-router-dom';
-import { setToken, setRefreshToken } from '../utils/token';
+import { setToken } from '../utils/token';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -13,9 +13,8 @@ const Login: React.FC = () => {
     e.preventDefault();
     try {
       const response = await api.post('/api/auth/login', { email, password });
-      const { token, refreshToken } = response.data;
+      const { token } = response.data;
       setToken(token);
-      if (refreshToken) setRefreshToken(refreshToken);
       navigate('/');
     } catch (err) {
       setError('Неверный email или пароль');

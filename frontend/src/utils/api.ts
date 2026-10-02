@@ -1,12 +1,13 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
-import { getToken, getRefreshToken, setToken, setRefreshToken, clearAuth } from './token';
+import { getToken, setToken, clearToken } from './token';
 
-// Относительный /api: dev — через CRA-proxy (setupProxy.js) на localhost:5000,
-// прод — через reverse-proxy. Один origin, cookie first-party.
+// Относительный /api: dev — через CRA-proxy, прод — через reverse-proxy.
+// Refresh-токен живёт в httpOnly cookie (ставит сервер), JS его не видит.
 export const API_BASE_URL = '';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true,
 });
 
 api.interceptors.request.use((config) => {
@@ -18,17 +19,14 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Автообновление access-токена при 401 (один раз на запрос).
+// Автообновление access при 401 (refresh уходит cookie автоматически).
 let refreshing: Promise<string | null> | null = null;
 
 const doRefresh = async (): Promise<string | null> => {
-  const refreshToken = getRefreshToken();
-  if (!refreshToken) return null;
   try {
-    const resp = await axios.post(`${API_BASE_URL}/api/auth/refresh`, { refreshToken });
+    const resp = await axios.post('/api/auth/refresh', {}, { withCredentials: true });
     if (resp.data?.token) {
       setToken(resp.data.token);
-      if (resp.data.refreshToken) setRefreshToken(resp.data.refreshToken);
       return resp.data.token;
     }
     return null;
@@ -51,8 +49,7 @@ api.interceptors.response.use(
         original.headers.Authorization = `Bearer ${newToken}`;
         return api(original);
       }
-      // refresh не удался — разлогиниваем
-      clearAuth();
+      clearToken();
       if (window.location.pathname !== '/login') {
         window.location.href = '/login';
       }
