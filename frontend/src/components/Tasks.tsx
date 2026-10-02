@@ -6,7 +6,7 @@ import { DndContext, closestCenter, PointerSensor, TouchSensor, KeyboardSensor, 
 import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, X, Plus, Settings, CalendarDays, Columns, List } from 'lucide-react';
+import { GripVertical, X, Plus, Settings, CalendarDays, Columns, List, Info } from 'lucide-react';
 
 interface SortableViewRowProps {
   id: TaskView;
@@ -402,7 +402,18 @@ const Tasks: React.FC = () => {
   return (
     <PullToRefresh onRefresh={handleRefresh}>
     <div>
-      <h2 className="page-title" style={{ margin: 0, marginBottom: 'var(--space-md)' }}>Мои задачи</h2>
+      <h2 className="page-title" style={{ margin: 0, marginBottom: 'var(--space-md)', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+        Мои задачи
+        {viewTabs.length === 1 && (
+          <span
+            className="view-info-icon"
+            title={`Сейчас выбран только вид «${VIEW_LABELS[viewTabs[0]]}». Другие виды включаются в настройках.`}
+            aria-label={`Вид: ${VIEW_LABELS[viewTabs[0]]}`}
+          >
+            <Info size={16} />
+          </span>
+        )}
+      </h2>
 
       {/* Вкладки: несколько — отдельной строкой; одна — в строке действий */}
       {viewTabs.length > 1 && (
@@ -425,20 +436,10 @@ const Tasks: React.FC = () => {
 
       {/* Строка действий: (одна вкладка) + Добавить слева, настройки справа */}
       <div className="tasks-actions-row">
-        {viewTabs.length === 1 && (
-          <span
-            className="view-single-icon"
-            title={`Сейчас выбран только вид «${VIEW_LABELS[viewTabs[0]]}». Другие виды включаются в настройках.`}
-            aria-label={`Вид: ${VIEW_LABELS[viewTabs[0]]}`}
-          >
-            {VIEW_ICONS[viewTabs[0]]}
-          </span>
-        )}
         <button
           type="button"
           className="button"
           onClick={() => setCreateOpen(true)}
-          style={viewTabs.length === 1 ? { marginLeft: 'auto' } : undefined}
         >
           + Добавить задачу
         </button>
