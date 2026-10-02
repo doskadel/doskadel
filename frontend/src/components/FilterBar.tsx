@@ -81,6 +81,15 @@ const FilterBar: React.FC<FilterBarProps> = ({
               <div className="fb-field"><MultiSelect label="Статус" options={statusOptions} selected={statusIds} onChange={(v) => onStatusIdsChange(v as string[])} placeholder="Все" /></div>
               <div className="fb-field"><MultiSelect label="Приоритет" options={priorityOptions} selected={priorityFilter} onChange={(v) => onPriorityFilterChange(v as number[])} placeholder="Все" /></div>
               <div className="fb-field"><MultiSelect label="Тип" options={taskTypeOptions} selected={taskTypeSelected} onChange={handleTaskTypeChange} placeholder="Все" /></div>
+              {dueFilter && (
+                <div className="fb-field">
+                  <span className="fb-field-label">Срок</span>
+                  <div className="fb-chip">
+                    <span>{dueFilter === 'overdue' ? 'Просрочено' : 'Ближайшие 3 дня'}</span>
+                    <button type="button" className="fb-chip-close" onClick={onDueFilterClear} aria-label="Убрать"><X size={14} /></button>
+                  </div>
+                </div>
+              )}
               <div className="fb-field">
                 <span className="fb-field-label">Даты</span>
                 <div className="fb-dates">
@@ -98,14 +107,6 @@ const FilterBar: React.FC<FilterBarProps> = ({
           </>
           )}
         </Popover>
-
-        {/* Активные чипы (просрочено/ближайшие) */}
-        {dueFilter && (
-          <div className="filter-chip filter-chip--active">
-            <span className="filter-chip-label">{dueFilter === 'overdue' ? 'Просрочено' : 'Ближайшие 3 дня'}</span>
-            <button type="button" className="filter-chip-close" onClick={onDueFilterClear} aria-label="Убрать">✕</button>
-          </div>
-        )}
 
         {!searchOpen && <div className="fb-spacer" />}
 
