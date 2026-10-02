@@ -103,7 +103,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
           </div>
         )}
 
-        <div className="fb-spacer" />
+        {!searchOpen && <div className="fb-spacer" />}
 
         {/* Поиск: строка раскрывается слева от кнопки */}
         {searchOpen && (
