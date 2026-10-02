@@ -82,7 +82,7 @@ const listSubscriptions = async (req, res) => {
 const sendTest = async (req, res) => {
   try {
     const {
-      title = 'WorkList',
+      title = 'DoskaDel',
       body = 'Тестовое уведомление',
       url = '/'
     } = req.body || {};

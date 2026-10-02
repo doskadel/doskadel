@@ -29,7 +29,7 @@ interface Task {
   createdAt: string;
 }
 
-const VIEW_KEY = 'worklist_tasks_view';
+const VIEW_KEY = 'doskadel_tasks_view';
 const DEFAULT_SORT = 'createdAt_desc';
 
 const Tasks: React.FC = () => {

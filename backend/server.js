@@ -24,7 +24,7 @@ app.use(limiter);
 
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://mongo:27017/worklist');
+    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://mongo:27017/doskadel');
     console.log('MongoDB connected successfully');
   } catch (error) {
     console.error('MongoDB connection error:', error);
@@ -40,7 +40,7 @@ const startServer = async () => {
   agendaInstance = await startAgenda();
 
   app.get('/', (req, res) => {
-    res.json({ message: 'WorkList Backend API' });
+    res.json({ message: 'DoskaDel Backend API' });
   });
 
   app.use('/api/auth', require('./src/routes/auth'));

@@ -1,6 +1,7 @@
 {
-  "short_name": "WorkList",
-  "name": "WorkList",
+  "short_name": "DoskaDel",
+  "name": "DoskaDel",
+  "lang": "ru",
   "description": "Приложение для управления задачами и базой знаний",
   "lang": "ru",
   "start_url": "/",

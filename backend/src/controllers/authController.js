@@ -5,7 +5,7 @@ const DEFAULT_STATUSES = require('../utils/defaultStatuses');
 const { validationResult } = require('express-validator');
 
 const generateToken = (userId) => {
-  return jwt.sign({ userId }, process.env.JWT_SECRET || 'worklist_secret', { expiresIn: '24h' });
+  return jwt.sign({ userId }, process.env.JWT_SECRET || 'doskadel_secret', { expiresIn: '24h' });
 };
 
 // Регистрация пользователя

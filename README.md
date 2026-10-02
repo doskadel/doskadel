@@ -1,4 +1,4 @@
-# WorkList
+# DoskaDel (ДоскаДел)
 
 Кроссплатформенное приложение для управления задачами и ведения базы знаний с синхронизацией данных между устройствами через аккаунт. Поддерживает повторяющиеся задачи, Web Push-уведомления, PWA и работу оффлайн.
 
@@ -183,7 +183,7 @@ MongoDB: localhost:27017 (порт открыт для Compass/mongosh)
 ## Переменные окружения
 
 ### backend/.env
-MONGODB_URI=mongodb://mongo:27017/worklist
+MONGODB_URI=mongodb://mongo:27017/doskadel
 JWT_SECRET=change_me_in_production
 JWT_EXPIRES_IN=24h
 PORT=5000

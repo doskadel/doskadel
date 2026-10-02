@@ -45,7 +45,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         await api.put('/api/occurrences/confirm', { ids: [occurrenceId] });
         console.log('[SW-MSG] Occurrence confirmed:', occurrenceId);
         // Дадим окну знать, что данные изменились — оно перезапросит задачи
-        window.dispatchEvent(new CustomEvent('worklist:occurrence-updated'));
+        window.dispatchEvent(new CustomEvent('doskadel:occurrence-updated'));
       } catch (err) {
         console.error('[SW-MSG] Failed to confirm occurrence:', err);
       }
@@ -78,7 +78,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </button>
           )}
           <Link to="/" className="layout-logo">
-            WorkList
+            DoskaDel
           </Link>
         </div>
         <nav className="layout-nav">

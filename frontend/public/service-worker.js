@@ -1,6 +1,6 @@
 /* eslint-disable no-restricted-globals */
 
-const CACHE_NAME = 'worklist-sw-v1';
+const CACHE_NAME = 'doskadel-sw-v1';
 
 // Установка — сразу активируемся (не ждём reload)
 self.addEventListener('install', (event) => {
@@ -19,10 +19,10 @@ self.addEventListener('push', (event) => {
   try {
     data = event.data ? event.data.json() : {};
   } catch (e) {
-    data = { title: 'WorkList', body: event.data ? event.data.text() : '' };
+    data = { title: 'DoskaDel', body: event.data ? event.data.text() : '' };
   }
 
-  const title = data.title || 'WorkList';
+  const title = data.title || 'DoskaDel';
   const options = {
     body: data.body || '',
     icon: data.icon || '/logo192.png',

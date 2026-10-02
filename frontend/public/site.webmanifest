@@ -1,6 +1,6 @@
 {
-  "name": "WorkList",
-  "short_name": "WorkList",
+  "name": "DoskaDel",
+  "short_name": "DoskaDel",
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",

@@ -1,5 +1,5 @@
 {
-  "name": "worklist",
+  "name": "doskadel",
   "version": "1.0.0",
   "description": "Task management application with mobile support and chatbot readiness",
   "main": "index.js",

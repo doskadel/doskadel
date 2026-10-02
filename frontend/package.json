@@ -1,7 +1,7 @@
 {
-  "name": "worklist-frontend",
+  "name": "doskadel-frontend",
   "version": "1.0.0",
-  "description": "Frontend for WorkList application",
+  "description": "Frontend for DoskaDel application",
   "main": "src/index.tsx",
   "scripts": {
     "start": "react-scripts start",

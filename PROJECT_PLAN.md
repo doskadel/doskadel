@@ -1,4 +1,4 @@
-# WorkList - План реализации проекта
+# DoskaDel - План реализации проекта
 
 ## 1. Общая архитектура
 
@@ -120,7 +120,7 @@ Profile: ProfileModal с экранами profile / settings / notifications.
 
 ### 3.3 Структура приложения
 
-worklist/
+doskadel/
   .gitignore
   PROJECT_PLAN.md
   README.md

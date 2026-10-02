@@ -123,7 +123,7 @@ const Dashboard: React.FC = () => {
 
       {isEmpty ? (
         <div className="dashboard-empty">
-          <p className="dashboard-empty-title">Добро пожаловать в WorkList</p>
+          <p className="dashboard-empty-title">Добро пожаловать в DoskaDel</p>
           <p className="dashboard-empty-text">
             Начните с создания первой задачи или статьи — используйте кнопки выше.
           </p>

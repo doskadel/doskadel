@@ -53,7 +53,7 @@ const userWantsPush = (user, kind) => {
 const startAgenda = async () => {
   const agenda = new Agenda({
     db: {
-      address: process.env.MONGODB_URI || 'mongodb://mongo:27017/worklist',
+      address: process.env.MONGODB_URI || 'mongodb://mongo:27017/doskadel',
       collection: 'agendaJobs'
     },
     processEvery: '1 minute',

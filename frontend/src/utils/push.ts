@@ -144,7 +144,7 @@ export const isSubscribed = async (): Promise<boolean> => {
 export const sendTestPush = async (): Promise<{ ok: boolean; message?: string }> => {
   try {
     const res = await api.post('/api/push/test', {
-      title: 'WorkList',
+      title: 'DoskaDel',
       body: 'Тестовое уведомление',
       url: '/',
     });

@@ -1,7 +1,7 @@
 {
-  "name": "worklist-backend",
+  "name": "doskadel-backend",
   "version": "1.0.0",
-  "description": "Backend for WorkList application",
+  "description": "Backend for DoskaDel application",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
