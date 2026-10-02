@@ -426,13 +426,13 @@ const Tasks: React.FC = () => {
       {/* Строка действий: (одна вкладка) + Добавить слева, настройки справа */}
       <div className="tasks-actions-row">
         {viewTabs.length === 1 && (
-          <button
-            type="button"
-            className="view-single-label"
-            onClick={() => setView(viewTabs[0])}
+          <span
+            className="view-single-icon"
+            title={`Сейчас выбран только вид «${VIEW_LABELS[viewTabs[0]]}». Другие виды включаются в настройках.`}
+            aria-label={`Вид: ${VIEW_LABELS[viewTabs[0]]}`}
           >
-            {VIEW_ICONS[viewTabs[0]]} {VIEW_LABELS[viewTabs[0]]}
-          </button>
+            {VIEW_ICONS[viewTabs[0]]}
+          </span>
         )}
         <button
           type="button"
