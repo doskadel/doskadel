@@ -11,6 +11,7 @@ import Knowledge from './components/Knowledge';
 import ArticleDetail from './components/ArticleDetail';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
+import MorePage from './components/MorePage';
 import { ConfirmProvider } from './components/ConfirmProvider';
 import { getToken } from './utils/token';
 
@@ -28,6 +29,7 @@ function App() {
           <Route path="/tasks/:id" element={<ProtectedRoute><Layout><TaskDetail /></Layout></ProtectedRoute>} />
           <Route path="/knowledge" element={<ProtectedRoute><Layout><Knowledge /></Layout></ProtectedRoute>} />
           <Route path="/knowledge/:id" element={<ProtectedRoute><Layout><ArticleDetail /></Layout></ProtectedRoute>} />
+          <Route path="/more" element={<ProtectedRoute><Layout><MorePage /></Layout></ProtectedRoute>} />
           <Route path="/search" element={<Navigate to="/" replace />} />
         </Routes>
       </div>

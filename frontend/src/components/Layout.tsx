@@ -14,7 +14,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const navigate = useNavigate();
   const [searchOpen, setSearchOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-  const [moreOpen, setMoreOpen] = useState(false);
+
 
   const isRoot = location.pathname === '/';
 
@@ -137,31 +137,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <span className="bottom-nav-icon"><BookOpen size={20} /></span>
           <span className="bottom-nav-label">База</span>
         </Link>
-        <button
-          type="button"
-          className={moreOpen ? 'bottom-nav-item bottom-nav-item--active' : 'bottom-nav-item'}
-          onClick={() => setMoreOpen(true)}
-          title="Ещё"
-          aria-label="Ещё"
-        >
+        <Link to="/more" className={isActive('/more') ? 'bottom-nav-item bottom-nav-item--active' : 'bottom-nav-item'}>
           <span className="bottom-nav-icon"><MoreHorizontal size={20} /></span>
           <span className="bottom-nav-label">Ещё</span>
-        </button>
+        </Link>
       </nav>
-
-      {moreOpen && (
-        <div className="more-sheet-overlay" onClick={() => setMoreOpen(false)}>
-          <div className="more-sheet" onClick={(e) => e.stopPropagation()}>
-            <div className="more-sheet-handle" />
-            <button
-              className="more-sheet-item"
-              onClick={() => { setMoreOpen(false); setSearchOpen(true); }}
-            >
-              <Search size={18} /> Поиск
-            </button>
-          </div>
-        </div>
-      )}
 
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
       <ProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} />

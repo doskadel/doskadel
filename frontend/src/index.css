@@ -1,4 +1,13 @@
 /* Токены — в tokens.css */
+.more-page-list { display: flex; flex-direction: column; gap: 8px; }
+.more-page-item {
+  display: flex; align-items: center; gap: 14px; padding: 16px; width: 100%; text-align: left;
+  background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md);
+  cursor: pointer; font-family: inherit; font-size: 16px; color: var(--color-text);
+}
+.more-page-item:hover { background: var(--color-bg); border-color: var(--color-primary); }
+.more-page-icon { display: inline-flex; color: var(--color-text-muted); }
+.more-page-label { flex: 1; }
 .settings-section-title {
   margin: 20px 0 10px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em;
   color: var(--color-text-muted); font-weight: 600;
@@ -598,9 +607,9 @@ z-index: 10;
   border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-surface); color: var(--color-text);
 }
 .fb-search-inline {
-  display: flex; align-items: center; gap: 8px; padding: 0 12px; height: 40px; flex: 1;
+  display: flex; align-items: center; gap: 6px; padding: 0 10px; height: 40px; flex: 1;
   background: var(--color-bg); border: 1px solid var(--color-primary); border-radius: var(--radius-sm) 0 0 var(--radius-sm); min-width: 0;
-  border-right: none;
+  border-right: none; margin-right: -1px;
 }
 .fb-search-inline + .fb-icon-btn--active { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
 .fb-search-inline .fb-search-input { height: 100%; }
@@ -716,12 +725,11 @@ z-index: 10;
   min-width: 40px;
   padding: 0;
   color: var(--color-text-muted);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: transparent;
+  border: 1px dashed var(--color-border);
   border-radius: 7px;
-  margin-left: 4px;
 }
-.view-toggle-edit:hover { color: var(--color-primary); border-color: var(--color-primary); }
+.view-toggle-edit:hover { color: var(--color-primary); border-color: var(--color-primary); border-style: solid; }
 
 @media (max-width: 1023px) {
   .view-toggle { display: inline-flex; justify-content: center; max-width: 100%; }
@@ -989,15 +997,14 @@ color: var(--color-text);
 
 /* ==================== VIEW TOGGLE ==================== */
 .view-toggle {
-  display: inline-flex;
+  display: flex;
   align-items: stretch;
-  justify-content: center;
+  width: 100%;
   background: var(--color-bg);
   border: 1px solid var(--color-border);
   border-radius: 10px;
   padding: 4px;
   gap: 4px;
-  max-width: 100%;
 }
 
 .view-toggle-btn {
@@ -1007,10 +1014,10 @@ color: var(--color-text);
   gap: 6px;
   background: transparent;
   border: none;
-  padding: 8px 16px;
+  padding: 8px 10px;
   font-size: 14px;
   font-weight: 500;
-  flex: 0 0 auto;
+  flex: 1 1 0;
   color: var(--color-text-muted);
   cursor: pointer;
   border-radius: 7px;
