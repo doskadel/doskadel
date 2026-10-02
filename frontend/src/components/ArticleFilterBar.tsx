@@ -68,34 +68,35 @@ const ArticleFilterBar: React.FC<ArticleFilterBarProps> = ({
 
         {!searchOpen && <div className="fb-spacer" />}
 
-        {searchOpen && (
-          <div className="fb-search-inline">
-            <Search size={16} className="fb-search-icon" />
-            <input
-              ref={searchInputRef}
-              type="text"
-              className="fb-search-input"
-              placeholder="Поиск по статьям..."
-              value={q}
-              onChange={(e) => onQChange(e.target.value)}
-            />
-            {q && (
-              <button type="button" className="fb-search-clear" onClick={() => onQChange('')} aria-label="Очистить">
-                <X size={16} />
-              </button>
-            )}
-          </div>
-        )}
-        <button
-          type="button"
-          className={'fb-icon-btn' + (searchOpen ? ' fb-icon-btn--active' : '')}
-          onClick={() => setSearchOpen((v) => !v)}
-          title="Поиск"
-          aria-label="Поиск"
-        >
-          <Search size={18} />
-          {isSearchActive && <span className="fb-dot fb-dot--alert" />}
-        </button>
+        <div className={'fb-search' + (searchOpen ? ' fb-search--open' : '')}>
+          {searchOpen && (
+            <>
+              <input
+                ref={searchInputRef}
+                type="text"
+                className="fb-search-input"
+                placeholder="Поиск по статьям..."
+                value={q}
+                onChange={(e) => onQChange(e.target.value)}
+              />
+              {q && (
+                <button type="button" className="fb-search-clear" onClick={() => onQChange('')} aria-label="Очистить">
+                  <X size={16} />
+                </button>
+              )}
+            </>
+          )}
+          <button
+            type="button"
+            className="fb-search-btn"
+            onClick={() => setSearchOpen((v) => !v)}
+            title="Поиск"
+            aria-label="Поиск"
+          >
+            <Search size={18} />
+            {isSearchActive && <span className="fb-dot fb-dot--alert" />}
+          </button>
+        </div>
 
         <Listbox value={sort} onChange={onSortChange}>
           {({ open }) => (

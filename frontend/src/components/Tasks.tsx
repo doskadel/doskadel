@@ -417,16 +417,16 @@ const Tasks: React.FC = () => {
                 {VIEW_ICONS[v]} {VIEW_LABELS[v]}
               </button>
             ))}
-            <button
-              type="button"
-              className="view-toggle-btn view-toggle-edit"
-              onClick={() => setViewsEditOpen(true)}
-              title="Настроить вкладки"
-              aria-label="Настроить вкладки"
-            >
-              ⚙
-            </button>
           </div>
+          <button
+            type="button"
+            className="icon-button settings-btn"
+            onClick={() => setViewsEditOpen(true)}
+            title="Настроить вкладки"
+            aria-label="Настроить вкладки"
+          >
+            <Settings size={20} />
+          </button>
           <button
             type="button"
             className="button"
