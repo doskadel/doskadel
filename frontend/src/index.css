@@ -738,7 +738,7 @@ z-index: 10;
   align-items: center;
   justify-content: center;
   width: 42px;
-  height: 42px;
+  align-self: stretch;
   flex-shrink: 0;
   margin-left: auto;
   background: var(--color-surface);
@@ -1059,6 +1059,23 @@ color: var(--color-text);
 .view-toggle-btn:hover {
   color: var(--color-text);
   background: var(--color-surface);
+}
+
+.view-toggle--single {
+  background: transparent;
+  border: none;
+  padding: 0;
+  width: auto;
+}
+.view-toggle--single .view-toggle-btn {
+  color: var(--color-text);
+  font-size: 16px;
+  padding: 4px 0;
+}
+.view-toggle--single .view-toggle-btn--active {
+  background: transparent;
+  color: var(--color-text);
+  box-shadow: none;
 }
 
 .view-toggle-btn--active {

@@ -405,7 +405,7 @@ const Tasks: React.FC = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-lg)', gap: 'var(--space-md)', flexWrap: 'wrap' }}>
         <h2 className="page-title" style={{ margin: 0 }}>Мои задачи</h2>
         <div style={{ display: 'flex', gap: 'var(--space-md)', alignItems: 'center', flexWrap: 'wrap' }}>
-          <div className="view-toggle">
+          <div className={'view-toggle' + (viewTabs.length === 1 ? ' view-toggle--single' : '')}>
             {viewTabs.map((v) => (
               <button
                 key={v}
