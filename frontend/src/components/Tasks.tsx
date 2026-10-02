@@ -412,16 +412,12 @@ const Tasks: React.FC = () => {
               className="view-info-icon"
               aria-label={`Вид: ${VIEW_LABELS[viewTabs[0]]}`}
               onClick={() => setInfoOpen((v) => !v)}
-              onMouseEnter={() => setInfoOpen(true)}
-              onMouseLeave={() => setInfoOpen(false)}
             >
               <Info size={16} />
             </button>
-            {infoOpen && (
-              <span className="view-info-tip">
-                Сейчас выбран только вид «{VIEW_LABELS[viewTabs[0]]}». Другие виды включаются в настройках.
-              </span>
-            )}
+            <span className={'view-info-tip' + (infoOpen ? ' view-info-tip--open' : '')}>
+              Сейчас выбран только вид «{VIEW_LABELS[viewTabs[0]]}». Другие виды включаются в настройках.
+            </span>
           </span>
         )}
       </h2>
