@@ -611,6 +611,11 @@ z-index: 10;
   background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-sm); min-width: 0;
 }
 .fb-search-inline .fb-search-input { height: 100%; }
+.fb-search-clear {
+  display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; flex-shrink: 0;
+  border: none; background: transparent; color: var(--color-text-muted); cursor: pointer; border-radius: 50%;
+}
+.fb-search-clear:hover { background: var(--color-border); color: var(--color-text); }
 .fb-clear { align-self: flex-start; background: none; border: none; color: var(--color-primary); cursor: pointer; font-size: 13px; padding: 0; }
 .fb-reset { display: inline-flex; align-items: center; gap: 6px; justify-content: center; padding: 8px; background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-sm); cursor: pointer; font-family: inherit; color: var(--color-text); font-size: 14px; }
 .fb-error { color: var(--color-danger); font-size: 13px; margin: 0; }
