@@ -10,11 +10,11 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script>
-      // Тема до рендера (без мигания): localStorage или системная
+      // Тема до рендера (без мигания). По умолчанию светлая,
+      // тёмная — только если пользователь явно выбрал.
       (function () {
         try {
-          var t = localStorage.getItem('doskadel_theme');
-          if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          var t = localStorage.getItem('doskadel_theme') || 'light';
           document.documentElement.setAttribute('data-theme', t);
         } catch (e) {}
       })();
