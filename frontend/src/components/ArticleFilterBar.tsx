@@ -70,7 +70,9 @@ const ArticleFilterBar: React.FC<ArticleFilterBarProps> = ({
 
         <div className={'fb-search' + (searchOpen ? ' fb-search--open' : '') + (isSearchActive && !searchOpen ? ' fb-search--has' : '')}>
           {!searchOpen && (
-            <span className="fb-search-hint">{isSearchActive ? q : 'Поиск...'}</span>
+            <button type="button" className="fb-search-hint" onClick={() => setSearchOpen(true)}>
+              {isSearchActive ? q : 'Поиск...'}
+            </button>
           )}
           {searchOpen && (
             <>

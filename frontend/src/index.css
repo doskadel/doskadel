@@ -617,9 +617,9 @@ z-index: 10;
   padding: 0 12px; height: 40px; font-family: inherit; font-size: 15px; color: var(--color-text);
 }
 .fb-search-hint {
-  flex: 1; min-width: 0; display: flex; align-items: center;
+  flex: 1; min-width: 0; display: flex; align-items: center; text-align: left;
   padding: 0 12px; height: 40px; font-size: 15px; color: var(--color-text-muted);
-  cursor: text;
+  background: transparent; border: none; font-family: inherit; cursor: text;
 }
 .fb-search-clear {
   display: inline-flex; align-items: center; justify-content: center; width: 28px; flex-shrink: 0;
@@ -740,6 +740,7 @@ z-index: 10;
   width: 42px;
   height: 42px;
   flex-shrink: 0;
+  margin-left: auto;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
@@ -1014,9 +1015,9 @@ color: var(--color-text);
 
 /* ==================== VIEW TOGGLE ==================== */
 .view-toggle {
-  display: inline-flex;
+  display: flex;
   align-items: stretch;
-  max-width: 100%;
+  width: 100%;
   background: var(--color-bg);
   border: 1px solid var(--color-border);
   border-radius: 10px;
@@ -1034,8 +1035,8 @@ color: var(--color-text);
   padding: 8px 12px;
   font-size: 14px;
   font-weight: 500;
-  flex: 1 1 auto;
-  min-width: 96px;
+  flex: 1 1 0;
+  min-width: 0;
   color: var(--color-text-muted);
   cursor: pointer;
   border-radius: 7px;
