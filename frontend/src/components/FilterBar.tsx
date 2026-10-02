@@ -62,7 +62,8 @@ const FilterBar: React.FC<FilterBarProps> = ({
   const isDatesActive = !!(dateFrom || dateTo);
   const isSortActive = sort !== defaultSort;
   const activeSortLabel = TASK_SORT_OPTIONS.find((o) => o.value === sort)?.label || 'Сортировка';
-  const filterActive = hasActiveFilters || isDatesActive || !!dueFilter;
+  // Маркер фильтра — только по полям фильтра (без поиска и сортировки)
+  const filterActive = statusIds.length > 0 || priorityFilter.length > 0 || !!taskType || isDatesActive || !!dueFilter;
 
   return (
     <div className="filter-bar">
@@ -104,7 +105,25 @@ const FilterBar: React.FC<FilterBarProps> = ({
 
         <div className="fb-spacer" />
 
-        {/* Поиск */}
+        {/* Поиск: строка раскрывается слева от кнопки */}
+        {searchOpen && (
+          <div className="fb-search-inline">
+            <Search size={16} className="fb-search-icon" />
+            <input
+              ref={searchInputRef}
+              type="text"
+              className="fb-search-input"
+              placeholder="Поиск по задачам..."
+              value={q}
+              onChange={(e) => onQChange(e.target.value)}
+            />
+            {q && (
+              <button type="button" className="fb-search-clear" onClick={() => onQChange('')} aria-label="Очистить">
+                <X size={16} />
+              </button>
+            )}
+          </div>
+        )}
         <button
           type="button"
           className={'fb-icon-btn' + (isSearchActive ? ' fb-icon-btn--active' : '')}
@@ -143,21 +162,6 @@ const FilterBar: React.FC<FilterBarProps> = ({
         )}
       </div>
 
-      {/* Строка поиска (раскрывается) */}
-      {searchOpen && (
-        <div className="fb-search-row">
-          <Search size={16} className="fb-search-icon" />
-          <input
-            ref={searchInputRef}
-            type="text"
-            className="fb-search-input"
-            placeholder="Поиск по задачам..."
-            value={q}
-            onChange={(e) => onQChange(e.target.value)}
-          />
-          {q && <button type="button" className="fb-search-clear" onClick={() => onQChange('')} aria-label="Очистить"><X size={16} /></button>}
-        </div>
-      )}
     </div>
   );
 };
