@@ -1,7 +1,9 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { getToken, getRefreshToken, setToken, setRefreshToken, clearAuth } from './token';
 
-export const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+// Относительный /api: dev — через CRA-proxy (setupProxy.js) на localhost:5000,
+// прод — через reverse-proxy. Один origin, cookie first-party.
+export const API_BASE_URL = '';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
