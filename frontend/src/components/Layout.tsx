@@ -13,6 +13,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const navigate = useNavigate();
   const [searchOpen, setSearchOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
 
   const isRoot = location.pathname === '/';
 
@@ -43,8 +44,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
       try {
         await api.put('/api/occurrences/confirm', { ids: [occurrenceId] });
-        console.log('[SW-MSG] Occurrence confirmed:', occurrenceId);
-        // Дадим окну знать, что данные изменились — оно перезапросит задачи
         window.dispatchEvent(new CustomEvent('doskadel:occurrence-updated'));
       } catch (err) {
         console.error('[SW-MSG] Failed to confirm occurrence:', err);
@@ -57,10 +56,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     };
   }, []);
 
+  const isActive = (path: string) => location.pathname === path;
+
   const navItems = [
-    { path: '/', label: 'Главная' },
-    { path: '/tasks', label: 'Мои задачи' },
-    { path: '/knowledge', label: 'База знаний' },
+    { path: '/', label: 'Главная', icon: '🏠' },
+    { path: '/tasks', label: 'Мои задачи', icon: '✓' },
+    { path: '/knowledge', label: 'База знаний', icon: '📚' },
   ];
 
   return (
@@ -68,29 +69,18 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <header className="layout-header">
         <div className="layout-header-left">
           {!isRoot && (
-            <button
-              onClick={handleBack}
-              className="layout-back"
-              title="Назад"
-              style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}
-            >
-              ←
-            </button>
+            <button onClick={handleBack} className="layout-back" title="Назад">←</button>
           )}
-          <Link to="/" className="layout-logo">
-            DoskaDel
-          </Link>
+          <Link to="/" className="layout-logo">DoskaDel</Link>
         </div>
-        <nav className="layout-nav">
+
+        {/* Навигация для ПК/широких экранов */}
+        <nav className="layout-nav layout-nav--desktop">
           {navItems.map((item) => (
             <Link
               key={item.path}
               to={item.path}
-              className={
-                location.pathname === item.path
-                  ? 'layout-nav-link layout-nav-link--active'
-                  : 'layout-nav-link'
-              }
+              className={isActive(item.path) ? 'layout-nav-link layout-nav-link--active' : 'layout-nav-link'}
             >
               {item.label}
             </Link>
@@ -114,9 +104,66 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </button>
         </nav>
       </header>
+
       <main className="layout-main">
         <div className="layout-container">{children}</div>
       </main>
+
+      {/* Нижний бар для планшетов и мобильных */}
+      <nav className="layout-bottom-nav">
+        <Link to="/" className={isActive('/') ? 'bottom-nav-item bottom-nav-item--active' : 'bottom-nav-item'}>
+          <span className="bottom-nav-icon">🏠</span>
+          <span className="bottom-nav-label">Главная</span>
+        </Link>
+        <Link to="/tasks" className={isActive('/tasks') ? 'bottom-nav-item bottom-nav-item--active' : 'bottom-nav-item'}>
+          <span className="bottom-nav-icon">✓</span>
+          <span className="bottom-nav-label">Задачи</span>
+        </Link>
+        <button
+          type="button"
+          className="bottom-nav-bot"
+          onClick={() => setSearchOpen(true)}
+          title="Помощник"
+          aria-label="Помощник"
+        >
+          <span className="bottom-nav-bot-inner">🤖</span>
+        </button>
+        <Link to="/knowledge" className={isActive('/knowledge') ? 'bottom-nav-item bottom-nav-item--active' : 'bottom-nav-item'}>
+          <span className="bottom-nav-icon">📚</span>
+          <span className="bottom-nav-label">База</span>
+        </Link>
+        <button
+          type="button"
+          className={moreOpen ? 'bottom-nav-item bottom-nav-item--active' : 'bottom-nav-item'}
+          onClick={() => setMoreOpen(true)}
+          title="Ещё"
+          aria-label="Ещё"
+        >
+          <span className="bottom-nav-icon">⋯</span>
+          <span className="bottom-nav-label">Ещё</span>
+        </button>
+      </nav>
+
+      {moreOpen && (
+        <div className="more-sheet-overlay" onClick={() => setMoreOpen(false)}>
+          <div className="more-sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="more-sheet-handle" />
+            <button
+              className="more-sheet-item"
+              onClick={() => { setMoreOpen(false); setSearchOpen(true); }}
+            >
+              <span className="more-sheet-icon">🔍</span> Поиск
+            </button>
+            <button
+              className="more-sheet-item"
+              onClick={() => { setMoreOpen(false); setProfileOpen(true); }}
+            >
+              <span className="more-sheet-icon">👤</span> Профиль и настройки
+            </button>
+          </div>
+        </div>
+      )}
+
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
       <ProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} />
     </div>
