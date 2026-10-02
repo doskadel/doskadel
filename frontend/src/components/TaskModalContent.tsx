@@ -1,4 +1,5 @@
 import React from 'react';
+import { Calendar } from 'lucide-react';
 import { Task } from '../hooks/useTaskDetail';
 import { PRIORITY_OPTIONS, getPriorityLabel } from '../utils/priority';
 import { Status } from '../utils/status';
@@ -216,7 +217,7 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
                 fontWeight: overdue ? 500 : 400,
                 margin: 0,
               }}>
-                📅 {formatDueDate(due)}
+                <Calendar size={14} /> {formatDueDate(due)}
               </p>
             ) : (
               <p style={{ color: 'var(--color-text-muted)', fontSize: '15px', fontStyle: 'italic', margin: 0 }}>Не указан</p>

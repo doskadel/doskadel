@@ -1,3 +1,4 @@
+import { Search } from 'lucide-react';
 import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
@@ -331,7 +332,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
     <div className="command-palette-backdrop" onMouseDown={handleBackdropClick}>
       <div className="command-palette">
         <div className="command-palette-input-wrap">
-          <span className="command-palette-icon">🔍</span>
+          <span className="command-palette-icon"><Search size={18} /></span>
           <input
             ref={inputRef}
             type="text"

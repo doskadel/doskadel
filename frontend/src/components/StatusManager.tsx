@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import api from '../utils/api';
+import { Pencil, Trash2 } from 'lucide-react';
 import Modal from './Modal';
 import { Status, STATUS_COLOR_PALETTE } from '../utils/status';
 import { useConfirm } from './ConfirmProvider';
@@ -177,7 +178,7 @@ const StatusManager: React.FC<StatusManagerProps> = ({ open, statuses, onClose, 
                       title="Редактировать"
                       aria-label="Редактировать"
                     >
-                      ✏️
+                      <Pencil size={16} />
                     </button>
                     <button
                       type="button"
@@ -187,7 +188,7 @@ const StatusManager: React.FC<StatusManagerProps> = ({ open, statuses, onClose, 
                       aria-label="Удалить"
                       disabled={deletingId === status._id}
                     >
-                      🗑️
+                      <Trash2 size={16} />
                     </button>
                   </div>
                 </div>

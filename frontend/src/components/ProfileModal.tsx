@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Moon, Sun, Settings, LogOut, Bell } from 'lucide-react';
+import { useTheme } from '../hooks/useTheme';
 import Modal from './Modal';
 import api from '../utils/api';
 import { clearAuth, getRefreshToken } from '../utils/token';
@@ -47,6 +49,7 @@ const DEFAULT_SETTINGS: NotificationSettings = {
 };
 
 const ProfileModal: React.FC<ProfileModalProps> = ({ open, onClose }) => {
+  const { theme, toggle: toggleTheme } = useTheme();
   const [view, setView] = useState<View>('profile');
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -232,7 +235,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ open, onClose }) => {
               className="profile-menu-item"
               onClick={() => setView('settings')}
             >
-              <span className="profile-menu-icon">⚙</span>
+              <span className="profile-menu-icon"><Settings size={18} /></span>
               <span className="profile-menu-label">Настройки</span>
               <span className="profile-menu-arrow">›</span>
             </button>
@@ -241,7 +244,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ open, onClose }) => {
               className="profile-menu-item profile-menu-item--danger"
               onClick={handleLogout}
             >
-              <span className="profile-menu-icon">🚪</span>
+              <span className="profile-menu-icon"><LogOut size={18} /></span>
               <span className="profile-menu-label">Выйти</span>
             </button>
           </div>
@@ -264,9 +267,26 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ open, onClose }) => {
               className="profile-menu-item"
               onClick={() => setView('notifications')}
             >
-              <span className="profile-menu-icon">🔔</span>
+              <span className="profile-menu-icon"><Bell size={18} /></span>
               <span className="profile-menu-label">Уведомления</span>
               <span className="profile-menu-arrow">›</span>
+            </button>
+          </div>
+
+          <div className="settings-section-title">Внешний вид</div>
+          <div className="theme-toggle-row">
+            <span className="theme-toggle-label">
+              {theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />} Тёмная тема
+            </span>
+            <button
+              type="button"
+              className={'ve-toggle' + (theme === 'dark' ? ' ve-toggle--on' : '')}
+              onClick={toggleTheme}
+              role="switch"
+              aria-checked={theme === 'dark'}
+              aria-label="Тёмная тема"
+            >
+              <span className="ve-toggle-knob" />
             </button>
           </div>
         </div>

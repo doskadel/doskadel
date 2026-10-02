@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link, Check, Pencil, Trash2 } from 'lucide-react';
 
 interface ArticleModalRailProps {
   linkCopied: boolean;
@@ -24,7 +25,7 @@ const ArticleModalRail: React.FC<ArticleModalRailProps> = ({
         title={linkCopied ? 'Скопировано!' : 'Копировать ссылку'}
         aria-label="Копировать ссылку"
       >
-        {linkCopied ? '✓' : '🔗'}
+        {linkCopied ? <Check size={18} /> : <Link size={18} />}
       </button>
       <button
         type="button"
@@ -34,7 +35,7 @@ const ArticleModalRail: React.FC<ArticleModalRailProps> = ({
         aria-label="Редактировать"
         disabled={isEditing}
       >
-        ✏️
+        <Pencil size={18} />
       </button>
       <button
         type="button"
@@ -43,7 +44,7 @@ const ArticleModalRail: React.FC<ArticleModalRailProps> = ({
         title="Удалить"
         aria-label="Удалить"
       >
-        🗑️
+        <Trash2 size={18} />
       </button>
     </>
   );

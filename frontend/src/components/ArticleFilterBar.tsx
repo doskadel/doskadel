@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Calendar, Search, ArrowUpDown } from 'lucide-react';
 import ClearableInput from './ClearableInput';
 import { ARTICLE_SORT_OPTIONS } from '../utils/sort';
 
@@ -94,7 +95,7 @@ const ArticleFilterBar: React.FC<ArticleFilterBarProps> = ({
               aria-label="Фильтр по датам"
               aria-expanded={open === 'dates'}
             >
-              📅
+              <Calendar size={18} />
             </button>
             {isDatesActive && <span className="filter-icon-dot" />}
 
@@ -157,7 +158,7 @@ const ArticleFilterBar: React.FC<ArticleFilterBarProps> = ({
               aria-label="Поиск"
               aria-expanded={open === 'search'}
             >
-              🔍
+              <Search size={18} />
             </button>
             {isSearchActive && <span className="filter-icon-dot" />}
 
@@ -187,7 +188,7 @@ const ArticleFilterBar: React.FC<ArticleFilterBarProps> = ({
               aria-label="Сортировка"
               aria-expanded={open === 'sort'}
             >
-              ⇅
+              <ArrowUpDown size={18} />
             </button>
             {isSortActive && <span className="filter-icon-dot" />}
 

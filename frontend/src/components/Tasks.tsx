@@ -6,7 +6,7 @@ import { DndContext, closestCenter, PointerSensor, TouchSensor, KeyboardSensor, 
 import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, X, Plus, Settings } from 'lucide-react';
+import { GripVertical, X, Plus, Settings, CalendarDays, Columns, List } from 'lucide-react';
 
 interface SortableViewRowProps {
   id: TaskView;
@@ -70,7 +70,8 @@ interface Task {
 type TaskView = 'board' | 'list' | 'calendar';
 
 const ALL_VIEWS: TaskView[] = ['calendar', 'board', 'list'];
-const VIEW_LABELS: Record<TaskView, string> = { calendar: '📅 Календарь', board: '▦ Доска', list: '☰ Список' };
+const VIEW_LABELS: Record<TaskView, string> = { calendar: 'Календарь', board: 'Доска', list: 'Список' };
+const VIEW_ICONS: Record<TaskView, React.ReactNode> = { calendar: <CalendarDays size={16} />, board: <Columns size={16} />, list: <List size={16} /> };
 
 const VIEW_KEY = 'doskadel_tasks_view';
 const VIEW_TABS_KEY = 'doskadel_tasks_view_tabs';
@@ -411,9 +412,9 @@ const Tasks: React.FC = () => {
                 type="button"
                 className={view === v ? 'view-toggle-btn view-toggle-btn--active' : 'view-toggle-btn'}
                 onClick={() => setView(v)}
-                title={VIEW_LABELS[v].replace(/^\S+\s/, '')}
+                title={VIEW_LABELS[v]}
               >
-                {VIEW_LABELS[v]}
+                {VIEW_ICONS[v]} {VIEW_LABELS[v]}
               </button>
             ))}
             <button

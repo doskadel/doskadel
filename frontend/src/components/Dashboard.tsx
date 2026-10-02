@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { AlertTriangle, Calendar } from 'lucide-react';
 import PullToRefresh from './PullToRefresh';
 import LoadingOverlay from './LoadingOverlay';
 import { useNavigate } from 'react-router-dom';
@@ -142,7 +143,7 @@ const Dashboard: React.FC = () => {
             <div className="dashboard-section">
               <div className="dashboard-section-header">
                 <h3 className="dashboard-section-title dashboard-section-title--danger">
-                  ⚠️ Просрочено ({data.overdueDistinctTasks ?? data.overdueTasks.length})
+                  <AlertTriangle size={18} /> Просрочено ({data.overdueDistinctTasks ?? data.overdueTasks.length})
                 </h3>
                 <button
                   type="button"
@@ -187,7 +188,7 @@ const Dashboard: React.FC = () => {
             <div className="dashboard-section">
               <div className="dashboard-section-header">
                 <h3 className="dashboard-section-title">
-                  📅 Ближайшие сроки ({data.upcomingDistinctTasks ?? data.upcomingTasks.length})
+                  <Calendar size={18} /> Ближайшие сроки ({data.upcomingDistinctTasks ?? data.upcomingTasks.length})
                 </h3>
                 <button
                   type="button"
