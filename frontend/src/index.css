@@ -734,7 +734,12 @@ z-index: 10;
 .calendar-task-priority--2 { background: #f59e0b; }
 .calendar-task-priority--3 { background: #ef4444; }
 .view-toggle-row { display: flex; margin-bottom: var(--space-md); }
-.view-toggle-row--single { justify-content: center; }
+.view-single-label {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: transparent; border: none; padding: 0; margin: 0;
+  font-family: inherit; font-size: 15px; font-weight: 500; color: var(--color-primary);
+  cursor: pointer;
+}
 .tasks-actions-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-md); margin-bottom: var(--space-lg); }
 .settings-btn {
   display: inline-flex;

@@ -404,29 +404,41 @@ const Tasks: React.FC = () => {
     <div>
       <h2 className="page-title" style={{ margin: 0, marginBottom: 'var(--space-md)' }}>Мои задачи</h2>
 
-      {/* Строка 1: вкладки (при одной — заголовок по центру) */}
-      <div className={'view-toggle-row' + (viewTabs.length === 1 ? ' view-toggle-row--single' : '')}>
-        <div className={'view-toggle' + (viewTabs.length === 1 ? ' view-toggle--single' : '')}>
-          {viewTabs.map((v) => (
-            <button
-              key={v}
-              type="button"
-              className={view === v ? 'view-toggle-btn view-toggle-btn--active' : 'view-toggle-btn'}
-              onClick={() => setView(v)}
-              title={VIEW_LABELS[v]}
-            >
-              {VIEW_ICONS[v]} {VIEW_LABELS[v]}
-            </button>
-          ))}
+      {/* Вкладки: несколько — отдельной строкой; одна — в строке действий */}
+      {viewTabs.length > 1 && (
+        <div className="view-toggle-row">
+          <div className="view-toggle">
+            {viewTabs.map((v) => (
+              <button
+                key={v}
+                type="button"
+                className={view === v ? 'view-toggle-btn view-toggle-btn--active' : 'view-toggle-btn'}
+                onClick={() => setView(v)}
+                title={VIEW_LABELS[v]}
+              >
+                {VIEW_ICONS[v]} {VIEW_LABELS[v]}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Строка 2: Добавить задачу слева, настройки справа */}
+      {/* Строка действий: (одна вкладка) + Добавить слева, настройки справа */}
       <div className="tasks-actions-row">
+        {viewTabs.length === 1 && (
+          <button
+            type="button"
+            className="view-single-label"
+            onClick={() => setView(viewTabs[0])}
+          >
+            {VIEW_ICONS[viewTabs[0]]} {VIEW_LABELS[viewTabs[0]]}
+          </button>
+        )}
         <button
           type="button"
           className="button"
           onClick={() => setCreateOpen(true)}
+          style={viewTabs.length === 1 ? { marginLeft: 'auto' } : undefined}
         >
           + Добавить задачу
         </button>
