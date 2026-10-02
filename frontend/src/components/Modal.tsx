@@ -6,10 +6,11 @@ interface ModalProps {
   title?: string;
   wide?: boolean;
   rightRail?: ReactNode;
+  onBack?: () => void;
   children: ReactNode;
 }
 
-const Modal: React.FC<ModalProps> = ({ open, onClose, title, wide, rightRail, children }) => {
+const Modal: React.FC<ModalProps> = ({ open, onClose, title, wide, rightRail, onBack, children }) => {
   const backdropRef = useRef<HTMLDivElement>(null);
   const mouseDownOnBackdropRef = useRef(false);
 
@@ -56,6 +57,11 @@ const Modal: React.FC<ModalProps> = ({ open, onClose, title, wide, rightRail, ch
         onClick={(e) => e.stopPropagation()}
       >
         <div className="modal-header">
+          {onBack && (
+            <button type="button" className="modal-back" onClick={onBack} aria-label="Назад" title="Назад">
+              ←
+            </button>
+          )}
           {title ? <h2 className="modal-title">{title}</h2> : <span style={{ flex: 1 }} />}
           <button type="button" className="modal-close" onClick={onClose} aria-label="Закрыть">
             ✕

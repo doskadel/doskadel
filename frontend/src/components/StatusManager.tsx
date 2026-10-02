@@ -9,11 +9,12 @@ interface StatusManagerProps {
   statuses: Status[];
   onClose: () => void;
   onChanged: () => void;
+  onBack?: () => void;
 }
 
 type ViewMode = 'list' | 'edit' | 'create';
 
-const StatusManager: React.FC<StatusManagerProps> = ({ open, statuses, onClose, onChanged }) => {
+const StatusManager: React.FC<StatusManagerProps> = ({ open, statuses, onClose, onChanged, onBack }) => {
   const confirm = useConfirm();
 
   const [mode, setMode] = useState<ViewMode>('list');
@@ -129,11 +130,9 @@ const StatusManager: React.FC<StatusManagerProps> = ({ open, statuses, onClose, 
     }
   };
 
+  // X и клик по фону всегда закрывают всю иерархию настроек.
+  // Возврат к списку статусов — только через кнопку «Назад».
   const handleClose = () => {
-    if (mode !== 'list') {
-      goToList();
-      return;
-    }
     onClose();
   };
 
@@ -142,20 +141,10 @@ const StatusManager: React.FC<StatusManagerProps> = ({ open, statuses, onClose, 
     mode === 'create' ? 'Новый статус' :
     'Управление статусами';
 
-  const rail = mode !== 'list' ? (
-    <button
-      type="button"
-      className="modal-rail-btn"
-      onClick={goToList}
-      title="Назад к списку"
-      aria-label="Назад к списку"
-    >
-      ←
-    </button>
-  ) : null;
+  const handleBackNav = mode === 'list' ? (onBack || handleClose) : goToList;
 
   return (
-    <Modal open={open} onClose={handleClose} title={modalTitle} rightRail={rail}>
+    <Modal open={open} onClose={handleClose} title={modalTitle} onBack={handleBackNav}>
       {error && <p style={{ color: 'var(--color-danger)', marginBottom: 'var(--space-md)' }}>{error}</p>}
 
       {mode === 'list' && (

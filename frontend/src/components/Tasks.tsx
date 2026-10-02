@@ -550,6 +550,7 @@ const Tasks: React.FC = () => {
         statuses={statuses}
         onClose={() => setStatusManagerOpen(false)}
         onChanged={refreshAll}
+        onBack={() => { setStatusManagerOpen(false); setViewsEditOpen(true); }}
       />
 
       <TaskModal
@@ -727,13 +728,10 @@ const Tasks: React.FC = () => {
           )}
 
           <div className="ve-divider" />
-          <button type="button" className="views-edit-add" onClick={() => { setViewsEditOpen(false); setStatusManagerOpen(true); }}>
-            <Settings size={16} /> Управление статусами
+          <button type="button" className="ve-action" onClick={() => { setViewsEditOpen(false); setStatusManagerOpen(true); }}>
+            <Settings size={20} />
+            <span>Управление статусами</span>
           </button>
-
-          <div style={{ marginTop: 'var(--space-lg)', textAlign: 'right' }}>
-            <button type="button" className="button" onClick={() => setViewsEditOpen(false)}>Готово</button>
-          </div>
         </Modal>
       )}
     </div>
