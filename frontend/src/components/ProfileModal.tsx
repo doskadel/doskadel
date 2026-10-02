@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Modal from './Modal';
 import api from '../utils/api';
-import { clearToken } from '../utils/token';
+import { clearAuth, getRefreshToken } from '../utils/token';
 import {
   isPushSupported,
   isSubscribed,
@@ -107,8 +107,16 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ open, onClose }) => {
     fetchPushState();
   }, [open, fetchUser, fetchPushState]);
 
-  const handleLogout = () => {
-    clearToken();
+  const handleLogout = async () => {
+    try {
+      const refreshToken = getRefreshToken();
+      if (refreshToken) {
+        await api.post('/api/auth/logout', { refreshToken });
+      }
+    } catch {
+      // даже если сервер недоступен — выходим локально
+    }
+    clearAuth();
     window.location.href = '/login';
   };
 

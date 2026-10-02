@@ -16,4 +16,10 @@ router.post('/login', [
   body('password').notEmpty().withMessage('Password is required')
 ], authController.login);
 
+// Обновление access-токена
+router.post('/refresh', authController.refresh);
+
+// Выход (отзыв refresh-токена)
+router.post('/logout', authController.logout);
+
 module.exports = router;
