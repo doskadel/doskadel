@@ -1,4 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { Fragment } from 'react';
+import { Listbox, Transition } from '@headlessui/react';
+import { Check, ChevronDown } from 'lucide-react';
 
 export interface MultiSelectOption {
   value: string | number;
@@ -13,6 +15,8 @@ interface MultiSelectProps {
   onChange: (selected: Array<string | number>) => void;
   placeholder?: string;
   showAllOption?: boolean;
+  /** Одиночный выбор (Listbox без multiple) */
+  single?: boolean;
 }
 
 const MultiSelect: React.FC<MultiSelectProps> = ({
@@ -21,50 +25,8 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
   selected,
   onChange,
   placeholder = 'Все',
-  showAllOption = true,
+  single = false,
 }) => {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-
-    const handleClickOutside = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    };
-
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('keydown', handleEsc);
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleEsc);
-    };
-  }, [open]);
-
-  const toggleOption = (value: string | number) => {
-    if (selected.includes(value)) {
-      onChange(selected.filter((v) => v !== value));
-    } else {
-      onChange([...selected, value]);
-    }
-  };
-
-  const handleAllClick = () => {
-    if (selected.length === 0) return;
-    onChange([]);
-  };
-
-  const handleReset = () => {
-    onChange([]);
-  };
-
   const getDisplayText = (): string => {
     if (selected.length === 0) return placeholder;
     if (selected.length === 1) {
@@ -74,73 +36,74 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
     return `${selected.length} выбрано`;
   };
 
-  const isAllSelected = selected.length === 0;
   const isActive = selected.length > 0;
 
-  return (
-    <div className="multi-select" ref={ref}>
-      <button
-        type="button"
-        className={`multi-select-trigger ${isActive ? 'multi-select-trigger--active' : ''}`}
-        onClick={() => setOpen((v) => !v)}
-      >
-        <span className="multi-select-label">{label}:</span>
-        <span className="multi-select-value">{getDisplayText()}</span>
-        <span className="multi-select-arrow">▾</span>
-        {isActive && <span className="multi-select-dot" />}
-      </button>
+  const toggle = (value: string | number) => {
+    if (single) {
+      onChange(selected.includes(value) ? [] : [value]);
+      return;
+    }
+    if (selected.includes(value)) {
+      onChange(selected.filter((v) => v !== value));
+    } else {
+      onChange([...selected, value]);
+    }
+  };
 
-      {open && (
-        <div className="multi-select-dropdown">
-          {showAllOption && (
-            <div className="multi-select-header">
-              <label className="multi-select-item multi-select-item--all">
-                <input
-                  type="checkbox"
-                  checked={isAllSelected}
-                  onChange={handleAllClick}
-                />
-                <span className="multi-select-item-label">Все</span>
-              </label>
-              {isActive && (
+  return (
+    <div className="ms">
+      <Listbox value={selected} onChange={() => {}} multiple={!single}>
+        <div className="ms-wrap">
+          <Listbox.Button className={'ms-trigger' + (isActive ? ' ms-trigger--active' : '')}>
+            <span className="ms-label">{label}:</span>
+            <span className="ms-value">{getDisplayText()}</span>
+            <ChevronDown size={16} className="ms-arrow" />
+            {isActive && <span className="ms-dot" />}
+          </Listbox.Button>
+
+          <Transition
+            as={Fragment}
+            leave="ms-leave"
+            leaveFrom="ms-leave-from"
+            leaveTo="ms-leave-to"
+          >
+            <Listbox.Options className="ms-options" static>
+              <div className="ms-header">
                 <button
                   type="button"
-                  className="multi-select-reset"
-                  onClick={handleReset}
-                  title="Сбросить"
-                  aria-label="Сбросить"
+                  className="ms-all"
+                  onClick={() => onChange([])}
                 >
-                  ↺
+                  Все
                 </button>
+              </div>
+              {options.length === 0 ? (
+                <div className="ms-empty">Нет опций</div>
+              ) : (
+                options.map((opt) => {
+                  const isSel = selected.includes(opt.value);
+                  return (
+                    <Listbox.Option key={opt.value} value={opt.value} as={Fragment}>
+                      {() => (
+                        <li
+                          className={'ms-option' + (isSel ? ' ms-option--selected' : '')}
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggle(opt.value); }}
+                        >
+                          <span className={'ms-check' + (isSel ? ' ms-check--on' : '')}>
+                            {isSel && <Check size={14} />}
+                          </span>
+                          {opt.color && <span className="ms-color" style={{ backgroundColor: opt.color }} />}
+                          <span className="ms-option-label">{opt.label}</span>
+                        </li>
+                      )}
+                    </Listbox.Option>
+                  );
+                })
               )}
-            </div>
-          )}
-
-          {options.length === 0 ? (
-            <div className="multi-select-empty">Нет опций</div>
-          ) : (
-            options.map((opt) => {
-              const isSelected = selected.includes(opt.value);
-              return (
-                <label key={opt.value} className="multi-select-item">
-                  <input
-                    type="checkbox"
-                    checked={isSelected}
-                    onChange={() => toggleOption(opt.value)}
-                  />
-                  {opt.color && (
-                    <span
-                      className="multi-select-item-color"
-                      style={{ backgroundColor: opt.color }}
-                    />
-                  )}
-                  <span className="multi-select-item-label">{opt.label}</span>
-                </label>
-              );
-            })
-          )}
+            </Listbox.Options>
+          </Transition>
         </div>
-      )}
+      </Listbox>
     </div>
   );
 };

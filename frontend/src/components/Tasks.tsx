@@ -2,6 +2,33 @@ import React, { useState, useEffect } from 'react';
 import PullToRefresh from './PullToRefresh';
 import LoadingOverlay from './LoadingOverlay';
 import CalendarView from './CalendarView';
+import { DndContext, closestCenter, PointerSensor, TouchSensor, KeyboardSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
+import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers';
+import { CSS } from '@dnd-kit/utilities';
+import { GripVertical, X, Plus, Settings } from 'lucide-react';
+
+interface SortableViewRowProps {
+  id: TaskView;
+  label: string;
+  onHide: () => void;
+}
+
+const SortableViewRow: React.FC<SortableViewRowProps> = ({ id, label, onHide }) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 };
+  return (
+    <div ref={setNodeRef} style={style} className="views-edit-row">
+      <button type="button" className="views-edit-handle" {...attributes} {...listeners} aria-label="Перетащить">
+        <GripVertical size={18} />
+      </button>
+      <span className="views-edit-label">{label}</span>
+      <button type="button" className="views-edit-remove" onClick={onHide} aria-label="Скрыть">
+        <X size={16} />
+      </button>
+    </div>
+  );
+};
 import { useSearchParams } from 'react-router-dom';
 import api from '../utils/api';
 import KanbanBoard, { KanbanTask } from './KanbanBoard';
@@ -88,6 +115,21 @@ const Tasks: React.FC = () => {
     return ALL_VIEWS;
   });
   const [viewsEditOpen, setViewsEditOpen] = useState(false);
+
+  const dndSensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  const handleViewsDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = viewTabs.indexOf(active.id as TaskView);
+    const newIndex = viewTabs.indexOf(over.id as TaskView);
+    if (oldIndex < 0 || newIndex < 0) return;
+    setViewTabs(arrayMove(viewTabs, oldIndex, newIndex));
+  };
 
   const [createOpen, setCreateOpen] = useState(false);
   const [statusManagerOpen, setStatusManagerOpen] = useState(false);
@@ -379,15 +421,6 @@ const Tasks: React.FC = () => {
           <button
             type="button"
             className="button"
-            onClick={() => setStatusManagerOpen(true)}
-            style={{ backgroundColor: 'var(--color-text-muted)' }}
-            title="Управление статусами"
-          >
-            ⚙ Статусы
-          </button>
-          <button
-            type="button"
-            className="button"
             onClick={() => setCreateOpen(true)}
           >
             + Добавить задачу
@@ -631,41 +664,56 @@ const Tasks: React.FC = () => {
       )}
 
       {viewsEditOpen && (
-        <Modal open onClose={() => setViewsEditOpen(false)} title="Вкладки отображения">
+        <Modal open onClose={() => setViewsEditOpen(false)} title="Настройки задач">
           <p style={{ color: 'var(--color-text-muted)', fontSize: 14, marginTop: 0 }}>
-            Отметьте, какие вкладки показывать, и меняйте порядок стрелками.
+            Показывайте и перетаскивайте вкладки (за ручку ⋮⋮).
           </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
-            {ALL_VIEWS.map((v) => {
-              const idx = viewTabs.indexOf(v);
-              const active = idx >= 0;
-              return (
-                <div key={v} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
-                  <label style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <input
-                      type="checkbox"
-                      checked={active}
-                      onChange={() => {
-                        const next = active ? viewTabs.filter((x) => x !== v) : [...viewTabs, v];
-                        if (next.length === 0) return; // хотя бы одна
-                        setViewTabs(next);
-                        if (!next.includes(view)) setView(next[0]);
-                      }}
-                    />
-                    {VIEW_LABELS[v]}
-                  </label>
-                  {active && (
-                    <>
-                      <button type="button" className="button button--ghost" disabled={idx === 0}
-                        onClick={() => { const n = [...viewTabs]; [n[idx - 1], n[idx]] = [n[idx], n[idx - 1]]; setViewTabs(n); }}>↑</button>
-                      <button type="button" className="button button--ghost" disabled={idx === viewTabs.length - 1}
-                        onClick={() => { const n = [...viewTabs]; [n[idx + 1], n[idx]] = [n[idx], n[idx + 1]]; setViewTabs(n); }}>↓</button>
-                    </>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+          <DndContext
+            sensors={dndSensors}
+            collisionDetection={closestCenter}
+            modifiers={[restrictToVerticalAxis, restrictToParentElement]}
+            onDragEnd={handleViewsDragEnd}
+          >
+            <SortableContext items={viewTabs} strategy={verticalListSortingStrategy}>
+              <div className="views-edit-list">
+                {viewTabs.map((v) => (
+                  <SortableViewRow
+                    key={v}
+                    id={v}
+                    label={VIEW_LABELS[v]}
+                    onHide={() => {
+                      const next = viewTabs.filter((x) => x !== v);
+                      if (next.length === 0) return;
+                      setViewTabs(next);
+                      if (!next.includes(view)) setView(next[0]);
+                    }}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
+
+          {ALL_VIEWS.filter((v) => !viewTabs.includes(v)).length > 0 && (
+            <>
+              <div className="views-edit-subtitle">Скрытые</div>
+              {ALL_VIEWS.filter((v) => !viewTabs.includes(v)).map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  className="views-edit-add"
+                  onClick={() => setViewTabs([...viewTabs, v])}
+                >
+                  <Plus size={16} /> {VIEW_LABELS[v]}
+                </button>
+              ))}
+            </>
+          )}
+
+          <div className="views-edit-divider" />
+          <button type="button" className="views-edit-add" onClick={() => { setViewsEditOpen(false); setStatusManagerOpen(true); }}>
+            <Settings size={16} /> Управление статусами
+          </button>
+
           <div style={{ marginTop: 'var(--space-lg)', textAlign: 'right' }}>
             <button type="button" className="button" onClick={() => setViewsEditOpen(false)}>Готово</button>
           </div>
