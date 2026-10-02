@@ -40,9 +40,11 @@ const ArticleFilterBar: React.FC<ArticleFilterBarProps> = ({
     <div className="filter-bar">
       <div className="fb-row">
         <Popover className="fb-pop-wrap">
-          <Popover.Button className={'fb-icon-btn' + (filterActive ? ' fb-icon-btn--active' : '')} title="Фильтры" aria-label="Фильтры">
+          {({ open }) => (
+          <>
+          <Popover.Button className={'fb-icon-btn' + (open ? ' fb-icon-btn--active' : '')} title="Фильтры" aria-label="Фильтры">
             <Filter size={18} />
-            {filterActive && <span className="fb-dot" />}
+            {filterActive && <span className="fb-dot fb-dot--alert" />}
           </Popover.Button>
           <Transition enter="fb-tr-enter" enterFrom="fb-tr-from" enterTo="fb-tr-to" leave="fb-tr-enter" leaveFrom="fb-tr-to" leaveTo="fb-tr-from">
             <Popover.Panel className="fb-panel" static>
@@ -60,9 +62,11 @@ const ArticleFilterBar: React.FC<ArticleFilterBarProps> = ({
               )}
             </Popover.Panel>
           </Transition>
+          </>
+          )}
         </Popover>
 
-        <div className="fb-spacer" />
+        {!searchOpen && <div className="fb-spacer" />}
 
         {searchOpen && (
           <div className="fb-search-inline">
@@ -84,19 +88,21 @@ const ArticleFilterBar: React.FC<ArticleFilterBarProps> = ({
         )}
         <button
           type="button"
-          className={'fb-icon-btn' + (isSearchActive ? ' fb-icon-btn--active' : '')}
+          className={'fb-icon-btn' + (searchOpen ? ' fb-icon-btn--active' : '')}
           onClick={() => setSearchOpen((v) => !v)}
           title="Поиск"
           aria-label="Поиск"
         >
           <Search size={18} />
+          {isSearchActive && <span className="fb-dot fb-dot--alert" />}
         </button>
 
         <Listbox value={sort} onChange={onSortChange}>
+          {({ open }) => (
           <div className="fb-pop-wrap">
-            <Listbox.Button className={'fb-icon-btn' + (isSortActive ? ' fb-icon-btn--active' : '')} title={`Сортировка: ${activeSortLabel}`} aria-label="Сортировка">
+            <Listbox.Button className={'fb-icon-btn' + (open ? ' fb-icon-btn--active' : '')} title={`Сортировка: ${activeSortLabel}`} aria-label="Сортировка">
               <ArrowUpDown size={18} />
-              {isSortActive && <span className="fb-dot" />}
+              {isSortActive && <span className="fb-dot fb-dot--alert" />}
             </Listbox.Button>
             <Transition enter="fb-tr-enter" enterFrom="fb-tr-from" enterTo="fb-tr-to" leave="fb-tr-enter" leaveFrom="fb-tr-to" leaveTo="fb-tr-from">
               <Listbox.Options className="fb-options" static>
@@ -113,6 +119,7 @@ const ArticleFilterBar: React.FC<ArticleFilterBarProps> = ({
               </Listbox.Options>
             </Transition>
           </div>
+          )}
         </Listbox>
       </div>
     </div>
