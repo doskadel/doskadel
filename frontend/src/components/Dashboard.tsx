@@ -114,14 +114,14 @@ const Dashboard: React.FC = () => {
         <div style={{ display: 'flex', gap: 'var(--space-md)', alignItems: 'center', flexWrap: 'wrap' }}>
           <button
             type="button"
-            className="button"
+            className="button button--white"
             onClick={() => navigate('/tasks?new=1')}
           >
             + Добавить задачу
           </button>
           <button
             type="button"
-            className="button button--outline"
+            className="button"
             onClick={() => navigate('/knowledge?new=1')}
           >
             + Добавить статью

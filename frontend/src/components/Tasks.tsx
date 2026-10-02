@@ -460,7 +460,7 @@ const Tasks: React.FC = () => {
       <div className="tasks-actions-row">
         <button
           type="button"
-          className="button"
+          className="button button--white"
           onClick={() => setCreateOpen(true)}
         >
           + Добавить задачу

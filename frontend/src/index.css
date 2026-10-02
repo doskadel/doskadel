@@ -103,6 +103,19 @@ font-family: inherit;
 box-shadow: 0 1px 2px rgba(9, 105, 218, 0.3);
 }
 
+.button--white {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  box-shadow: none;
+}
+.button--white:hover:not(:disabled) {
+  background-color: var(--color-bg);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  box-shadow: none;
+}
+
 .button:hover:not(:disabled) {
 background-color: var(--color-primary-hover);
 box-shadow: 0 2px 6px rgba(9, 105, 218, 0.4);
