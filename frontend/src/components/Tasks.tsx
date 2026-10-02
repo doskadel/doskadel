@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import PullToRefresh from './PullToRefresh';
 import LoadingOverlay from './LoadingOverlay';
 import CalendarView from './CalendarView';
@@ -125,6 +125,20 @@ const Tasks: React.FC = () => {
   });
   const [viewsEditOpen, setViewsEditOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
+  const infoRef = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    if (!infoOpen) return;
+    const onDown = (e: Event) => {
+      if (infoRef.current && !infoRef.current.contains(e.target as Node)) setInfoOpen(false);
+    };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('touchstart', onDown);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('touchstart', onDown);
+    };
+  }, [infoOpen]);
 
   const dndSensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -406,7 +420,7 @@ const Tasks: React.FC = () => {
       <h2 className="page-title" style={{ margin: 0, marginBottom: 'var(--space-md)', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
         Мои задачи
         {viewTabs.length === 1 && (
-          <span className="view-info-wrap">
+          <span className="view-info-wrap" ref={infoRef}>
             <button
               type="button"
               className="view-info-icon"
