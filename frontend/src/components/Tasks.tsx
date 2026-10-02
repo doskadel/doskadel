@@ -420,19 +420,19 @@ const Tasks: React.FC = () => {
           </div>
           <button
             type="button"
+            className="button"
+            onClick={() => setCreateOpen(true)}
+          >
+            + Добавить задачу
+          </button>
+          <button
+            type="button"
             className="icon-button settings-btn"
             onClick={() => setViewsEditOpen(true)}
             title="Настроить вкладки"
             aria-label="Настроить вкладки"
           >
             <Settings size={20} />
-          </button>
-          <button
-            type="button"
-            className="button"
-            onClick={() => setCreateOpen(true)}
-          >
-            + Добавить задачу
           </button>
         </div>
       </div>
