@@ -13,6 +13,15 @@ const refreshTokenSchema = new mongoose.Schema({
     unique: true,
     index: true
   },
+  family: {
+    type: String,
+    required: true,
+    index: true
+  },
+  used: {
+    type: Boolean,
+    default: false
+  },
   expiresAt: {
     type: Date,
     required: true

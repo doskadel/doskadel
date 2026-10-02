@@ -8,16 +8,45 @@ const { validationResult } = require('express-validator');
 
 const ACCESS_TTL = '15m';
 const REFRESH_TTL_DAYS = 30;
+const IS_PROD = process.env.NODE_ENV === 'production';
+const COOKIE_NAME = 'doskadel_refresh';
 
 const generateAccessToken = (userId) => {
   return jwt.sign({ userId }, process.env.JWT_SECRET || 'doskadel_secret', { expiresIn: ACCESS_TTL });
 };
 
-const issueRefreshToken = async (userId) => {
+const issueRefreshToken = async (userId, family) => {
   const token = crypto.randomBytes(48).toString('hex');
   const expiresAt = new Date(Date.now() + REFRESH_TTL_DAYS * 24 * 60 * 60 * 1000);
-  await RefreshToken.create({ userId, token, expiresAt });
+  await RefreshToken.create({ userId, token, family, expiresAt });
   return token;
+};
+
+const setRefreshCookie = (res, token) => {
+  res.cookie(COOKIE_NAME, token, {
+    httpOnly: true,
+    secure: IS_PROD,
+    sameSite: 'lax',
+    path: '/api/auth/refresh',
+    maxAge: REFRESH_TTL_DAYS * 24 * 60 * 60 * 1000,
+  });
+};
+
+const clearRefreshCookie = (res) => {
+  res.clearCookie(COOKIE_NAME, { path: '/api/auth/refresh' });
+};
+
+// Дешёвая CSRF-защита: Origin должен совпадать с хостом (кроме dev).
+const originOk = (req) => {
+  const origin = req.get('origin');
+  if (!origin) return true; // same-origin запросы без Origin
+  if (!IS_PROD) return true;
+  const host = req.get('host');
+  try {
+    return new URL(origin).host === host;
+  } catch {
+    return false;
+  }
 };
 
 const publicUser = (user) => ({
@@ -49,12 +78,13 @@ const register = async (req, res) => {
     await Status.insertMany(statuses);
 
     const accessToken = generateAccessToken(user._id);
-    const refreshToken = await issueRefreshToken(user._id);
+    const family = crypto.randomUUID();
+    const refreshToken = await issueRefreshToken(user._id, family);
+    setRefreshCookie(res, refreshToken);
 
     res.status(201).json({
       success: true,
       token: accessToken,
-      refreshToken,
       user: publicUser(user)
     });
   } catch (error) {
@@ -79,12 +109,13 @@ const login = async (req, res) => {
     }
 
     const accessToken = generateAccessToken(user._id);
-    const refreshToken = await issueRefreshToken(user._id);
+    const family = crypto.randomUUID();
+    const refreshToken = await issueRefreshToken(user._id, family);
+    setRefreshCookie(res, refreshToken);
 
     res.json({
       success: true,
       token: accessToken,
-      refreshToken,
       user: publicUser(user)
     });
   } catch (error) {
@@ -93,35 +124,51 @@ const login = async (req, res) => {
   }
 };
 
-// Обновление access по refresh
+// Обновление access по refresh-cookie (ротация + reuse-detection)
 const refresh = async (req, res) => {
   try {
-    const { refreshToken } = req.body;
-    if (!refreshToken) {
-      return res.status(400).json({ success: false, message: 'Refresh token required' });
+    if (!originOk(req)) {
+      return res.status(403).json({ success: false, message: 'Forbidden origin' });
+    }
+    const token = req.cookies ? req.cookies[COOKIE_NAME] : null;
+    if (!token) {
+      return res.status(401).json({ success: false, message: 'No refresh token' });
     }
 
-    const stored = await RefreshToken.findOne({ token: refreshToken });
-    if (!stored || stored.expiresAt < new Date()) {
-      if (stored) await RefreshToken.deleteOne({ _id: stored._id });
+    const stored = await RefreshToken.findOne({ token });
+    if (!stored) {
+      clearRefreshCookie(res);
+      return res.status(401).json({ success: false, message: 'Invalid refresh token' });
+    }
+    // REUSE-DETECTION: повторно использованный токен -> отзыв всей семьи
+    if (stored.used) {
+      await RefreshToken.deleteMany({ family: stored.family });
+      clearRefreshCookie(res);
+      return res.status(401).json({ success: false, message: 'Token reuse detected' });
+    }
+    if (stored.expiresAt < new Date()) {
+      await RefreshToken.deleteOne({ _id: stored._id });
+      clearRefreshCookie(res);
       return res.status(401).json({ success: false, message: 'Invalid refresh token' });
     }
 
     const user = await User.findById(stored.userId);
     if (!user) {
       await RefreshToken.deleteOne({ _id: stored._id });
+      clearRefreshCookie(res);
       return res.status(401).json({ success: false, message: 'Invalid refresh token' });
     }
 
-    // Ротация: старый refresh удаляем, выдаём новый
-    await RefreshToken.deleteOne({ _id: stored._id });
+    // Ротация: помечаем старый использованным, выдаём новый в той же семье
+    stored.used = true;
+    await stored.save();
     const accessToken = generateAccessToken(user._id);
-    const newRefresh = await issueRefreshToken(user._id);
+    const newRefresh = await issueRefreshToken(user._id, stored.family);
+    setRefreshCookie(res, newRefresh);
 
     res.json({
       success: true,
       token: accessToken,
-      refreshToken: newRefresh,
       user: publicUser(user)
     });
   } catch (error) {
@@ -130,13 +177,15 @@ const refresh = async (req, res) => {
   }
 };
 
-// Выход (отзыв refresh)
+// Выход (отзыв refresh-семьи)
 const logout = async (req, res) => {
   try {
-    const { refreshToken } = req.body;
-    if (refreshToken) {
-      await RefreshToken.deleteOne({ token: refreshToken });
+    const token = req.cookies ? req.cookies[COOKIE_NAME] : null;
+    if (token) {
+      const stored = await RefreshToken.findOne({ token });
+      if (stored) await RefreshToken.deleteMany({ family: stored.family });
     }
+    clearRefreshCookie(res);
     res.json({ success: true });
   } catch (error) {
     console.error('Logout error:', error);
