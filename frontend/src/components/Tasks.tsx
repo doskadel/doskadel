@@ -11,20 +11,28 @@ import { GripVertical, X, Plus, Settings } from 'lucide-react';
 interface SortableViewRowProps {
   id: TaskView;
   label: string;
-  onHide: () => void;
+  enabled: boolean;
+  onToggle: () => void;
 }
 
-const SortableViewRow: React.FC<SortableViewRowProps> = ({ id, label, onHide }) => {
+const SortableViewRow: React.FC<SortableViewRowProps> = ({ id, label, enabled, onToggle }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
-  const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 };
+  const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.6 : 1 };
   return (
-    <div ref={setNodeRef} style={style} className="views-edit-row">
-      <button type="button" className="views-edit-handle" {...attributes} {...listeners} aria-label="Перетащить">
+    <div ref={setNodeRef} style={style} className={'ve-row' + (isDragging ? ' ve-row--dragging' : '')}>
+      <button type="button" className="ve-handle" {...attributes} {...listeners} aria-label="Перетащить">
         <GripVertical size={18} />
       </button>
-      <span className="views-edit-label">{label}</span>
-      <button type="button" className="views-edit-remove" onClick={onHide} aria-label="Скрыть">
-        <X size={16} />
+      <span className="ve-label">{label}</span>
+      <button
+        type="button"
+        className={'ve-toggle' + (enabled ? ' ve-toggle--on' : '')}
+        onClick={onToggle}
+        role="switch"
+        aria-checked={enabled}
+        aria-label={enabled ? 'Скрыть вкладку' : 'Показать вкладку'}
+      >
+        <span className="ve-toggle-knob" />
       </button>
     </div>
   );
@@ -675,15 +683,16 @@ const Tasks: React.FC = () => {
             onDragEnd={handleViewsDragEnd}
           >
             <SortableContext items={viewTabs} strategy={verticalListSortingStrategy}>
-              <div className="views-edit-list">
+              <div className="ve-list">
                 {viewTabs.map((v) => (
                   <SortableViewRow
                     key={v}
                     id={v}
                     label={VIEW_LABELS[v]}
-                    onHide={() => {
+                    enabled={viewTabs.includes(v)}
+                    onToggle={() => {
                       const next = viewTabs.filter((x) => x !== v);
-                      if (next.length === 0) return;
+                      if (next.length === 0) return; // хотя бы одна включена
                       setViewTabs(next);
                       if (!next.includes(view)) setView(next[0]);
                     }}
@@ -695,21 +704,29 @@ const Tasks: React.FC = () => {
 
           {ALL_VIEWS.filter((v) => !viewTabs.includes(v)).length > 0 && (
             <>
-              <div className="views-edit-subtitle">Скрытые</div>
-              {ALL_VIEWS.filter((v) => !viewTabs.includes(v)).map((v) => (
-                <button
-                  key={v}
-                  type="button"
-                  className="views-edit-add"
-                  onClick={() => setViewTabs([...viewTabs, v])}
-                >
-                  <Plus size={16} /> {VIEW_LABELS[v]}
-                </button>
-              ))}
+              <div className="ve-subtitle">Скрытые</div>
+              <div className="ve-list">
+                {ALL_VIEWS.filter((v) => !viewTabs.includes(v)).map((v) => (
+                  <div key={v} className="ve-row ve-row--hidden">
+                    <span className="ve-handle ve-handle--off"><GripVertical size={18} /></span>
+                    <span className="ve-label">{VIEW_LABELS[v]}</span>
+                    <button
+                      type="button"
+                      className="ve-toggle"
+                      onClick={() => setViewTabs([...viewTabs, v])}
+                      role="switch"
+                      aria-checked={false}
+                      aria-label="Показать вкладку"
+                    >
+                      <span className="ve-toggle-knob" />
+                    </button>
+                  </div>
+                ))}
+              </div>
             </>
           )}
 
-          <div className="views-edit-divider" />
+          <div className="ve-divider" />
           <button type="button" className="views-edit-add" onClick={() => { setViewsEditOpen(false); setStatusManagerOpen(true); }}>
             <Settings size={16} /> Управление статусами
           </button>
