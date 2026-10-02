@@ -22,6 +22,15 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
+// Строгий лимит на авторизацию (защита от брутфорса пароля)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: process.env.NODE_ENV === 'development' ? 100 : 10,
+  message: { success: false, message: 'Слишком много попыток. Попробуйте позже.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 const connectDB = async () => {
   try {
     await mongoose.connect(process.env.MONGODB_URI || 'mongodb://mongo:27017/doskadel');
