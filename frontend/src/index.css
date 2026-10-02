@@ -341,6 +341,13 @@ z-index: 10;
 }
 
 /* ==================== PULL TO REFRESH ==================== */
+/* Переопределяем контейнер библиотеки: без этого он схлопывается в 0 */
+.ptr-container {
+  height: auto;
+  min-height: 100%;
+  overflow: visible;
+  contain: none;
+}
 .ptr-wrapper {
   position: relative;
   min-height: 100%;
