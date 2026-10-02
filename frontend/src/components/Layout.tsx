@@ -74,25 +74,28 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <Link to="/" className="layout-logo">DoskaDel</Link>
         </div>
 
-        {/* Навигация для ПК/широких экранов */}
-        <nav className="layout-nav layout-nav--desktop">
-          {navItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={isActive(item.path) ? 'layout-nav-link layout-nav-link--active' : 'layout-nav-link'}
+        <div className="layout-header-right">
+          {/* Навигация для ПК/широких экранов */}
+          <nav className="layout-nav layout-nav--desktop">
+            {navItems.map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={isActive(item.path) ? 'layout-nav-link layout-nav-link--active' : 'layout-nav-link'}
+              >
+                {item.label}
+              </Link>
+            ))}
+            <button
+              type="button"
+              className="layout-nav-link layout-nav-link--button"
+              onClick={() => setSearchOpen(true)}
+              title="Поиск"
             >
-              {item.label}
-            </Link>
-          ))}
-          <button
-            type="button"
-            className="layout-nav-link layout-nav-link--button"
-            onClick={() => setSearchOpen(true)}
-            title="Поиск"
-          >
-            Поиск
-          </button>
+              Поиск
+            </button>
+          </nav>
+          {/* Аватар/профиль — виден на всех размерах */}
           <button
             type="button"
             className="layout-avatar"
@@ -102,7 +105,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           >
             <span className="layout-avatar-inner">👤</span>
           </button>
-        </nav>
+        </div>
       </header>
 
       <main className="layout-main">
@@ -153,12 +156,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               onClick={() => { setMoreOpen(false); setSearchOpen(true); }}
             >
               <span className="more-sheet-icon">🔍</span> Поиск
-            </button>
-            <button
-              className="more-sheet-item"
-              onClick={() => { setMoreOpen(false); setProfileOpen(true); }}
-            >
-              <span className="more-sheet-icon">👤</span> Профиль и настройки
             </button>
           </div>
         </div>

@@ -201,6 +201,12 @@ z-index: 10;
   gap: var(--space-md);
 }
 
+.layout-header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
 .layout-back {
   display: inline-flex;
   align-items: center;
