@@ -319,6 +319,45 @@ z-index: 10;
   }
 }
 
+/* ==================== PULL TO REFRESH ==================== */
+.ptr-wrapper {
+  position: relative;
+  min-height: 100%;
+}
+
+.ptr-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: opacity 0.15s;
+  color: var(--color-text-muted);
+  font-size: 22px;
+  pointer-events: none;
+}
+
+.ptr-spinner {
+  display: inline-block;
+  line-height: 1;
+}
+
+.ptr-spinner--spin {
+  animation: ptr-rotate 0.8s linear infinite;
+}
+
+@keyframes ptr-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.ptr-content {
+  transition: transform 0.2s ease-out;
+}
+
 /* ==================== BOTTOM NAV (mobile/tablet) ==================== */
 .layout-bottom-nav {
   display: none;

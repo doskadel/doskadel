@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PullToRefresh from './PullToRefresh';
 import { useSearchParams } from 'react-router-dom';
 import api from '../utils/api';
 import KanbanBoard, { KanbanTask } from './KanbanBoard';
@@ -318,9 +319,14 @@ const Tasks: React.FC = () => {
     (sortParam && sortParam !== DEFAULT_SORT)
   );
 
+  const handleRefresh = async () => {
+    await Promise.all([fetchStatuses(), fetchTasks()]);
+  };
+
   if (loading) return <p>Загрузка...</p>;
 
   return (
+    <PullToRefresh onRefresh={handleRefresh}>
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-lg)', gap: 'var(--space-md)', flexWrap: 'wrap' }}>
         <h2 className="page-title" style={{ margin: 0 }}>Мои задачи</h2>
@@ -595,6 +601,7 @@ const Tasks: React.FC = () => {
         </div>
       )}
     </div>
+    </PullToRefresh>
   );
 };
 

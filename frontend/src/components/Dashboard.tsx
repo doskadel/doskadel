@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PullToRefresh from './PullToRefresh';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { getPriorityColor } from '../utils/priority';
@@ -87,6 +88,10 @@ const Dashboard: React.FC = () => {
     return d.toLocaleDateString('ru-RU');
   };
 
+  const handleRefresh = async () => {
+    await fetchDashboard();
+  };
+
   if (loading) return <p>Загрузка...</p>;
   if (error) return <p style={{ color: 'var(--color-danger)' }}>{error}</p>;
   if (!data) return null;
@@ -100,6 +105,7 @@ const Dashboard: React.FC = () => {
   };
 
   return (
+    <PullToRefresh onRefresh={handleRefresh}>
     <div className="dashboard">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-lg)', gap: 'var(--space-md)', flexWrap: 'wrap' }}>
         <h2 className="page-title" style={{ margin: 0 }}>Главная</h2>
@@ -316,6 +322,7 @@ const Dashboard: React.FC = () => {
         </>
       )}
     </div>
+    </PullToRefresh>
   );
 };
 
