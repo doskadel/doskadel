@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Popover, Listbox, Transition } from '@headlessui/react';
+import { Filter, Search, ArrowUpDown, Calendar, Check, ChevronDown, X } from 'lucide-react';
 import MultiSelect from './MultiSelect';
-import ClearableInput from './ClearableInput';
 import { Status } from '../utils/status';
 import { PRIORITY_OPTIONS } from '../utils/priority';
 import { TASK_SORT_OPTIONS } from '../utils/sort';
@@ -33,298 +34,129 @@ interface FilterBarProps {
   onDueFilterClear?: () => void;
 }
 
-type OpenPopover = 'search' | 'sort' | 'dates' | null;
-
 const FilterBar: React.FC<FilterBarProps> = ({
-  q,
-  onQChange,
-  statusIds,
-  onStatusIdsChange,
-  priorityFilter,
-  onPriorityFilterChange,
-  taskType,
-  onTaskTypeChange,
-  dateFrom,
-  dateTo,
-  onDateFromChange,
-  onDateToChange,
-  onDatesClear,
-  statuses,
-  onReset,
-  hasActiveFilters,
-  dateError,
-  sort,
-  onSortChange,
-  defaultSort,
-  hideSort = false,
-  dueFilter = null,
-  onDueFilterClear,
+  q, onQChange, statusIds, onStatusIdsChange, priorityFilter, onPriorityFilterChange,
+  taskType, onTaskTypeChange, dateFrom, dateTo, onDateFromChange, onDateToChange, onDatesClear,
+  statuses, onReset, hasActiveFilters, dateError, sort, onSortChange, defaultSort, hideSort = false,
+  dueFilter = null, onDueFilterClear,
 }) => {
-  const [open, setOpen] = useState<OpenPopover>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!open) return;
+    if (searchOpen) setTimeout(() => searchInputRef.current?.focus(), 50);
+  }, [searchOpen]);
 
-    const handleClickOutside = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (target.closest('.filter-popover') || target.closest('.filter-icon-wrap')) {
-        return;
-      }
-      setOpen(null);
-    };
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(null);
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('keydown', handleEsc);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleEsc);
-    };
-  }, [open]);
-
-  useEffect(() => {
-    if (open === 'search') {
-      setTimeout(() => searchInputRef.current?.focus(), 0);
-    }
-  }, [open]);
-
-  const toggle = (which: OpenPopover) => {
-    setOpen((prev) => (prev === which ? null : which));
-  };
-
-  const statusOptions = statuses.map((s) => ({
-    value: s._id,
-    label: s.name,
-    color: s.color,
-  }));
-
-  const priorityOptions = PRIORITY_OPTIONS.map((p) => ({
-    value: p.value,
-    label: p.label,
-    color: p.color,
-  }));
-
+  const statusOptions = statuses.map((s) => ({ value: s._id, label: s.name, color: s.color }));
+  const priorityOptions = PRIORITY_OPTIONS.map((p) => ({ value: p.value, label: p.label, color: p.color }));
   const taskTypeOptions = [
     { value: 'single', label: 'Разовые' },
     { value: 'recurring', label: 'Повторяющиеся' },
   ];
-
   const taskTypeSelected = taskType ? [taskType] : [];
-
   const handleTaskTypeChange = (values: Array<string | number>) => {
-    if (values.length === 0) {
-      onTaskTypeChange(null);
-    } else {
-      onTaskTypeChange(values[values.length - 1] as TaskTypeFilter);
-    }
+    onTaskTypeChange(values.length === 0 ? null : (values[values.length - 1] as TaskTypeFilter));
   };
 
   const isSearchActive = q.trim() !== '';
   const isDatesActive = !!(dateFrom || dateTo);
   const isSortActive = sort !== defaultSort;
-
-  const activeSortLabel =
-    TASK_SORT_OPTIONS.find((o) => o.value === sort)?.label || 'Сортировка';
+  const activeSortLabel = TASK_SORT_OPTIONS.find((o) => o.value === sort)?.label || 'Сортировка';
+  const filterActive = hasActiveFilters || isDatesActive || !!dueFilter;
 
   return (
     <div className="filter-bar">
-      <div className="filter-bar-row">
-        <div className="filter-bar-left">
-          {dueFilter && (
-            <div className="filter-chip filter-chip--active">
-              <span className="filter-chip-label">
-                {dueFilter === 'overdue' ? '⚠️ Просрочено' : '📅 Ближайшие 3 дня'}
-              </span>
-              <button
-                type="button"
-                className="filter-chip-close"
-                onClick={onDueFilterClear}
-                aria-label="Убрать фильтр"
-                title="Убрать фильтр"
-              >
-                ✕
-              </button>
-            </div>
-          )}
-
-          <MultiSelect
-            label="Статус"
-            options={statusOptions}
-            selected={statusIds}
-            onChange={(values) => onStatusIdsChange(values as string[])}
-            placeholder="Все"
-          />
-
-          <MultiSelect
-            label="Приоритет"
-            options={priorityOptions}
-            selected={priorityFilter}
-            onChange={(values) => onPriorityFilterChange(values as number[])}
-            placeholder="Все"
-          />
-
-          <MultiSelect
-            label="Тип"
-            options={taskTypeOptions}
-            selected={taskTypeSelected}
-            onChange={handleTaskTypeChange}
-            placeholder="Все"
-          />
-
-          <div className="filter-icon-wrap filter-icon-wrap--left">
-            <button
-              type="button"
-              className={
-                'filter-icon-btn' +
-                (isDatesActive ? ' filter-icon-btn--active' : '') +
-                (open === 'dates' ? ' filter-icon-btn--open' : '')
-              }
-              onClick={() => toggle('dates')}
-              title="Фильтр по датам"
-              aria-label="Фильтр по датам"
-              aria-expanded={open === 'dates'}
-            >
-              📅
-            </button>
-            {isDatesActive && <span className="filter-icon-dot" />}
-
-            {open === 'dates' && (
-              <div className="filter-popover filter-popover--dates">
-                <div className="date-range">
-                  <div className="date-range-row">
-                    <span className="date-range-label">С:</span>
-                    <input
-                      type="date"
-                      value={dateFrom}
-                      onChange={(e) => onDateFromChange(e.target.value)}
-                      max={dateTo || undefined}
-                    />
-                  </div>
-                  <div className="date-range-row">
-                    <span className="date-range-label">По:</span>
-                    <input
-                      type="date"
-                      value={dateTo}
-                      onChange={(e) => onDateToChange(e.target.value)}
-                      min={dateFrom || undefined}
-                    />
-                  </div>
+      <div className="fb-row">
+        {/* Фильтры — под одной кнопкой */}
+        <Popover className="fb-pop-wrap">
+          <Popover.Button className={'fb-icon-btn' + (filterActive ? ' fb-icon-btn--active' : '')} title="Фильтры" aria-label="Фильтры">
+            <Filter size={18} />
+            {filterActive && <span className="fb-dot" />}
+          </Popover.Button>
+          <Transition enter="fb-tr-enter" enterFrom="fb-tr-from" enterTo="fb-tr-to" leave="fb-tr-enter" leaveFrom="fb-tr-to" leaveTo="fb-tr-from">
+            <Popover.Panel className="fb-panel" static>
+              <div className="fb-field"><MultiSelect label="Статус" options={statusOptions} selected={statusIds} onChange={(v) => onStatusIdsChange(v as string[])} placeholder="Все" /></div>
+              <div className="fb-field"><MultiSelect label="Приоритет" options={priorityOptions} selected={priorityFilter} onChange={(v) => onPriorityFilterChange(v as number[])} placeholder="Все" /></div>
+              <div className="fb-field"><MultiSelect label="Тип" options={taskTypeOptions} selected={taskTypeSelected} onChange={handleTaskTypeChange} placeholder="Все" /></div>
+              <div className="fb-field">
+                <span className="fb-field-label">Даты</span>
+                <div className="fb-dates">
+                  <input type="date" value={dateFrom} onChange={(e) => onDateFromChange(e.target.value)} max={dateTo || undefined} />
+                  <input type="date" value={dateTo} onChange={(e) => onDateToChange(e.target.value)} min={dateFrom || undefined} />
                 </div>
-
-                {dateError && (
-                  <p style={{ color: 'var(--color-danger)', fontSize: '13px', marginTop: 'var(--space-sm)' }}>
-                    {dateError}
-                  </p>
-                )}
-
-                {isDatesActive && (
-                  <div style={{ marginTop: 'var(--space-md)', display: 'flex', justifyContent: 'flex-end' }}>
-                    <button
-                      type="button"
-                      className="filter-bar-reset"
-                      onClick={onDatesClear}
-                    >
-                      Очистить даты
-                    </button>
-                  </div>
-                )}
+                {isDatesActive && <button type="button" className="fb-clear" onClick={onDatesClear}>Очистить даты</button>}
               </div>
-            )}
-          </div>
-        </div>
-
-        <div className="filter-bar-right">
-          <div className="filter-icon-wrap filter-icon-wrap--right">
-            <button
-              type="button"
-              className={
-                'filter-icon-btn' +
-                (isSearchActive ? ' filter-icon-btn--active' : '') +
-                (open === 'search' ? ' filter-icon-btn--open' : '')
-              }
-              onClick={() => toggle('search')}
-              title={isSearchActive ? `Поиск: ${q}` : 'Поиск'}
-              aria-label="Поиск"
-              aria-expanded={open === 'search'}
-            >
-              🔍
-            </button>
-            {isSearchActive && <span className="filter-icon-dot" />}
-
-            {open === 'search' && (
-              <div className="filter-popover filter-popover--search">
-                <ClearableInput
-                  type="text"
-                  value={q}
-                  onChange={onQChange}
-                  placeholder="Поиск по задачам..."
-                  inputRef={searchInputRef}
-                />
-              </div>
-            )}
-          </div>
-
-          {!hideSort && (
-            <div className="filter-icon-wrap filter-icon-wrap--right">
-              <button
-                type="button"
-                className={
-                  'filter-icon-btn' +
-                  (isSortActive ? ' filter-icon-btn--active' : '') +
-                  (open === 'sort' ? ' filter-icon-btn--open' : '')
-                }
-                onClick={() => toggle('sort')}
-                title={`Сортировка: ${activeSortLabel}`}
-                aria-label="Сортировка"
-                aria-expanded={open === 'sort'}
-              >
-                ⇅
-              </button>
-              {isSortActive && <span className="filter-icon-dot" />}
-
-              {open === 'sort' && (
-                <div className="filter-popover filter-popover--sort">
-                  {TASK_SORT_OPTIONS.map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      className={
-                        'filter-sort-option' +
-                        (opt.value === sort ? ' filter-sort-option--active' : '')
-                      }
-                      onClick={() => {
-                        onSortChange(opt.value);
-                        setOpen(null);
-                      }}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
+              {dateError && <p className="fb-error">{dateError}</p>}
+              {hasActiveFilters && (
+                <button type="button" className="fb-reset" onClick={onReset}><X size={14} /> Сбросить фильтры</button>
               )}
-            </div>
-          )}
+            </Popover.Panel>
+          </Transition>
+        </Popover>
 
-          {hasActiveFilters && (
-            <button
-              type="button"
-              className="filter-bar-reset"
-              onClick={onReset}
-              title="Сбросить фильтры"
-            >
-              ✕ Сбросить
-            </button>
-          )}
-        </div>
+        {/* Активные чипы (просрочено/ближайшие) */}
+        {dueFilter && (
+          <div className="filter-chip filter-chip--active">
+            <span className="filter-chip-label">{dueFilter === 'overdue' ? 'Просрочено' : 'Ближайшие 3 дня'}</span>
+            <button type="button" className="filter-chip-close" onClick={onDueFilterClear} aria-label="Убрать">✕</button>
+          </div>
+        )}
+
+        <div className="fb-spacer" />
+
+        {/* Поиск */}
+        <button
+          type="button"
+          className={'fb-icon-btn' + (isSearchActive ? ' fb-icon-btn--active' : '')}
+          onClick={() => setSearchOpen((v) => !v)}
+          title="Поиск"
+          aria-label="Поиск"
+        >
+          <Search size={18} />
+          {isSearchActive && <span className="fb-dot" />}
+        </button>
+
+        {/* Сортировка */}
+        {!hideSort && (
+          <Listbox value={sort} onChange={onSortChange}>
+            <div className="fb-pop-wrap">
+              <Listbox.Button className={'fb-icon-btn' + (isSortActive ? ' fb-icon-btn--active' : '')} title={`Сортировка: ${activeSortLabel}`} aria-label="Сортировка">
+                <ArrowUpDown size={18} />
+                {isSortActive && <span className="fb-dot" />}
+              </Listbox.Button>
+              <Transition enter="fb-tr-enter" enterFrom="fb-tr-from" enterTo="fb-tr-to" leave="fb-tr-enter" leaveFrom="fb-tr-to" leaveTo="fb-tr-from">
+                <Listbox.Options className="fb-options" static>
+                  {TASK_SORT_OPTIONS.map((opt) => (
+                    <Listbox.Option key={opt.value} value={opt.value} className="fb-option">
+                      {({ selected }) => (
+                        <>
+                          <span className={'fb-check' + (selected ? ' fb-check--on' : '')}>{selected && <Check size={14} />}</span>
+                          <span>{opt.label}</span>
+                        </>
+                      )}
+                    </Listbox.Option>
+                  ))}
+                </Listbox.Options>
+              </Transition>
+            </div>
+          </Listbox>
+        )}
       </div>
 
-      {dateError && open !== 'dates' && (
-        <p style={{ color: 'var(--color-danger)', fontSize: '13px', marginTop: 'var(--space-sm)' }}>
-          {dateError}
-        </p>
+      {/* Строка поиска (раскрывается) */}
+      {searchOpen && (
+        <div className="fb-search-row">
+          <Search size={16} className="fb-search-icon" />
+          <input
+            ref={searchInputRef}
+            type="text"
+            className="fb-search-input"
+            placeholder="Поиск по задачам..."
+            value={q}
+            onChange={(e) => onQChange(e.target.value)}
+          />
+          {q && <button type="button" className="fb-search-clear" onClick={() => onQChange('')} aria-label="Очистить"><X size={16} /></button>}
+        </div>
       )}
     </div>
   );
