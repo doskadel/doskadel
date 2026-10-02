@@ -9,6 +9,16 @@
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
 
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script>
+      // Тема до рендера (без мигания): localStorage или системная
+      (function () {
+        try {
+          var t = localStorage.getItem('doskadel_theme');
+          if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          document.documentElement.setAttribute('data-theme', t);
+        } catch (e) {}
+      })();
+    </script>
     <meta name="theme-color" content="#0969da" />
     <meta
       name="description"
