@@ -402,39 +402,43 @@ const Tasks: React.FC = () => {
   return (
     <PullToRefresh onRefresh={handleRefresh}>
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-lg)', gap: 'var(--space-md)', flexWrap: 'wrap' }}>
-        <h2 className="page-title" style={{ margin: 0 }}>Мои задачи</h2>
-        <div style={{ display: 'flex', gap: 'var(--space-md)', alignItems: 'center', flexWrap: 'wrap' }}>
-          <div className={'view-toggle' + (viewTabs.length === 1 ? ' view-toggle--single' : '')}>
-            {viewTabs.map((v) => (
-              <button
-                key={v}
-                type="button"
-                className={view === v ? 'view-toggle-btn view-toggle-btn--active' : 'view-toggle-btn'}
-                onClick={() => setView(v)}
-                title={VIEW_LABELS[v]}
-              >
-                {VIEW_ICONS[v]} {VIEW_LABELS[v]}
-              </button>
-            ))}
-          </div>
-          <button
-            type="button"
-            className="button"
-            onClick={() => setCreateOpen(true)}
-          >
-            + Добавить задачу
-          </button>
-          <button
-            type="button"
-            className="icon-button settings-btn"
-            onClick={() => setViewsEditOpen(true)}
-            title="Настроить вкладки"
-            aria-label="Настроить вкладки"
-          >
-            <Settings size={20} />
-          </button>
+      <h2 className="page-title" style={{ margin: 0, marginBottom: 'var(--space-md)' }}>Мои задачи</h2>
+
+      {/* Строка 1: вкладки (при одной — заголовок по центру) */}
+      <div className={'view-toggle-row' + (viewTabs.length === 1 ? ' view-toggle-row--single' : '')}>
+        <div className={'view-toggle' + (viewTabs.length === 1 ? ' view-toggle--single' : '')}>
+          {viewTabs.map((v) => (
+            <button
+              key={v}
+              type="button"
+              className={view === v ? 'view-toggle-btn view-toggle-btn--active' : 'view-toggle-btn'}
+              onClick={() => setView(v)}
+              title={VIEW_LABELS[v]}
+            >
+              {VIEW_ICONS[v]} {VIEW_LABELS[v]}
+            </button>
+          ))}
         </div>
+      </div>
+
+      {/* Строка 2: Добавить задачу слева, настройки справа */}
+      <div className="tasks-actions-row">
+        <button
+          type="button"
+          className="button"
+          onClick={() => setCreateOpen(true)}
+        >
+          + Добавить задачу
+        </button>
+        <button
+          type="button"
+          className="icon-button settings-btn"
+          onClick={() => setViewsEditOpen(true)}
+          title="Настроить вкладки"
+          aria-label="Настроить вкладки"
+        >
+          <Settings size={20} />
+        </button>
       </div>
 
       <FilterBar
