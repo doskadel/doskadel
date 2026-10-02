@@ -734,11 +734,24 @@ z-index: 10;
 .calendar-task-priority--2 { background: #f59e0b; }
 .calendar-task-priority--3 { background: #ef4444; }
 .view-toggle-row { display: flex; margin-bottom: var(--space-md); }
+.view-info-wrap { position: relative; display: inline-flex; }
 .view-info-icon {
   display: inline-flex; align-items: center; justify-content: center;
-  color: var(--color-text-muted); cursor: help;
+  background: transparent; border: none; padding: 0; cursor: help;
+  color: var(--color-text-muted);
 }
 .view-info-icon:hover { color: var(--color-primary); }
+.view-info-tip {
+  position: absolute; top: calc(100% + 8px); left: 0; z-index: 60;
+  width: max-content; max-width: 260px; padding: 8px 10px;
+  background: var(--color-text); color: var(--color-surface);
+  font-size: 13px; font-weight: 400; line-height: 1.4;
+  border-radius: var(--radius-sm); box-shadow: var(--shadow-md);
+}
+.view-info-tip::before {
+  content: ''; position: absolute; bottom: 100%; left: 6px;
+  border: 6px solid transparent; border-bottom-color: var(--color-text);
+}
 .tasks-actions-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-md); margin-bottom: var(--space-lg); }
 .settings-btn {
   display: inline-flex;

@@ -124,6 +124,7 @@ const Tasks: React.FC = () => {
     return ALL_VIEWS;
   });
   const [viewsEditOpen, setViewsEditOpen] = useState(false);
+  const [infoOpen, setInfoOpen] = useState(false);
 
   const dndSensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -405,12 +406,22 @@ const Tasks: React.FC = () => {
       <h2 className="page-title" style={{ margin: 0, marginBottom: 'var(--space-md)', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
         Мои задачи
         {viewTabs.length === 1 && (
-          <span
-            className="view-info-icon"
-            title={`Сейчас выбран только вид «${VIEW_LABELS[viewTabs[0]]}». Другие виды включаются в настройках.`}
-            aria-label={`Вид: ${VIEW_LABELS[viewTabs[0]]}`}
-          >
-            <Info size={16} />
+          <span className="view-info-wrap">
+            <button
+              type="button"
+              className="view-info-icon"
+              aria-label={`Вид: ${VIEW_LABELS[viewTabs[0]]}`}
+              onClick={() => setInfoOpen((v) => !v)}
+              onMouseEnter={() => setInfoOpen(true)}
+              onMouseLeave={() => setInfoOpen(false)}
+            >
+              <Info size={16} />
+            </button>
+            {infoOpen && (
+              <span className="view-info-tip">
+                Сейчас выбран только вид «{VIEW_LABELS[viewTabs[0]]}». Другие виды включаются в настройках.
+              </span>
+            )}
           </span>
         )}
       </h2>
