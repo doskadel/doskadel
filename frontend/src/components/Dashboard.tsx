@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PullToRefresh from './PullToRefresh';
+import LoadingOverlay from './LoadingOverlay';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { getPriorityColor } from '../utils/priority';
@@ -92,7 +93,7 @@ const Dashboard: React.FC = () => {
     await fetchDashboard();
   };
 
-  if (loading) return <p>Загрузка...</p>;
+  if (loading) return <LoadingOverlay active text="Загрузка..." />;
   if (error) return <p style={{ color: 'var(--color-danger)' }}>{error}</p>;
   if (!data) return null;
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PullToRefresh from './PullToRefresh';
+import LoadingOverlay from './LoadingOverlay';
 import { useSearchParams } from 'react-router-dom';
 import api from '../utils/api';
 import KanbanBoard, { KanbanTask } from './KanbanBoard';
@@ -323,7 +324,7 @@ const Tasks: React.FC = () => {
     await Promise.all([fetchStatuses(), fetchTasks()]);
   };
 
-  if (loading) return <p>Загрузка...</p>;
+  if (loading) return <LoadingOverlay active text="Загрузка..." />;
 
   return (
     <PullToRefresh onRefresh={handleRefresh}>
