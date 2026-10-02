@@ -1,5 +1,6 @@
 import React, { ReactNode, useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Home, CheckSquare, BookOpen, User, Bot, MoreHorizontal, Search } from 'lucide-react';
 import SearchModal from './SearchModal';
 import ProfileModal from './ProfileModal';
 import api from '../utils/api';
@@ -59,9 +60,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const isActive = (path: string) => location.pathname === path;
 
   const navItems = [
-    { path: '/', label: 'Главная', icon: '🏠' },
-    { path: '/tasks', label: 'Мои задачи', icon: '✓' },
-    { path: '/knowledge', label: 'База знаний', icon: '📚' },
+    { path: '/', label: 'Главная', icon: <Home size={18} /> },
+    { path: '/tasks', label: 'Мои задачи', icon: <CheckSquare size={18} /> },
+    { path: '/knowledge', label: 'База знаний', icon: <BookOpen size={18} /> },
   ];
 
   return (
@@ -83,7 +84,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 to={item.path}
                 className={isActive(item.path) ? 'layout-nav-link layout-nav-link--active' : 'layout-nav-link'}
               >
-                {item.label}
+                {item.icon}
+                <span>{item.label}</span>
               </Link>
             ))}
             <button
@@ -103,7 +105,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             title="Профиль"
             aria-label="Профиль"
           >
-            <span className="layout-avatar-inner">👤</span>
+            <span className="layout-avatar-inner"><User size={20} /></span>
           </button>
         </div>
       </header>
@@ -115,11 +117,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* Нижний бар для планшетов и мобильных */}
       <nav className="layout-bottom-nav">
         <Link to="/" className={isActive('/') ? 'bottom-nav-item bottom-nav-item--active' : 'bottom-nav-item'}>
-          <span className="bottom-nav-icon">🏠</span>
+          <span className="bottom-nav-icon"><Home size={20} /></span>
           <span className="bottom-nav-label">Главная</span>
         </Link>
         <Link to="/tasks" className={isActive('/tasks') ? 'bottom-nav-item bottom-nav-item--active' : 'bottom-nav-item'}>
-          <span className="bottom-nav-icon">✓</span>
+          <span className="bottom-nav-icon"><CheckSquare size={20} /></span>
           <span className="bottom-nav-label">Задачи</span>
         </Link>
         <button
@@ -129,10 +131,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           title="Помощник"
           aria-label="Помощник"
         >
-          <span className="bottom-nav-bot-inner">🤖</span>
+          <span className="bottom-nav-bot-inner"><Bot size={24} /></span>
         </button>
         <Link to="/knowledge" className={isActive('/knowledge') ? 'bottom-nav-item bottom-nav-item--active' : 'bottom-nav-item'}>
-          <span className="bottom-nav-icon">📚</span>
+          <span className="bottom-nav-icon"><BookOpen size={20} /></span>
           <span className="bottom-nav-label">База</span>
         </Link>
         <button
@@ -142,7 +144,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           title="Ещё"
           aria-label="Ещё"
         >
-          <span className="bottom-nav-icon">⋯</span>
+          <span className="bottom-nav-icon"><MoreHorizontal size={20} /></span>
           <span className="bottom-nav-label">Ещё</span>
         </button>
       </nav>
@@ -155,7 +157,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               className="more-sheet-item"
               onClick={() => { setMoreOpen(false); setSearchOpen(true); }}
             >
-              <span className="more-sheet-icon">🔍</span> Поиск
+              <Search size={18} /> Поиск
             </button>
           </div>
         </div>
