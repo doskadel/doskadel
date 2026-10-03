@@ -30,25 +30,16 @@ const taskSchema = new mongoose.Schema({
   dueDate: {
     type: Date
   },
+  // Правило повторяемости (F1c). Нет recurrence.freq = разовая задача.
   recurrence: {
-    type: {
-      type: String,
-      enum: ['daily', 'weekly', 'monthly']
-    },
-    time: {
-      type: String,
-      match: /^([01]\d|2[0-3]):[0-5]\d$/
-    },
-    dayOfWeek: {
-      type: Number,
-      min: 0,
-      max: 6
-    },
-    dayOfMonth: {
-      type: Number,
-      min: 1,
-      max: 31
-    }
+    freq: { type: String, enum: ['daily', 'weekly', 'monthly'] },
+    interval: { type: Number, min: 1, default: 1 },
+    byWeekday: { type: [Number] },
+    byMonthDay: { type: Number, min: 1, max: 31 },
+    time: { type: String, match: /^([01]\d|2[0-3]):[0-5]\d$/ },
+    until: { type: Date, default: null },
+    count: { type: Number, default: null },
+    tz: { type: String, default: null }
   },
   notifications: {
     enabled: {
@@ -95,7 +86,7 @@ const taskSchema = new mongoose.Schema({
 });
 
 taskSchema.index({ workspaceId: 1, statusId: 1, order: 1 });
-taskSchema.index({ workspaceId: 1, 'recurrence.type': 1 });
+taskSchema.index({ workspaceId: 1, 'recurrence.freq': 1 });
 taskSchema.index({ workspaceId: 1, dueDate: 1 }); // для выборки разовых с близким dueDate
 
 module.exports = mongoose.model('Task', taskSchema);

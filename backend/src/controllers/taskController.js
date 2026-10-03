@@ -10,7 +10,7 @@ const { summarizeOccurrences, enrichTaskDue } = require('../utils/taskDueSummary
 const OCCURRENCE_HORIZON_DAYS = 7;
 
 const generateOccurrencesForTask = async (task) => {
-  if (!task.recurrence || !task.recurrence.type) return;
+  if (!task.recurrence || !task.recurrence.freq) return;
   const now = new Date();
   const dates = getNextOccurrences(task.recurrence, now, OCCURRENCE_HORIZON_DAYS);
   if (dates.length === 0) return;
@@ -29,6 +29,7 @@ const generateOccurrencesForTask = async (task) => {
         userId: task.userId,
         workspaceId: task.workspaceId,
         createdBy: task.createdBy || task.userId,
+        originalDate: d,
         dueAt: d,
         status: 'pending',
         notificationsSent: {
@@ -248,7 +249,7 @@ const getTasks = async (req, res) => {
 
     // Сроковая сводка по задаче — единая функция (R1).
     const recurringIds = tasks
-      .filter((t) => t.recurrence && t.recurrence.type)
+      .filter((t) => t.recurrence && t.recurrence.freq)
       .map((t) => t._id);
     const summary = await summarizeOccurrences(req.workspaceId, recurringIds);
     tasks = tasks.map((t) => enrichTaskDue(t.toObject(), summary));
@@ -306,9 +307,9 @@ const updateTask = async (req, res) => {
 
     // F1b: запрет смены дедлайна у повторяющейся задачи (DnD только разовых).
     // Если повторение убирают в этом же запросе — смена dueDate допустима.
-    const wasRecurring = !!(oldTask.recurrence && oldTask.recurrence.type);
+    const wasRecurring = !!(oldTask.recurrence && oldTask.recurrence.freq);
     const staysRecurring = req.body.recurrence !== undefined
-      ? !!(req.body.recurrence && req.body.recurrence.type)
+      ? !!(req.body.recurrence && req.body.recurrence.freq)
       : wasRecurring;
     if (dueChanged && wasRecurring && staysRecurring) {
       return res.status(400).json({ success: false, message: 'Нельзя менять дедлайн повторяющейся задачи' });

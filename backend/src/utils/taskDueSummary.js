@@ -44,7 +44,7 @@ async function summarizeOccurrences(workspaceId, taskIds) {
  * @param {Map} summary результат summarizeOccurrences
  */
 function enrichTaskDue(task, summary) {
-  const isRec = !!(task.recurrence && task.recurrence.type);
+  const isRec = !!(task.recurrence && task.recurrence.freq);
   if (isRec) {
     const info = summary.get(String(task._id));
     task.pendingOccurrenceCount = info ? info.count : 0;

@@ -69,7 +69,7 @@ const startAgenda = async () => {
     let created = 0;
 
     for (const task of recurringTasks) {
-      if (!task.recurrence || !task.recurrence.type) continue;
+      if (!task.recurrence || !task.recurrence.freq) continue;
       const dates = getNextOccurrences(task.recurrence, now, OCCURRENCE_HORIZON_DAYS);
       if (dates.length === 0) continue;
 
@@ -87,6 +87,7 @@ const startAgenda = async () => {
             userId: task.userId,
             workspaceId: task.workspaceId,
             createdBy: task.createdBy || task.userId,
+            originalDate: d,
             dueAt: d,
             status: 'pending',
             notificationsSent: {
