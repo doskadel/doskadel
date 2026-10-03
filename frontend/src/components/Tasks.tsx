@@ -309,6 +309,25 @@ const Tasks: React.FC = () => {
     }
   };
 
+  // F1b: перенос дедлайна разовой задачи из календаря (DnD)
+  const handleTaskMoved = async (id: string, newDueDate: string): Promise<boolean> => {
+    const prev = tasks.find((t) => t._id === id);
+    if (!prev) return false;
+    const prevDue = prev.dueDate;
+    // оптимистично
+    setTasks((cur) => cur.map((t) => (t._id === id ? { ...t, dueDate: newDueDate } : t)));
+    try {
+      await api.put(`/api/tasks/${id}`, { dueDate: newDueDate });
+      return true;
+    } catch (err) {
+      console.error('Error moving task:', err);
+      // откат
+      setTasks((cur) => cur.map((t) => (t._id === id ? { ...t, dueDate: prevDue ?? null } : t)));
+      window.alert('Не удалось перенести задачу. Попробуйте ещё раз.');
+      return false;
+    }
+  };
+
   const handleResetFilters = () => {
     updateQuery({
       q: null, priority: null, statuses: null, taskType: null,
@@ -615,7 +634,7 @@ const Tasks: React.FC = () => {
       )}
 
       {view === 'calendar' && (
-        <CalendarView tasks={tasks as any} finalStatusIds={statuses.filter((s) => s.isFinal).map((s) => s._id)} onOpenTask={openTask} />
+        <CalendarView tasks={tasks as any} finalStatusIds={statuses.filter((s) => s.isFinal).map((s) => s._id)} onOpenTask={openTask} onTaskMoved={handleTaskMoved} />
       )}
 
       {viewsEditOpen && settingsView === 'main' && (

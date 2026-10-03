@@ -1,4 +1,15 @@
 import React, { useState } from 'react';
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  useDraggable,
+  useDroppable,
+  type DragEndEvent,
+  type DragStartEvent,
+} from '@dnd-kit/core';
 
 interface CalendarTask {
   _id: string;
@@ -16,6 +27,8 @@ interface CalendarViewProps {
   tasks: CalendarTask[];
   finalStatusIds?: string[];
   onOpenTask: (id: string) => void;
+  /** F1b: перенос дедлайна разовой задачи. Возвращает true при успехе. */
+  onTaskMoved?: (id: string, newDueDate: string) => Promise<boolean>;
 }
 
 type ViewMode = 'month' | 'week' | 'day';
@@ -28,22 +41,109 @@ const MONTHS_GEN = ['января', 'февраля', 'марта', 'апрел�
 const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
 const sameDay = (a: Date, b: Date) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 const addDays = (d: Date, n: number) => { const r = new Date(d); r.setDate(r.getDate() + n); return r; };
-// Понедельник — начало недели
 const startOfWeek = (d: Date) => { const s = startOfDay(d); const off = (s.getDay() + 6) % 7; return addDays(s, -off); };
+const dayKey = (d: Date) => `day-${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 
 const taskDate = (t: CalendarTask): Date | null => {
   const raw = t.nextOccurrenceDueAt || t.dueDate;
   return raw ? new Date(raw) : null;
 };
+const isRecurring = (t: CalendarTask) => !!(t.recurrence && t.recurrence.type);
 
-const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [], onOpenTask }) => {
+// Собрать новую дату: берём день из дропа, время — из старого dueDate (или 00:00, если было без времени)
+function buildNewDue(task: CalendarTask, dropDay: Date): string {
+  const old = task.dueDate ? new Date(task.dueDate) : null;
+  const d = new Date(dropDay);
+  if (old && !isNaN(old.getTime())) {
+    d.setHours(old.getHours(), old.getMinutes(), old.getSeconds(), 0);
+  } else {
+    d.setHours(0, 0, 0, 0);
+  }
+  return d.toISOString();
+}
+
+// ==== Droppable ячейка дня ====
+const DayCell: React.FC<{
+  day: Date;
+  isToday: boolean;
+  isSelected: boolean;
+  hasOverdue: boolean;
+  onClick: () => void;
+  variant: 'month' | 'week';
+  children?: React.ReactNode;
+}> = ({ day, isToday, isSelected, hasOverdue, onClick, variant, children }) => {
+  const { setNodeRef, isOver } = useDroppable({ id: dayKey(day) });
+
+  if (variant === 'week') {
+    return (
+      <button
+        ref={setNodeRef}
+        type="button"
+        className={'calendar-week-day' + (isToday ? ' calendar-week-day--today' : '') + (isSelected ? ' calendar-week-day--selected' : '') + (isOver ? ' calendar-week-day--over' : '')}
+        onClick={onClick}
+      >
+        {children}
+      </button>
+    );
+  }
+
+  return (
+    <button
+      ref={setNodeRef}
+      type="button"
+      className={'calendar-cell' + (isToday ? ' calendar-cell--today' : '') + (isSelected ? ' calendar-cell--selected' : '') + (isOver ? ' calendar-cell--over' : '')}
+      onClick={onClick}
+    >
+      {children}
+      {hasOverdue && (
+        <span className="calendar-dots">
+          <span className="calendar-dot calendar-dot--overdue" />
+        </span>
+      )}
+    </button>
+  );
+};
+
+// ==== Draggable карточка задачи ====
+const DraggableTask: React.FC<{
+  task: CalendarTask;
+  onOpen: () => void;
+}> = ({ task, onOpen }) => {
+  const recurring = isRecurring(task);
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: `task-${task._id}`,
+    data: { taskId: task._id },
+    disabled: recurring,
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={'calendar-task' + (isDragging ? ' calendar-task--dragging' : '') + (recurring ? ' calendar-task--locked' : '')}
+      onClick={onOpen}
+      role="button"
+      tabIndex={0}
+      title={recurring ? 'Повторяющаяся задача: перенос пока недоступен' : 'Перетащите, чтобы изменить дедлайн'}
+      onKeyDown={(e) => { if (e.key === 'Enter') onOpen(); }}
+      {...(recurring ? {} : listeners)}
+      {...(recurring ? {} : { ...attributes, role: 'button', tabIndex: 0 })}
+    >
+      <span className={'calendar-task-priority calendar-task-priority--' + (task.priority || 1)} />
+      {task.title}
+    </div>
+  );
+};
+
+const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [], onOpenTask, onTaskMoved }) => {
   const finalSet = new Set(finalStatusIds);
   const today = startOfDay(new Date());
   const [view, setView] = useState<ViewMode>('month');
   const [cursor, setCursor] = useState<Date>(new Date(today.getFullYear(), today.getMonth(), 1));
   const [selected, setSelected] = useState<Date>(today);
+  const [activeTask, setActiveTask] = useState<CalendarTask | null>(null);
 
-  // Задачи на конкретный день (повторяющиеся — на день последней неподтверждённой просрочки)
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+
   const tasksByDay = (day: Date) => tasks.filter((t) => {
     if (t.recurrence && t.lastOverdueAt) {
       const od = new Date(t.lastOverdueAt);
@@ -63,35 +163,24 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
     return d && d.getTime() < Date.now();
   };
 
-  // ==== навигация ====
   const navigate = (dir: -1 | 1) => {
     if (view === 'month') {
       const d = new Date(cursor.getFullYear(), cursor.getMonth() + dir, 1);
-      setCursor(d);
-      setSelected(d);
+      setCursor(d); setSelected(d);
     } else if (view === 'week') {
-      const d = addDays(cursor, dir * 7);
-      setCursor(d);
-      setSelected(d);
+      const d = addDays(cursor, dir * 7); setCursor(d); setSelected(d);
     } else {
-      const d = addDays(cursor, dir);
-      setCursor(d);
-      setSelected(d);
+      const d = addDays(cursor, dir); setCursor(d); setSelected(d);
     }
   };
 
-  const goToday = () => {
-    setCursor(today);
-    setSelected(today);
-  };
+  const goToday = () => { setCursor(today); setSelected(today); };
 
   const switchView = (v: ViewMode) => {
     setView(v);
-    // при смене вида курсор — на выбранный день
     setCursor(v === 'month' ? new Date(selected.getFullYear(), selected.getMonth(), 1) : selected);
   };
 
-  // ==== заголовок ====
   const title = (() => {
     if (view === 'month') return `${MONTHS[cursor.getMonth()]} ${cursor.getFullYear()}`;
     if (view === 'week') {
@@ -105,6 +194,33 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
     return `${selected.getDate()} ${MONTHS_GEN[selected.getMonth()]} ${selected.getFullYear()}`;
   })();
 
+  // ==== DnD ====
+  const handleDragStart = (e: DragStartEvent) => {
+    const id = String(e.active.id).replace('task-', '');
+    setActiveTask(tasks.find((t) => t._id === id) || null);
+  };
+
+  const handleDragEnd = async (e: DragEndEvent) => {
+    setActiveTask(null);
+    const { active, over } = e;
+    if (!over || !onTaskMoved) return;
+    const taskId = String(active.id).replace('task-', '');
+    const task = tasks.find((t) => t._id === taskId);
+    if (!task || isRecurring(task)) return;
+
+    const overId = String(over.id);
+    if (!overId.startsWith('day-')) return;
+    const [, y, m, d] = overId.split('-').map((x) => parseInt(x, 10));
+    const dropDay = new Date(y, m, d);
+
+    // Дроп на тот же день — ничего
+    const oldDate = task.dueDate ? new Date(task.dueDate) : null;
+    if (oldDate && sameDay(oldDate, dropDay)) return;
+
+    const newDue = buildNewDue(task, dropDay);
+    await onTaskMoved(task._id, newDue);
+  };
+
   // ==== месяц ====
   const renderMonth = () => {
     const year = cursor.getFullYear();
@@ -112,7 +228,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
     const firstDay = new Date(year, month, 1);
     const startOffset = (firstDay.getDay() + 6) % 7;
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-
     const cells: (Date | null)[] = [];
     for (let i = 0; i < startOffset; i++) cells.push(null);
     for (let d = 1; d <= daysInMonth; d++) cells.push(new Date(year, month, d));
@@ -121,24 +236,19 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
       <div className="calendar-grid">
         {cells.map((day, i) => {
           if (!day) return <div key={'e' + i} className="calendar-cell calendar-cell--empty" />;
-          const dayTasks = tasksByDay(day);
-          const overdueCount = dayTasks.filter((t) => isOverdueForDay(t, day)).length;
-          const isToday = sameDay(day, today);
-          const isSelected = sameDay(day, selected);
+          const hasOverdue = tasksByDay(day).some((t) => isOverdueForDay(t, day));
           return (
-            <button
+            <DayCell
               key={day.toISOString()}
-              type="button"
-              className={'calendar-cell' + (isToday ? ' calendar-cell--today' : '') + (isSelected ? ' calendar-cell--selected' : '')}
+              day={day}
+              isToday={sameDay(day, today)}
+              isSelected={sameDay(day, selected)}
+              hasOverdue={hasOverdue}
               onClick={() => setSelected(day)}
+              variant="month"
             >
               <span className="calendar-daynum">{day.getDate()}</span>
-              {overdueCount > 0 && (
-                <span className="calendar-dots">
-                  <span className="calendar-dot calendar-dot--overdue" />
-                </span>
-              )}
-            </button>
+            </DayCell>
           );
         })}
       </div>
@@ -152,24 +262,25 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
     return (
       <div className="calendar-week">
         {days.map((day) => {
-          const overdueCount = tasksByDay(day).filter((t) => isOverdueForDay(t, day)).length;
-          const isToday = sameDay(day, today);
-          const isSelected = sameDay(day, selected);
+          const hasOverdue = tasksByDay(day).some((t) => isOverdueForDay(t, day));
           return (
-            <button
+            <DayCell
               key={day.toISOString()}
-              type="button"
-              className={'calendar-week-day' + (isToday ? ' calendar-week-day--today' : '') + (isSelected ? ' calendar-week-day--selected' : '')}
+              day={day}
+              isToday={sameDay(day, today)}
+              isSelected={sameDay(day, selected)}
+              hasOverdue={hasOverdue}
               onClick={() => setSelected(day)}
+              variant="week"
             >
               <span className="calendar-week-dayname">{WEEKDAYS[(day.getDay() + 6) % 7]}</span>
               <span className="calendar-week-daynum">{day.getDate()}</span>
-              {overdueCount > 0 && (
+              {hasOverdue && (
                 <span className="calendar-dots">
                   <span className="calendar-dot calendar-dot--overdue" />
                 </span>
               )}
-            </button>
+            </DayCell>
           );
         })}
       </div>
@@ -189,50 +300,57 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
         <div className="calendar-empty">На этот день задач нет</div>
       ) : (
         selectedTasks.map((t) => (
-          <div key={t._id} className="calendar-task" onClick={() => onOpenTask(t._id)} role="button" tabIndex={0}
-            onKeyDown={(e) => { if (e.key === 'Enter') onOpenTask(t._id); }}>
-            <span className={'calendar-task-priority calendar-task-priority--' + (t.priority || 1)} />
-            {t.title}
-          </div>
+          <DraggableTask key={t._id} task={t} onOpen={() => onOpenTask(t._id)} />
         ))
       )}
     </div>
   );
 
   return (
-    <div className="calendar">
-      <div className="calendar-viewswitch">
-        {(['month', 'week', 'day'] as ViewMode[]).map((v) => (
-          <button
-            key={v}
-            type="button"
-            className={'calendar-viewswitch-btn' + (view === v ? ' calendar-viewswitch-btn--active' : '')}
-            onClick={() => switchView(v)}
-          >
-            {v === 'month' ? 'Месяц' : v === 'week' ? 'Неделя' : 'День'}
-          </button>
-        ))}
+    <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+      <div className="calendar">
+        <div className="calendar-viewswitch">
+          {(['month', 'week', 'day'] as ViewMode[]).map((v) => (
+            <button
+              key={v}
+              type="button"
+              className={'calendar-viewswitch-btn' + (view === v ? ' calendar-viewswitch-btn--active' : '')}
+              onClick={() => switchView(v)}
+            >
+              {v === 'month' ? 'Месяц' : v === 'week' ? 'Неделя' : 'День'}
+            </button>
+          ))}
+        </div>
+
+        <div className="calendar-header">
+          <div className="calendar-title">{title}</div>
+          <div className="calendar-nav-row">
+            <button type="button" className="calendar-nav" onClick={() => navigate(-1)} aria-label="Назад">‹</button>
+            <button type="button" className="calendar-today-btn" onClick={goToday}>Сегодня</button>
+            <button type="button" className="calendar-nav" onClick={() => navigate(1)} aria-label="Вперёд">›</button>
+          </div>
+        </div>
+
+        {view !== 'day' && (
+          <div className="calendar-weekdays">
+            {WEEKDAYS.map((w) => <div key={w} className="calendar-weekday">{w}</div>)}
+          </div>
+        )}
+
+        {view === 'month' && renderMonth()}
+        {view === 'week' && renderWeek()}
+        {renderDayPanel()}
       </div>
 
-      <div className="calendar-header">
-        <div className="calendar-title">{title}</div>
-        <div className="calendar-nav-row">
-          <button type="button" className="calendar-nav" onClick={() => navigate(-1)} aria-label="Назад">‹</button>
-          <button type="button" className="calendar-today-btn" onClick={goToday}>Сегодня</button>
-          <button type="button" className="calendar-nav" onClick={() => navigate(1)} aria-label="Вперёд">›</button>
-        </div>
-      </div>
-
-      {view !== 'day' && (
-        <div className="calendar-weekdays">
-          {WEEKDAYS.map((w) => <div key={w} className="calendar-weekday">{w}</div>)}
-        </div>
-      )}
-
-      {view === 'month' && renderMonth()}
-      {view === 'week' && renderWeek()}
-      {renderDayPanel()}
-    </div>
+      <DragOverlay>
+        {activeTask ? (
+          <div className="calendar-task calendar-task--overlay">
+            <span className={'calendar-task-priority calendar-task-priority--' + (activeTask.priority || 1)} />
+            {activeTask.title}
+          </div>
+        ) : null}
+      </DragOverlay>
+    </DndContext>
   );
 };
 

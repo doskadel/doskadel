@@ -854,6 +854,11 @@ z-index: 10;
 .calendar-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--color-primary); }
 .calendar-dot--overdue { background: var(--color-danger); }
 .calendar-cell--selected .calendar-dot--overdue { background: var(--color-danger); }
+.calendar-cell--over { border-color: var(--color-primary); background: color-mix(in srgb, var(--color-primary) 12%, transparent); }
+.calendar-week-day--over { border-color: var(--color-primary); background: color-mix(in srgb, var(--color-primary) 12%, transparent); }
+.calendar-task--dragging { opacity: 0.4; }
+.calendar-task--locked { cursor: not-allowed; }
+.calendar-task--overlay { background: var(--color-surface); box-shadow: var(--shadow-md); cursor: grabbing; }
 .calendar-day-panel { margin-top: var(--space-md); }
 .calendar-day-title { font-weight: 600; margin-bottom: var(--space-sm); text-transform: capitalize; }
 .calendar-empty { color: var(--color-text-muted); font-size: 14px; }
