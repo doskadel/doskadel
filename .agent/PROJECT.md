@@ -32,6 +32,25 @@
 - **UI:** tokens.css и useTheme.ts (темы), lucide-react, настройки дашборда (тогглы блоков, порядок, поле количества), выровнены заголовки блоков без иконок, ряд кнопок Главной в одну строку (46px).
 - **Решения оператора:** личное использование и малые команды, но фундамент мультитенантности заложен (2026-10-04): данные привязаны к workspace, доступ через can(), личный режим = workspace из одного; расширение до группового/корпоративного без смены схемы. Бот в проде через серверный API, изменения только через превью с подтверждением; drag на самом дашборде и виджеты отклонены, порядок блоков только в настройках.
 
+## F1c (переделка повторяемости) — в работе, ветка wip/recurrence-f1c
+
+**Цель:** одна сущность Task, recurrence = параметр; Occurrence = исключения/история. Вхождения на лету.
+
+**Бэкенд — готов:**
+- Модель: Task.recurrence {freq, interval, byWeekday[], byMonthDay, time, until, count, tz}; Occurrence {originalDate ключ, status pending|done|skipped|missed, completedAt}; unique {taskId, originalDate}.
+- Миграции: migrate-recurrence (daily/weekly/monthly->freq, tz), migrate-cleanup-pending.
+- Вхождения на лету (dueItems.computeOccurrences), материализация под пуш (upsert), атомарная пометка (at-most-once, attempts).
+- API: POST /api/occurrences/action (done/skip/undo/move scope this/following/all), POST /complete-series. Split на две Task (seriesId/prevTaskId/until), компенсация при сбое.
+- Авто-missed (utils/autoMissed, dry-run), завершение по count/until. closedReason=split скрыт из активных.
+- tz: user.timezone, recurrence.tz обязателен (IANA), расчёты в зоне пользователя (X-Timezone). Фикс валидации (middleware validate).
+- Тесты (81): actions 19, recurrence 16, can 18, isolation 13, regression 6, split-fail 3, tz 6.
+
+**Фронт — начат, НЕ завершён:**
+- Готов: OccurrenceActionDialog (диалог действий+scope), useOccurrences под новый API.
+- ОСТАЛОСЬ: utils/recurrence.ts на старом формате (type/dayOfWeek) — НЕсовместим, перевести; форма «Повторять»; этап 4 UI (доска/список/календарь/история); подключить диалог; снять запрет DnD повторяющихся (F1b); убрать старые confirm/unconfirm.
+
+**Todo:** W3 (UI tz-настройки), W4 (аудит консистентности split).
+
 ## Статус (2026-10-04)
 - ✅ W1 (фундамент workspace) — закрыт, в main (merge a090fae). Модели Workspace/Membership, can(), workspaceId во всех моделях, миграция, middleware, перевод API. Тесты: can 18/18, изоляция 13/13.
 - ⏭️ Дальше: F1c (переделка повторяемости) — ВЫСОКИЙ приоритет, отдельная ветка wip/recurrence-f1c, старт по сигналу арбитра. Сначала аудит Task/Occurrence/agenda/dueItems.
