@@ -2990,11 +2990,6 @@ color: var(--color-text);
   font-variant-numeric: tabular-nums;
 }
 
-/* В мета-строке карточки бейдж прижимается вправо и не переносится один */
-.task-card-meta > .task-pending-badge--sm {
-  margin-left: auto;
-  align-self: center;
-}
 
 /* Rail badge on ⏱ button */
 .modal-rail-btn--badge {
