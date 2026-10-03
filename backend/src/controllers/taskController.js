@@ -293,6 +293,16 @@ const updateTask = async (req, res) => {
       (oldTask.dueDate ? new Date(oldTask.dueDate).toISOString() : null) !==
       (newDue ? new Date(newDue).toISOString() : null);
 
+    // F1b: запрет смены дедлайна у повторяющейся задачи (DnD только разовых).
+    // Если повторение убирают в этом же запросе — смена dueDate допустима.
+    const wasRecurring = !!(oldTask.recurrence && oldTask.recurrence.type);
+    const staysRecurring = req.body.recurrence !== undefined
+      ? !!(req.body.recurrence && req.body.recurrence.type)
+      : wasRecurring;
+    if (dueChanged && wasRecurring && staysRecurring) {
+      return res.status(400).json({ success: false, message: 'Нельзя менять дедлайн повторяющейся задачи' });
+    }
+
     const allowed = ['title', 'description', 'statusId', 'priority', 'order', 'dueDate', 'recurrence', 'notifications'];
     const updateData = {};
     allowed.forEach((k) => { if (req.body[k] !== undefined) updateData[k] = req.body[k]; });
