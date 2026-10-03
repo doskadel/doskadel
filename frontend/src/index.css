@@ -871,7 +871,15 @@ z-index: 10;
 .calendar-task {
   display: flex; align-items: center; gap: var(--space-sm); padding: 10px 12px; border: 1px solid var(--color-border);
   border-radius: var(--radius-sm); background: var(--color-surface); margin-bottom: 6px; cursor: pointer; user-select: none;
+  position: relative; overflow: hidden;
 }
+.calendar-task-rail {
+  position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--color-border);
+  border-top-left-radius: var(--radius-sm); border-bottom-left-radius: var(--radius-sm);
+}
+.calendar-task-rail--overdue { width: 6px; background: var(--color-danger); }
+.calendar-task-rail--soon { background: var(--orange-500); }
+.calendar-task-rail--far { background: var(--color-success); }
 .calendar-task:hover { background: var(--color-bg); }
 .calendar-task-priority { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 .calendar-task-priority--1 { background: var(--green-400); }

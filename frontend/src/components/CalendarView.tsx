@@ -131,9 +131,8 @@ const DraggableTask: React.FC<{
   const dayDate = getDayDate(task, day);
   const time = formatTime(dayDate);
 
-  // Цвет по дедлайну (как в списке/доске): overdue=3(красный), soon=2(оранжевый), far=1(зелёный)
-  const lvl = deadlineLevel(dayDate ? dayDate.toISOString() : null, 3);
-  const dotClass = lvl === 'overdue' ? 3 : lvl === 'soon' ? 2 : 1;
+  // Цвет по дедлайну (как в списке/доске): overdue/soon/far
+  const lvl = deadlineLevel(dayDate ? dayDate.toISOString() : null, 3) || 'far';
 
   return (
     <div
@@ -155,8 +154,8 @@ const DraggableTask: React.FC<{
           {...attributes}
         >⠿</span>
       )}
+      <span className={'calendar-task-rail calendar-task-rail--' + lvl} />
       {recurring && <span className="calendar-task-lock" title="Повторяющаяся: перенос недоступен">🔄</span>}
-      <span className={'calendar-task-priority calendar-task-priority--' + dotClass} />
       <span className="calendar-task-title">{task.title}</span>
       {time && <span className="calendar-task-time">{time}</span>}
     </div>
