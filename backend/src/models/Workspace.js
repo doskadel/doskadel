@@ -26,4 +26,10 @@ const workspaceSchema = new mongoose.Schema({
   timestamps: true
 });
 
+// Личный workspace у пользователя — ровно один (partial по isPersonal)
+workspaceSchema.index(
+  { createdBy: 1 },
+  { unique: true, partialFilterExpression: { isPersonal: true } }
+);
+
 module.exports = mongoose.model('Workspace', workspaceSchema);

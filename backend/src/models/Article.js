@@ -19,6 +19,7 @@ const articleSchema = new mongoose.Schema({
   workspaceId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Workspace',
+    required: true,
     index: true
   },
   createdBy: {
@@ -33,7 +34,7 @@ const articleSchema = new mongoose.Schema({
   timestamps: true
 });
 
-articleSchema.index({ userId: 1, createdAt: -1 }); // список статей
-articleSchema.index({ userId: 1, title: 1 }); // фильтр по title (префиксный)
+articleSchema.index({ workspaceId: 1, createdAt: -1 }); // список статей
+articleSchema.index({ workspaceId: 1, title: 1 }); // фильтр по title (префиксный)
 
 module.exports = mongoose.model('Article', articleSchema);

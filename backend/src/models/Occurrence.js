@@ -16,6 +16,7 @@ const occurrenceSchema = new mongoose.Schema({
   workspaceId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Workspace',
+    required: true,
     index: true
   },
   createdBy: {
@@ -57,7 +58,7 @@ const occurrenceSchema = new mongoose.Schema({
   timestamps: true
 });
 
-occurrenceSchema.index({ userId: 1, status: 1, dueAt: 1 });
+occurrenceSchema.index({ workspaceId: 1, status: 1, dueAt: 1 });
 occurrenceSchema.index({ taskId: 1, dueAt: -1 });
 occurrenceSchema.index({ taskId: 1, status: 1 });
 

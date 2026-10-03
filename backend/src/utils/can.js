@@ -38,4 +38,14 @@ async function isMember(userId, workspaceId) {
   return !!m;
 }
 
-module.exports = { can, isMember, roleCan, ROLE_ACTIONS };
+/**
+ * Проверка по уже полученному membership (без запроса в БД).
+ * @param {object} membership — req.membership (с role)
+ * @param {string} action
+ */
+function canByMembership(membership, action) {
+  if (!membership || !membership.role) return false;
+  return roleCan(membership.role, action);
+}
+
+module.exports = { can, canByMembership, isMember, roleCan, ROLE_ACTIONS };

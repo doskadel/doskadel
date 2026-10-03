@@ -18,7 +18,9 @@
 - Регистрация: создаёт Workspace+Membership(owner)+статусы с workspaceId.
 - Тест изоляции (scripts/test-isolation.js): 8/8 pass.
 
-**Отложено (триггер возврата):** приглашения, UI ролей, переключатель пространств (клиент начнёт слать X-Workspace-Id), биллинг, организации над workspace, user_settings/workspace_settings (сейчас настройки в User), auth_identities (OAuth/SSO).
+**Дополнено (ревью арбитра):** can() подключена в контроллерах (create/update/delete) через canByMembership(req.membership); unit-тест can() 18/18. workspaceId required + составные индексы {workspaceId,...}, userId-индексы удалены. Личный ws — partial unique индекс {createdBy} при isPersonal:true (ровно один). Тест изоляции расширен 11/11 (search/dashboard/Occurrence).
+
+**Отложено (триггер возврата):** приглашения, UI ролей, переключатель пространств (клиент начнёт слать X-Workspace-Id), биллинг, организации над workspace, user_settings/workspace_settings (сейчас настройки в User), auth_identities (OAuth/SSO), переименование userId->createdBy, правило получателей push (assigneeId/участники).
 
 ## 2026-10-04 — Фундамент workspace: решение по идентификаторам
 

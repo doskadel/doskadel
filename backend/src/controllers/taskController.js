@@ -4,6 +4,7 @@ const Occurrence = require('../models/Occurrence');
 const { getNextOccurrences } = require('../utils/recurrence');
 const escapeRegex = require('../utils/escapeRegex');
 const { SINGLE, RECURRING } = require('../utils/taskKinds');
+const { canByMembership } = require('../utils/can');
 const { summarizeOccurrences, enrichTaskDue } = require('../utils/taskDueSummary');
 
 const OCCURRENCE_HORIZON_DAYS = 7;
@@ -43,6 +44,9 @@ const generateOccurrencesForTask = async (task) => {
 
 const createTask = async (req, res) => {
   try {
+    if (!canByMembership(req.membership, 'create')) {
+      return res.status(403).json({ success: false, message: 'Forbidden' });
+    }
     let { statusId } = req.body;
 
     if (!statusId) {
@@ -288,6 +292,9 @@ const updateTask = async (req, res) => {
       workspaceId: req.workspaceId
     });
     if (!oldTask) return res.status(404).json({ success: false, message: 'Task not found' });
+    if (!canByMembership(req.membership, 'update')) {
+      return res.status(403).json({ success: false, message: 'Forbidden' });
+    }
 
     const recurrenceChanged = JSON.stringify(oldTask.recurrence || null) !==
       JSON.stringify(req.body.recurrence !== undefined ? req.body.recurrence : oldTask.recurrence);
@@ -339,6 +346,9 @@ const updateTask = async (req, res) => {
 
 const deleteTask = async (req, res) => {
   try {
+    if (!canByMembership(req.membership, 'delete')) {
+      return res.status(403).json({ success: false, message: 'Forbidden' });
+    }
     const task = await Task.findOneAndDelete({
       _id: req.params.id,
       workspaceId: req.workspaceId

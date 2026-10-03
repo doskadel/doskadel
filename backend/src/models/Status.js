@@ -10,6 +10,7 @@ const statusSchema = new mongoose.Schema({
   workspaceId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Workspace',
+    required: true,
     index: true
   },
   createdBy: {
@@ -48,6 +49,6 @@ const statusSchema = new mongoose.Schema({
   timestamps: true
 });
 
-statusSchema.index({ userId: 1, order: 1 });
+statusSchema.index({ workspaceId: 1, order: 1 });
 
 module.exports = mongoose.model('Status', statusSchema);

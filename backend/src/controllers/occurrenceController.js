@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Occurrence = require('../models/Occurrence');
 const Task = require('../models/Task');
+const { canByMembership } = require('../utils/can');
 
 // GET /api/occurrences/by-task/:taskId?status=pending|done
 const getByTask = async (req, res) => {
@@ -66,6 +67,7 @@ const getById = async (req, res) => {
 // PUT /api/occurrences/confirm  { ids: [...] }
 const confirmBatch = async (req, res) => {
   try {
+    if (!canByMembership(req.membership, 'update')) return res.status(403).json({ success: false, message: 'Forbidden' });
     const { ids } = req.body;
 
     if (!Array.isArray(ids) || ids.length === 0) {
@@ -101,6 +103,7 @@ const confirmBatch = async (req, res) => {
 // PUT /api/occurrences/unconfirm  { ids: [...] }
 const unconfirmBatch = async (req, res) => {
   try {
+    if (!canByMembership(req.membership, 'update')) return res.status(403).json({ success: false, message: 'Forbidden' });
     const { ids } = req.body;
 
     if (!Array.isArray(ids) || ids.length === 0) {

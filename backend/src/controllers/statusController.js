@@ -1,4 +1,5 @@
 const Status = require('../models/Status');
+const { canByMembership } = require('../utils/can');
 const Task = require('../models/Task');
 
 // Получение всех статусов пользователя
@@ -23,6 +24,7 @@ const getStatuses = async (req, res) => {
 // Создание статуса
 const createStatus = async (req, res) => {
   try {
+    if (!canByMembership(req.membership, 'create')) return res.status(403).json({ success: false, message: 'Forbidden' });
     const { name, color, isFinal } = req.body;
 
     if (!name || !name.trim()) {
@@ -64,6 +66,7 @@ const createStatus = async (req, res) => {
 // Обновление статуса (name, color, order, isFinal)
 const updateStatus = async (req, res) => {
   try {
+    if (!canByMembership(req.membership, 'update')) return res.status(403).json({ success: false, message: 'Forbidden' });
     const { name, color, order, isFinal } = req.body;
 
     const update = {};
@@ -136,6 +139,7 @@ const reorderStatuses = async (req, res) => {
 // Удаление статуса
 const deleteStatus = async (req, res) => {
   try {
+    if (!canByMembership(req.membership, 'delete')) return res.status(403).json({ success: false, message: 'Forbidden' });
     const status = await Status.findOne({
       _id: req.params.id,
       workspaceId: req.workspaceId
