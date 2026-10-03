@@ -4,13 +4,13 @@ const Article = require('../models/Article');
 const User = require('../models/User');
 const { SINGLE } = require('../utils/taskKinds');
 const { aggregateOccurrenceSummary } = require('../utils/taskDueSummary');
+const { resolveTz, endOfDayUtc } = require('../utils/tz');
+const { DateTime } = require('luxon');
 
-// Конец дня (23:59:59.999) через N календарных дней от сегодня (локальное время сервера).
-const endOfDayPlus = (n) => {
-  const d = new Date();
-  d.setDate(d.getDate() + n);
-  d.setHours(23, 59, 59, 999);
-  return d;
+// Конец дня через N календарных дней ОТ СЕГОДНЯ В ЗОНЕ ПОЛЬЗОВАТЕЛЯ (в UTC).
+const endOfDayPlusTz = (n, tz) => {
+  const target = DateTime.now().setZone(tz).plus({ days: n });
+  return target.endOf('day').toUTC().toJSDate();
 };
 
 const getDashboard = async (req, res) => {
@@ -27,14 +27,15 @@ const getDashboard = async (req, res) => {
 
     const activeStatusIds = statuses.filter((s) => !s.isFinal).map((s) => s._id);
     const now = new Date();
-    const user = await User.findById(userId).select('dashboardSettings');
+    const user = await User.findById(userId).select('dashboardSettings timezone');
     const upcomingDays = (user && user.dashboardSettings && user.dashboardSettings.upcomingDays) || 3;
     const blocksCfg = (user && user.dashboardSettings && user.dashboardSettings.blocks) || [];
     const limitOf = (id, def) => {
       const b = blocksCfg.find((x) => x.id === id);
       return b && b.config && b.config.limit ? b.config.limit : def;
     };
-    const upcomingLimit = endOfDayPlus(upcomingDays);
+    const tz = resolveTz(user, req.get('X-Timezone'));
+    const upcomingLimit = endOfDayPlusTz(upcomingDays, tz);
 
     // ==== ПРОСРОЧЕНО ====
     // 1) Разовые задачи с dueDate < now

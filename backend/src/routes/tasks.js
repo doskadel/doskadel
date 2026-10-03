@@ -1,5 +1,6 @@
 const express = require('express');
 const { body } = require('express-validator');
+const validate = require('../middleware/validate');
 const auth = require('../middleware/auth');
 const workspaceContext = require('../middleware/workspace');
 const taskController = require('../controllers/taskController');
@@ -52,11 +53,11 @@ const recurrenceValidation = body('recurrence')
     return true;
   });
 
-router.post('/', [priorityValidation, dueDateValidation, recurrenceValidation], taskController.createTask);
+router.post('/', [priorityValidation, dueDateValidation, recurrenceValidation, validate], taskController.createTask);
 router.get('/', taskController.getTasks);
 router.put('/reorder', taskController.reorderTasks);
 router.get('/:id', taskController.getTaskById);
-router.put('/:id', [priorityValidation, dueDateValidation, recurrenceValidation], taskController.updateTask);
+router.put('/:id', [priorityValidation, dueDateValidation, recurrenceValidation, validate], taskController.updateTask);
 router.delete('/:id', taskController.deleteTask);
 
 module.exports = router;
