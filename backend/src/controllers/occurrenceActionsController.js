@@ -254,4 +254,4 @@ const completeSeries = async (req, res) => {
   }
 };
 
-module.exports = { action, completeSeries };
+module.exports = { action, completeSeries, splitSeriesTest: splitSeries };
