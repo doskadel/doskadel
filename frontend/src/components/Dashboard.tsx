@@ -379,7 +379,7 @@ const Dashboard: React.FC = () => {
                 id: b.id,
                 label: BLOCK_LABELS[b.id] || b.id,
                 enabled: b.visible,
-                extra: (b.id === 'recentTasks' || b.id === 'recentArticles' || b.id === 'overdue' || b.id === 'upcoming') ? (
+                extra: b.visible && (b.id === 'recentTasks' || b.id === 'recentArticles' || b.id === 'overdue' || b.id === 'upcoming') ? (
                   <input
                     type="number"
                     min={1}
