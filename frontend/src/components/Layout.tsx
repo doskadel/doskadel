@@ -70,45 +70,52 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <div className="layout">
       <header className="layout-header">
-        <div className="layout-header-left">
-          {isNested && (
-            <button onClick={handleBack} className="layout-back" title="Назад">←</button>
-          )}
-          <Link to="/" className="layout-logo">DoskaDel</Link>
-        </div>
+        <div className="layout-header-inner">
+          <div className="layout-header-left">
+            {isNested && (
+              <button onClick={handleBack} className="layout-back" title="Назад">←</button>
+            )}
+            <Link to="/" className="layout-logo">DoskaDel</Link>
 
-        <div className="layout-header-right">
-          {/* Навигация для ПК/широких экранов */}
-          <nav className="layout-nav layout-nav--desktop">
-            {navItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={isActive(item.path) ? 'layout-nav-link layout-nav-link--active' : 'layout-nav-link'}
-              >
-                {item.icon}
-                <span>{item.label}</span>
-              </Link>
-            ))}
+            {/* Навигация для ПК/широких экранов */}
+            <nav className="layout-nav layout-nav--desktop" aria-label="Основная навигация">
+              {navItems.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  aria-current={isActive(item.path) ? 'page' : undefined}
+                  className={isActive(item.path) ? 'layout-nav-link layout-nav-link--active' : 'layout-nav-link'}
+                >
+                  {item.icon}
+                  <span>{item.label}</span>
+                </Link>
+              ))}
+            </nav>
+          </div>
+
+          <div className="layout-header-right">
+            {/* Поиск — действие справа */}
             <button
               type="button"
-              className="layout-nav-link layout-nav-link--button"
+              className="layout-search-btn"
               onClick={() => setSearchOpen(true)}
-              title="Поиск"
+              title="Поиск (Ctrl+K)"
+              aria-label="Поиск"
             >
-              Поиск
+              <Search size={18} />
+              <span className="layout-search-text">Поиск…</span>
+              <kbd className="layout-search-kbd">Ctrl K</kbd>
             </button>
-          </nav>
-          {/* Аватар/профиль — виден на всех размерах */}
-          <button
-            type="button"
-            className="layout-avatar"
-            onClick={() => setProfileOpen(true)}
-            title="Профиль"
-            aria-label="Профиль"
-          >
-            <span className="layout-avatar-inner"><User size={20} /></span>
-          </button>
+            <button
+              type="button"
+              className="layout-avatar"
+              onClick={() => setProfileOpen(true)}
+              title="Профиль"
+              aria-label="Профиль"
+            >
+              <span className="layout-avatar-inner"><User size={20} /></span>
+            </button>
+          </div>
         </div>
       </header>
 
