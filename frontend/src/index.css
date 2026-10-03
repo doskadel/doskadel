@@ -843,6 +843,9 @@ z-index: 10;
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-card);
   overflow: hidden;
+  max-width: 560px;
+  width: 100%;
+  margin: 0 auto;
 }
 .calendar-card-header {
   display: flex; flex-direction: column; gap: 10px;
