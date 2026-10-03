@@ -19,6 +19,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { Status } from '../utils/status';
 import { formatDueDate, isOverdue, deadlineLevel } from '../utils/date';
+import { useUpcomingDays } from '../hooks/useUpcomingDays';
 import { Recurrence, formatRecurrenceShort } from '../utils/recurrence';
 
 export interface KanbanTask {
@@ -65,9 +66,10 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, statusColor, onOpen
   const overdue = isOverdue(task.dueDate);
   const isRecurring = !!task.recurrence;
   const pendingCount = task.pendingOccurrenceCount || 0;
+  const upcomingDays = useUpcomingDays();
   const dl = isRecurring
     ? (pendingCount > 0 ? 'overdue' : 'far')
-    : deadlineLevel(task.dueDate);
+    : deadlineLevel(task.dueDate, upcomingDays);
 
   return (
     <div

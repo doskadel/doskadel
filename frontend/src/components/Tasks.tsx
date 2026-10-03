@@ -49,6 +49,7 @@ import ClearableField from './ClearableField';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { PRIORITY_OPTIONS, getPriorityLabel } from '../utils/priority';
 import { deadlineLevel } from '../utils/date';
+import { useUpcomingDays } from '../hooks/useUpcomingDays';
 import { Status } from '../utils/status';
 import { formatDueDate, isOverdue } from '../utils/date';
 import { Recurrence, isRecurrenceValid, formatRecurrenceShort, getDefaultRecurrence } from '../utils/recurrence';
@@ -127,6 +128,7 @@ const Tasks: React.FC = () => {
   const [viewsEditOpen, setViewsEditOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
   const [settingsView, setSettingsView] = useState<'main' | 'views'>('main');
+  const upcomingDays = useUpcomingDays();
   const infoRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
@@ -632,7 +634,7 @@ const Tasks: React.FC = () => {
                 tabIndex={0}
                 onKeyDown={(e) => { if (e.key === 'Enter') openTask(task._id); }}
               >
-                <div className={'task-card-rail' + (task.recurrence ? ((task.pendingOccurrenceCount || 0) > 0 ? ' task-card-rail--overdue' : ' task-card-rail--far') : (deadlineLevel(task.dueDate) ? ' task-card-rail--' + deadlineLevel(task.dueDate) : ''))} />
+                <div className={'task-card-rail' + (task.recurrence ? ((task.pendingOccurrenceCount || 0) > 0 ? ' task-card-rail--overdue' : ' task-card-rail--far') : (deadlineLevel(task.dueDate, upcomingDays) ? ' task-card-rail--' + deadlineLevel(task.dueDate, upcomingDays) : ''))} />
                 <div className="task-card-content">
                   <h3 className="task-card-title">{task.title}</h3>
                   {task.description && (

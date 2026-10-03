@@ -53,12 +53,14 @@ export type DeadlineLevel = 'overdue' | 'soon' | 'far';
  * Уровень близости дедлайна:
  * overdue — прошёл, soon — до 3 дней, far — больше 3 дней. null — нет дедлайна.
  */
-export const deadlineLevel = (iso: string | null | undefined): DeadlineLevel | null => {
+export const deadlineLevel = (iso: string | null | undefined, days: number = 3): DeadlineLevel | null => {
   if (!iso) return null;
   const d = new Date(iso);
   if (isNaN(d.getTime())) return null;
-  const diff = d.getTime() - Date.now();
-  if (diff < 0) return 'overdue';
-  if (diff <= 3 * 24 * 60 * 60 * 1000) return 'soon';
-  return 'far';
+  if (d.getTime() < Date.now()) return 'overdue';
+  // Граница — конец дня через N календарных дней (как на бэке)
+  const limit = new Date();
+  limit.setDate(limit.getDate() + days);
+  limit.setHours(23, 59, 59, 999);
+  return d.getTime() <= limit.getTime() ? 'soon' : 'far';
 };
