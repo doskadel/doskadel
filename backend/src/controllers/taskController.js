@@ -263,8 +263,11 @@ const getTasks = async (req, res) => {
         const info = pendingMap.get(String(obj._id));
         obj.pendingOccurrenceCount = info ? info.count : 0;
         obj.nextOccurrenceDueAt = info && info.nextAt ? info.nextAt : (info && info.lastAt ? info.lastAt : null);
+        // Дата ПОСЛЕДНЕЙ неподтверждённой просрочки (для метки в календаре)
+        obj.lastOverdueAt = info && info.lastAt ? info.lastAt : null;
       } else {
         obj.nextOccurrenceDueAt = obj.dueDate || null;
+        obj.lastOverdueAt = null;
       }
       return obj;
     });

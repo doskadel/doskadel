@@ -159,7 +159,8 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
   }
 
   const due = task.dueDate;
-  const overdue = isOverdue(due);
+  const taskFinal = !!statuses.find((s) => s._id === task.statusId)?.isFinal;
+  const overdue = !taskFinal && isOverdue(due);
   const isRecurring = !!task.recurrence;
 
   return (

@@ -5,6 +5,9 @@ interface CalendarTask {
   title: string;
   dueDate?: string | null;
   nextOccurrenceDueAt?: string | null;
+  lastOverdueAt?: string | null;
+  recurrence?: any;
+  pendingOccurrenceCount?: number;
   priority?: number;
   statusId?: string;
 }
@@ -72,6 +75,11 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
           const dayTasks = tasksByDay(day);
           const overdueCount = dayTasks.filter((t) => {
             if (t.statusId && finalSet.has(t.statusId)) return false;
+            // повторяющиеся: точка на дне ПОСЛЕДНЕЙ неподтверждённой просрочки
+            if (t.recurrence && t.lastOverdueAt) {
+              const d = new Date(t.lastOverdueAt);
+              return !isNaN(d.getTime()) && sameDay(d, day);
+            }
             const d = taskDate(t);
             return d && d.getTime() < Date.now();
           }).length;
