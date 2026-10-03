@@ -22,13 +22,21 @@ async function resolveSettings(user) {
   }
   // чистим statusIds от удалённых статусов
   const own = new Set((await Status.find({ userId: user._id }).select('_id')).map((s) => String(s._id)));
-  const blocks = ds.blocks.map((b) => ({
+  const saved = ds.blocks.map((b) => ({
     id: b.id,
     visible: b.visible,
     order: b.order,
     statusIds: (b.statusIds || []).filter((id) => own.has(String(id))),
   }));
-  return { upcomingDays: ds.upcomingDays || 3, blocks };
+  // Новые блоки (которых нет в сохранённых) — добавляем в конец, не ломая старых.
+  const savedIds = new Set(saved.map((b) => b.id));
+  let nextOrder = saved.reduce((m, b) => Math.max(m, b.order), -1) + 1;
+  DEFAULT_DASHBOARD.blocks.forEach((d) => {
+    if (!savedIds.has(d.id)) {
+      saved.push({ id: d.id, visible: d.visible, order: nextOrder++, statusIds: [] });
+    }
+  });
+  return { upcomingDays: ds.upcomingDays || 3, blocks: saved };
 }
 
 // GET /api/settings/dashboard

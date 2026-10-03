@@ -1,5 +1,11 @@
 /* Токены — в tokens.css */
+.dashboard-sections { display: flex; flex-direction: column; }
 .dash-set-row { display: flex; align-items: center; gap: 10px; padding: 8px 4px; cursor: pointer; font-size: 15px; }
+.dash-block-row { display: flex; align-items: center; gap: 8px; padding: 6px 4px; font-size: 15px; }
+.dash-block-name { flex: 1; }
+.dash-arrow { width: 30px; height: 30px; border: 1px solid var(--color-border); background: var(--color-surface); border-radius: var(--radius-sm); cursor: pointer; font-size: 15px; color: var(--color-text); }
+.dash-arrow:hover:not(:disabled) { border-color: var(--color-primary); color: var(--color-primary); }
+.dash-arrow:disabled { opacity: 0.4; cursor: default; }
 .more-page-list { display: flex; flex-direction: column; gap: 8px; }
 .more-page-item {
   display: flex; align-items: center; gap: 14px; padding: 16px; width: 100%; text-align: left;

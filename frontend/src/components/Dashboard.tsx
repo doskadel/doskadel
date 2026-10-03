@@ -63,12 +63,23 @@ const Dashboard: React.FC = () => {
   const [upcomingDays, setUpcomingDays] = useState<number>(3);
   const [allStatuses, setAllStatuses] = useState<Array<{ _id: string; name: string; key?: string | null }>>([]);
   const [savingSettings, setSavingSettings] = useState(false);
+  const [blocks, setBlocks] = useState<Array<{ id: string; visible: boolean; order: number; statusIds: string[] }>>([]);
+
+  const BLOCK_LABELS: Record<string, string> = {
+    byStatus: 'Задачи по статусам',
+    overdue: 'Просрочено',
+    upcoming: 'Ближайшие сроки',
+    recentTasks: 'Последние задачи',
+    recentArticles: 'Последние статьи',
+  };
 
   useEffect(() => {
     fetchDashboard();
     api.get('/api/settings/dashboard')
       .then((r) => {
-        const b = (r.data?.settings?.blocks || []).find((x: any) => x.id === 'byStatus');
+        const bl = r.data?.settings?.blocks || [];
+        setBlocks(bl);
+        const b = bl.find((x: any) => x.id === 'byStatus');
         setByStatusOrder(b ? b.statusIds : []);
         if (r.data?.settings?.upcomingDays) setUpcomingDays(r.data.settings.upcomingDays);
       })
@@ -125,6 +136,24 @@ const Dashboard: React.FC = () => {
       .sort((a, b) => (orderMap.get(a.statusId)! - orderMap.get(b.statusId)!));
   })();
 
+  const moveBlock = (id: string, dir: -1 | 1) => {
+    const sorted = [...blocks].sort((a, b) => a.order - b.order);
+    const idx = sorted.findIndex((b) => b.id === id);
+    const j = idx + dir;
+    if (idx < 0 || j < 0 || j >= sorted.length) return;
+    [sorted[idx], sorted[j]] = [sorted[j], sorted[idx]];
+    setBlocks(sorted.map((b, i) => ({ ...b, order: i })));
+  };
+
+  const sectionOrder = (id: string): number => {
+    const b = blocks.find((x) => x.id === id);
+    return b ? b.order : 99;
+  };
+  const blockVisible = (id: string): boolean => {
+    const b = blocks.find((x) => x.id === id);
+    return b ? b.visible : true;
+  };
+
   // Сколько ещё вхождений, кроме той, что показываем
   const extraOccurrences = (t: DueTask): number => {
     if (!t.occurrenceCount || t.occurrenceCount <= 1) return 0;
@@ -171,10 +200,10 @@ const Dashboard: React.FC = () => {
           </p>
         </div>
       ) : (
-        <>
+        <div className="dashboard-sections">
           {/* --- ПРОСРОЧЕНО --- */}
-          {data.overdueTasks.length > 0 && (
-            <div className="dashboard-section">
+          {blockVisible('overdue') && data.overdueTasks.length > 0 && (
+            <div className="dashboard-section" style={{ order: sectionOrder('overdue') }}>
               <div className="dashboard-section-header">
                 <h3 className="dashboard-section-title dashboard-section-title--danger">
                   <AlertTriangle size={18} /> Просрочено ({data.overdueDistinctTasks ?? data.overdueTasks.length})
@@ -214,8 +243,8 @@ const Dashboard: React.FC = () => {
           )}
 
           {/* --- БЛИЖАЙШИЕ СРОКИ --- */}
-          {data.upcomingTasks.length > 0 && (
-            <div className="dashboard-section">
+          {blockVisible('upcoming') && data.upcomingTasks.length > 0 && (
+            <div className="dashboard-section" style={{ order: sectionOrder('upcoming') }}>
               <div className="dashboard-section-header">
                 <h3 className="dashboard-section-title">
                   <Calendar size={18} /> Ближайшие сроки ({data.upcomingDistinctTasks ?? data.upcomingTasks.length})
@@ -255,8 +284,8 @@ const Dashboard: React.FC = () => {
           )}
 
           {/* --- ЗАДАЧИ ПО СТАТУСАМ --- */}
-          {visibleStatuses.length > 0 && (
-            <div className="dashboard-section">
+          {blockVisible('byStatus') && visibleStatuses.length > 0 && (
+            <div className="dashboard-section" style={{ order: sectionOrder('byStatus') }}>
               <h3 className="dashboard-section-title">Задачи по статусам</h3>
               <div className="dashboard-status-grid">
                 {visibleStatuses.map((s) => (
@@ -283,8 +312,9 @@ const Dashboard: React.FC = () => {
           )}
 
           {/* --- ПОСЛЕДНИЕ ЗАДАЧИ --- */}
-          {data.recentTasks.length > 0 && (
-            <div className="dashboard-section">
+          {/* (visible/order ниже) */}
+          {blockVisible('recentTasks') && data.recentTasks.length > 0 && (
+            <div className="dashboard-section" style={{ order: sectionOrder('recentTasks') }}>
               <div className="dashboard-section-header">
                 <h3 className="dashboard-section-title">Последние задачи</h3>
                 <button
@@ -314,8 +344,8 @@ const Dashboard: React.FC = () => {
           )}
 
           {/* --- ПОСЛЕДНИЕ СТАТЬИ --- */}
-          {data.recentArticles.length > 0 && (
-            <div className="dashboard-section">
+          {blockVisible('recentArticles') && data.recentArticles.length > 0 && (
+            <div className="dashboard-section" style={{ order: sectionOrder('recentArticles') }}>
               <div className="dashboard-section-header">
                 <h3 className="dashboard-section-title">Последние статьи</h3>
                 <button
@@ -343,12 +373,30 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
           )}
-        </>
+        </div>
       )}
 
       {settingsOpen && (
         <Modal open onClose={() => setSettingsOpen(false)} title="Настройки дашборда">
           <div className="fb-field">
+            <span className="fb-field-label">Блоки и порядок</span>
+            {[...blocks].sort((a, b) => a.order - b.order).map((b, i, arr) => (
+              <div key={b.id} className="dash-block-row">
+                <input
+                  type="checkbox"
+                  checked={b.visible}
+                  onChange={() => setBlocks(blocks.map((x) => x.id === b.id ? { ...x, visible: !x.visible } : x))}
+                />
+                <span className="dash-block-name">{BLOCK_LABELS[b.id] || b.id}</span>
+                <button type="button" className="dash-arrow" disabled={i === 0}
+                  onClick={() => moveBlock(b.id, -1)} aria-label="Выше">↑</button>
+                <button type="button" className="dash-arrow" disabled={i === arr.length - 1}
+                  onClick={() => moveBlock(b.id, 1)} aria-label="Ниже">↓</button>
+              </div>
+            ))}
+          </div>
+
+          <div className="fb-field" style={{ marginTop: 12 }}>
             <span className="fb-field-label">Показывать статусы</span>
             {allStatuses.map((s) => {
               const checked = (byStatusOrder || []).includes(s._id);
@@ -378,7 +426,18 @@ const Dashboard: React.FC = () => {
               className="input"
             />
           </div>
-          <div style={{ marginTop: 16, textAlign: 'right' }}>
+          <div style={{ marginTop: 16, display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+            <button
+              type="button"
+              className="button button--white"
+              onClick={() => {
+                setBlocks(blocks.map((b, i) => ({ ...b, order: i, visible: true })));
+                setUpcomingDays(3);
+                setByStatusOrder([]);
+              }}
+            >
+              Сбросить по умолчанию
+            </button>
             <button
               type="button"
               className="button"
@@ -386,11 +445,10 @@ const Dashboard: React.FC = () => {
               onClick={async () => {
                 setSavingSettings(true);
                 try {
-                  const cur = await api.get('/api/settings/dashboard');
-                  const blocks = (cur.data?.settings?.blocks || []).map((b: any) =>
+                  const outBlocks = blocks.map((b) =>
                     b.id === 'byStatus' ? { ...b, statusIds: byStatusOrder || [] } : b
                   );
-                  await api.put('/api/settings/dashboard', { upcomingDays, blocks });
+                  await api.put('/api/settings/dashboard', { upcomingDays, blocks: outBlocks });
                   setSettingsOpen(false);
                   fetchDashboard();
                 } catch (e) {
