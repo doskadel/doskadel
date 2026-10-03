@@ -28,6 +28,11 @@ const getDashboard = async (req, res) => {
     const now = new Date();
     const user = await User.findById(userId).select('dashboardSettings');
     const upcomingDays = (user && user.dashboardSettings && user.dashboardSettings.upcomingDays) || 3;
+    const blocksCfg = (user && user.dashboardSettings && user.dashboardSettings.blocks) || [];
+    const limitOf = (id, def) => {
+      const b = blocksCfg.find((x) => x.id === id);
+      return b && b.config && b.config.limit ? b.config.limit : def;
+    };
     const upcomingLimit = endOfDayPlus(upcomingDays);
 
     // ==== ПРОСРОЧЕНО ====
