@@ -58,6 +58,23 @@ const rnd = () => Math.random().toString(36).slice(2, 8);
   check('новая Task-продолжение создана', !!newT);
   check('новая: seriesId = _id старой', newT && String(newT.seriesId) === String(t._id));
 
+  // пересчёт count при split
+  const t3 = JSON.parse((await req('POST', '/api/tasks', tok, { title: 'counted', priority: 2, recurrence: { freq: 'daily', time: '09:00', count: 10 } })).body).task;
+  const c1 = new Date(Date.now() + 2 * 24 * 3600 * 1000); c1.setUTCHours(9, 0, 0, 0);
+  await req('POST', '/api/occurrences/action', tok, { taskId: t3._id, originalDate: new Date(c1.getTime() - 24 * 3600 * 1000).toISOString(), action: 'done' });
+  const sp3 = await req('POST', '/api/occurrences/action', tok, { taskId: t3._id, originalDate: c1.toISOString(), action: 'move', dueAt: new Date(c1.getTime() + 3600 * 1000).toISOString(), scope: 'following' });
+  check('split с count -> 200', sp3.code === 200);
+  const newT3 = await Task.findOne({ prevTaskId: t3._id }).lean();
+  check('count пересчитан (< 10)', newT3 && newT3.recurrence.count < 10);
+
+  // following на первом вхождении = all (без split, та же задача)
+  const t4 = JSON.parse((await req('POST', '/api/tasks', tok, { title: 'first-split', priority: 2, recurrence: { freq: 'daily', time: '09:00' } })).body).task;
+  const f1 = new Date(Date.now() + 3 * 24 * 3600 * 1000); f1.setUTCHours(9, 0, 0, 0);
+  const beforeCount = await Task.countDocuments({ workspaceId: t4.workspaceId });
+  const fp = await req('POST', '/api/occurrences/action', tok, { taskId: t4._id, originalDate: f1.toISOString(), action: 'move', dueAt: new Date(f1.getTime() + 3600 * 1000).toISOString(), scope: 'following' });
+  const afterCount = await Task.countDocuments({ workspaceId: t4.workspaceId });
+  check('following на первом = all (без новой Task)', fp.code === 200 && afterCount === beforeCount);
+
   // уборка
   const db = mongoose.connection.db;
   const wsIds = (await db.collection('workspaces').find({ createdBy: uid }).toArray()).map((w) => w._id);

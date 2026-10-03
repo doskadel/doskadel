@@ -79,7 +79,7 @@ const createTask = async (req, res) => {
     });
 
     await task.save();
-    await generateOccurrencesForTask(task);
+    // F1c: вхождения считаются на лету, заранее не создаём
 
     res.status(201).json({ success: true, task });
   } catch (error) {
@@ -331,9 +331,18 @@ const updateTask = async (req, res) => {
       { new: true, runValidators: true }
     );
 
+    // F1c: при смене правила вхождения считаются на лету.
+    // Удаляем только будущие чистые pending (без действий/отправок), факт (done/skipped/moved) сохраняем.
     if (recurrenceChanged) {
-      await Occurrence.deleteMany({ taskId: task._id, status: 'pending' });
-      await generateOccurrencesForTask(task);
+      await Occurrence.deleteMany({
+        taskId: task._id,
+        status: 'pending',
+        dueAt: { $gte: new Date() },
+        'notificationsSent.dayBefore': null,
+        'notificationsSent.beforeDue': null,
+        'notificationsSent.atDue': null,
+        'notificationsSent.overdue': null,
+      });
     }
 
     res.json({ success: true, task });

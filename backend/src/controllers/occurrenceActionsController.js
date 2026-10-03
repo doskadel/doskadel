@@ -142,38 +142,71 @@ async function splitSeries(task, orig, newDue) {
   newRec.time = `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`;
   if (newRec.freq === 'monthly') newRec.byMonthDay = d.getUTCDate();
 
-  const newTask = await Task.create({
-    title: task.title,
-    description: task.description,
-    statusId: task.statusId,
-    priority: task.priority,
-    order: task.order,
-    dueDate: null,
-    recurrence: newRec,
-    notifications: task.notifications,
-    workspaceId: task.workspaceId,
-    userId: task.userId,
-    createdBy: task.createdBy || task.userId,
-    assigneeId: task.assigneeId || null,
-    seriesId,
-    prevTaskId: task._id,
-  });
+  let newTask;
+  try {
+    newTask = await Task.create({
+      title: task.title,
+      description: task.description,
+      statusId: task.statusId,
+      priority: task.priority,
+      order: task.order,
+      dueDate: null,
+      recurrence: newRec,
+      notifications: task.notifications,
+      workspaceId: task.workspaceId,
+      userId: task.userId,
+      createdBy: task.createdBy || task.userId,
+      assigneeId: task.assigneeId || null,
+      seriesId,
+      prevTaskId: task._id,
+    });
+  } catch (e) {
+    throw new Error('split failed at create: ' + e.message);
+  }
 
   // 2) перенос исключений (Occurrence с originalDate >= orig) к новой Task (с защитой unique)
-  const toMove = await Occurrence.find({ taskId: task._id, originalDate: { $gte: orig } }).select('_id originalDate').lean();
+  const hasAction = (o) => o.status === 'done' || o.status === 'skipped' || o.status === 'missed' ||
+    (o.notificationsSent && (o.notificationsSent.dayBefore || o.notificationsSent.beforeDue || o.notificationsSent.atDue || o.notificationsSent.overdue)) ||
+    (o.dueAt && o.originalDate && o.dueAt.getTime() !== o.originalDate.getTime());
+  const toMove = await Occurrence.find({ taskId: task._id, originalDate: { $gte: orig } }).lean();
   for (const o of toMove) {
-    const exists = await Occurrence.findOne({ taskId: newTask._id, originalDate: o.originalDate }).select('_id').lean();
-    if (exists) { await Occurrence.deleteOne({ _id: o._id }); continue; }
+    const exists = await Occurrence.findOne({ taskId: newTask._id, originalDate: o.originalDate }).lean();
+    if (exists) {
+      const a = hasAction(o), b = hasAction(exists);
+      if (a && b) {
+        // обе с действием — не теряем ничего, останавливаем операцию
+        throw new Error('split conflict: обе записи с действием, отмена');
+      }
+      if (a && !b) {
+        // старая с действием — оставляем её, чистый pending у новой удаляем
+        await Occurrence.deleteOne({ _id: exists._id });
+        await Occurrence.updateOne({ _id: o._id }, { $set: { taskId: newTask._id, workspaceId: newTask.workspaceId } });
+      } else {
+        // exists с действием — оставляем exists, чистый pending старой удаляем
+        await Occurrence.deleteOne({ _id: o._id });
+      }
+      continue;
+    }
     await Occurrence.updateOne({ _id: o._id }, { $set: { taskId: newTask._id, workspaceId: newTask.workspaceId } });
   }
 
-  // 3) закрыть старую: until = перед orig, seriesId, причина split
+  // 3) закрыть старую: until = перед orig, seriesId, причина split, финальный статус (не в активных)
   rec.until = oldUntil;
   task.recurrence = rec;
   task.seriesId = seriesId;
   task.closedReason = 'split';
+  const Status = require('../models/Status');
+  const finalStatus = await Status.findOne({ workspaceId: task.workspaceId, isFinal: true }).sort({ order: 1 });
+  if (finalStatus) task.statusId = finalStatus._id;
   task.markModified('recurrence');
-  await task.save();
+  try {
+    await task.save();
+  } catch (e) {
+    // компенсация: вернуть перенесённые Occurrence и удалить новую Task
+    await Occurrence.updateMany({ taskId: newTask._id, originalDate: { $gte: orig } }, { $set: { taskId: task._id } });
+    await Task.deleteOne({ _id: newTask._id });
+    throw new Error('split failed at close-old (compensated): ' + e.message);
+  }
 
   // 4) перенесённое вхождение (само orig) — новая дата
   return upsertOccurrence(newTask, orig, { dueAt: newDue, status: 'pending', notificationsSent: { dayBefore: null, beforeDue: null, atDue: null, overdue: null } });
@@ -200,4 +233,25 @@ async function maybeCompleteSeries(task) {
   }
 }
 
-module.exports = { action };
+/** POST /api/occurrences/complete-series { taskId } - ручное завершение бессрочной серии. */
+const completeSeries = async (req, res) => {
+  try {
+    if (!canByMembership(req.membership, 'update')) return res.status(403).json({ success: false, message: 'Forbidden' });
+    const { taskId } = req.body;
+    if (!isValidId(taskId)) return res.status(400).json({ success: false, message: 'Invalid taskId' });
+    const task = await findTask(taskId, req.workspaceId);
+    if (!task) return res.status(404).json({ success: false, message: 'Task not found' });
+    const Status = require('../models/Status');
+    const finalStatus = await Status.findOne({ workspaceId: task.workspaceId, isFinal: true }).sort({ order: 1 });
+    if (!finalStatus) return res.status(400).json({ success: false, message: 'No final status' });
+    task.statusId = finalStatus._id;
+    task.closedReason = 'manual';
+    await task.save();
+    res.json({ success: true, task });
+  } catch (e) {
+    console.error('complete series error:', e);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+module.exports = { action, completeSeries };

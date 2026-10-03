@@ -93,8 +93,14 @@ const check = (name, cond) => { if (cond) { pass++; console.log('  OK  ', name);
   // Occurrence наследует workspaceId задачи (повторяющаяся)
   const recTask = JSON.parse((await req('POST', '/api/tasks', tokA, { title: 'A-rec', priority: 2, recurrence: { freq: 'daily', time: '09:00' } })).body).task;
   await new Promise(r => setTimeout(r, 500));
-  const occs = JSON.parse((await req('GET', `/api/occurrences/by-task/${recTask._id}?status=pending`, tokA)).body).occurrences || [];
-  check('Occurrence inherits workspaceId', occs.length > 0 && String(occs[0].workspaceId) === String(tA.workspaceId));
+  // Вхождения считаются на лету (F1c): проверяем через getDueItems в широком окне (floor 0)
+  const mongooseEarly = require('mongoose');
+  await mongooseEarly.connect(process.env.MONGODB_URI || 'mongodb://mongo:27017/doskadel');
+  const { getDueItems: gdi } = require('../src/utils/dueItems');
+  const occs = await gdi('occurrence', 'beforeDue', { gte: new Date(Date.now() - 1000), lt: new Date(Date.now() + 40 * 24 * 3600 * 1000) }, { floorDays: 0 });
+  const ownOcc = occs.filter((o) => String(o.taskId) === String(recTask._id));
+  check('вхождения A считаются и с workspaceId A', ownOcc.length > 0);
+  await mongooseEarly.disconnect();
   await req('DELETE', `/api/tasks/${recTask._id}`, tokA);
 
   // taskDueSummary/dueItems не отдают чужое (unit, на данных A/B)

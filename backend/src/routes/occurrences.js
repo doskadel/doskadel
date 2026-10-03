@@ -8,6 +8,7 @@ router.use(auth);
 router.use(require('../middleware/workspace'));
 
 router.post('/action', occurrenceActionsController.action);
+router.post('/complete-series', occurrenceActionsController.completeSeries);
 router.get('/by-task/:taskId', occurrenceController.getByTask);
 router.get('/:id', occurrenceController.getById);
 
