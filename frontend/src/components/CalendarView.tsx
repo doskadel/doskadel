@@ -165,6 +165,8 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
   const [selected, setSelected] = useState<Date>(today);
   const [activeTask, setActiveTask] = useState<CalendarTask | null>(null);
 
+  console.log('[cal-tasks]', tasks.map((t) => ({ t: t.title, rec: !!(t.recurrence && t.recurrence.type), st: t.statusId, due: t.dueDate, last: t.lastOverdueAt, pend: t.pendingOccurrenceCount })));
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } })
