@@ -64,15 +64,19 @@ const Dashboard: React.FC = () => {
   const [byStatusOrder, setByStatusOrder] = useState<string[] | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [settingsSnap, setSettingsSnap] = useState<{ blocks: any; byStatusOrder: any; upcomingDays: number } | null>(null);
-  const openSettings = () => {
-    setSettingsSnap({ blocks, byStatusOrder, upcomingDays });
-    const ns: Record<string, string> = { upcomingDays: String(upcomingDays) };
-    blocks.forEach((b) => {
+  const buildNumStr = (bl: any[], days: number): Record<string, string> => {
+    const ns: Record<string, string> = { upcomingDays: String(days) };
+    bl.forEach((b) => {
       if (b.id === 'recentTasks' || b.id === 'recentArticles' || b.id === 'overdue' || b.id === 'upcoming') {
         ns['limit:' + b.id] = String((b.config && b.config.limit) || 5);
       }
     });
-    setNumStr(ns);
+    return ns;
+  };
+
+  const openSettings = () => {
+    setSettingsSnap({ blocks, byStatusOrder, upcomingDays });
+    setNumStr(buildNumStr(blocks, upcomingDays));
     setSettingsErr('');
     setSettingsOpen(true);
   };
@@ -497,7 +501,10 @@ const Dashboard: React.FC = () => {
                   setBlocks(bl);
                   const b = bl.find((x: any) => x.id === 'byStatus');
                   setByStatusOrder(b && b.config ? (b.config.statusIds || []) : []);
-                  setUpcomingDays(r.data?.settings?.upcomingDays ?? 3);
+                  const days = r.data?.settings?.upcomingDays ?? 3;
+                  setUpcomingDays(days);
+                  setNumStr(buildNumStr(bl, days));
+                  setSettingsSnap({ blocks: bl, byStatusOrder: b && b.config ? (b.config.statusIds || []) : [], upcomingDays: days });
                   const st = await api.get('/api/statuses');
                   setAllStatuses(st.data?.statuses || []);
                   fetchDashboard();
@@ -537,7 +544,9 @@ const Dashboard: React.FC = () => {
                     return { ...b, config };
                   });
                   await api.put('/api/settings/dashboard', { upcomingDays: days, blocks: outBlocks });
+                  setBlocks(outBlocks);
                   setUpcomingDays(days);
+                  setNumStr(buildNumStr(outBlocks, days));
                   setSettingsOpen(false);
                   fetchDashboard();
                 } catch (e) {
