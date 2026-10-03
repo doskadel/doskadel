@@ -1,15 +1,16 @@
 import React from 'react';
-import { ExternalLink } from 'lucide-react';
+import { Info, Mail } from 'lucide-react';
+import { SUPPORT_EMAIL, buildMailto } from './support';
 
 /**
  * Единый реестр пунктов «Ещё» (точка расширения).
- * Из него рендерятся: мобильная страница /more и десктопное выпадающее меню.
+ * Рендерится в мобильной странице /more и в десктопном выпадающем меню.
  * Добавление пункта — одна запись здесь.
  *
  * kind:
  *  - 'route'    — внутренний переход (to)
  *  - 'modal'    — открыть окно (action)
- *  - 'external' — внешняя ссылка (href), открывается в новой вкладке
+ *  - 'external' — внешняя ссылка/почта (href); externalLink=false — иконка письма без ↗ (mailto)
  */
 export type MoreItemKind = 'route' | 'modal' | 'external';
 
@@ -21,19 +22,37 @@ export interface MoreItem {
   to?: string;
   action?: () => void;
   href?: string;
-  /** группа для заголовков в списке: 'main' | 'modals' | 'external' */
+  /** для external: true (по умолчанию) — стрелка ↗; false — не показывать (напр. mailto) */
+  externalLink?: boolean;
+  /** группа: 'main' (без заголовка) | 'modals' | 'external' */
   group?: 'main' | 'modals' | 'external';
-  /** показывать ли на мобильной странице */
   mobile?: boolean;
-  /** показывать ли в десктопном меню */
   desktop?: boolean;
 }
 
-/** Пока пусто — точка расширения. Пример записи в комментарии ниже. */
-export const moreItems: MoreItem[] = [
-  // { id: 'about', label: 'О приложении', kind: 'route', to: '/about', group: 'main' },
-  // { id: 'site', label: 'Сайт проекта', kind: 'external', href: 'https://example.com', icon: <ExternalLink size={16} />, group: 'external' },
-];
+export interface MoreHandlers {
+  openAbout: () => void;
+}
 
-/** Пункт ведёт на внешний ресурс? */
-export const isExternal = (i: MoreItem) => i.kind === 'external';
+/** Собрать пункты «Ещё». Действия модалок приходят из компонента-владельца. */
+export function buildMoreItems({ openAbout }: MoreHandlers): MoreItem[] {
+  return [
+    {
+      id: 'about',
+      label: 'О приложении',
+      icon: <Info size={16} />,
+      kind: 'modal',
+      action: openAbout,
+      group: 'main',
+    },
+    {
+      id: 'feedback',
+      label: 'Написать нам',
+      icon: <Mail size={16} />,
+      kind: 'external',
+      href: buildMailto('DoskaDel: обратная связь'),
+      externalLink: false,
+      group: 'main',
+    },
+  ];
+}

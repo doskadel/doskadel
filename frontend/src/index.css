@@ -473,6 +473,19 @@ margin-bottom: var(--space-md);
   }
 }
 
+/* ==================== ABOUT MODAL ==================== */
+.about { padding: var(--space-sm) 0; }
+.about-name { margin: 0 0 4px; font-size: 20px; }
+.about-tagline { margin: 0 0 var(--space-sm); color: var(--color-text-muted); font-size: 14px; line-height: 1.5; }
+.about-version { margin: 0 0 var(--space-md); color: var(--color-text-muted); font-size: 13px; }
+.about-mail { display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: var(--color-surface-alt); border-radius: var(--radius-md); margin-bottom: var(--space-md); color: var(--color-text-muted); }
+.about-mail-link { color: var(--color-text); text-decoration: none; font-size: 14px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.about-mail-link:hover { color: var(--color-primary); }
+.about-copy { display: inline-flex; border: none; background: transparent; color: var(--color-text-muted); cursor: pointer; padding: 4px; border-radius: 4px; flex-shrink: 0; }
+.about-copy:hover { color: var(--color-primary); }
+.about-report { display: inline-flex; align-items: center; justify-content: center; width: 100%; height: 40px; border: 1px solid var(--surface-border); border-radius: var(--radius-md); background: var(--color-surface); color: var(--color-text); text-decoration: none; font-size: 14px; font-weight: 500; }
+.about-report:hover { border-color: var(--color-primary); color: var(--color-primary); }
+
 /* ==================== MORE DROPDOWN (Ещё ▾) ==================== */
 .more-dd-wrap { position: relative; }
 .more-dd-btn { gap: 4px; }
@@ -493,6 +506,8 @@ margin-bottom: var(--space-md);
   font: inherit; font-size: 14px; text-align: left; text-decoration: none; cursor: pointer;
 }
 .more-dd-item:hover { background: var(--color-surface-alt); }
+.more-dd-ext { margin-left: auto; color: var(--color-text-muted); }
+.more-page-ext { margin-left: auto; color: var(--color-text-muted); }
 
 /* ==================== TOASTS ==================== */
 .toast-stack {

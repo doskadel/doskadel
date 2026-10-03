@@ -1,14 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ExternalLink } from 'lucide-react';
-import { moreItems } from '../utils/moreItems';
+import { buildMoreItems } from '../utils/moreItems';
+import AboutModal from './AboutModal';
 
 /**
- * «Ещё» (мобилка) — рендерится из единого реестра moreItems.
+ * «Ещё» (мобилка) — рендерится из единого реестра.
  * Пункты добавляются одной записью в utils/moreItems.
  */
 const MorePage: React.FC = () => {
-  const items = moreItems.filter((i) => i.mobile !== false);
+  const [aboutOpen, setAboutOpen] = useState(false);
+  const items = buildMoreItems({ openAbout: () => setAboutOpen(true) }).filter((i) => i.mobile !== false);
 
   return (
     <div className="more-page">
@@ -29,6 +31,7 @@ const MorePage: React.FC = () => {
                 <a key={item.id} href={item.href} target="_blank" rel="noopener noreferrer" className="more-page-item">
                   <span className="more-page-icon">{item.icon || <ExternalLink size={20} />}</span>
                   <span className="more-page-label">{item.label}</span>
+                  {item.externalLink !== false && <ExternalLink size={16} className="more-page-ext" />}
                 </a>
               );
             }
@@ -41,6 +44,7 @@ const MorePage: React.FC = () => {
           })}
         </div>
       )}
+      <AboutModal open={aboutOpen} onClose={() => setAboutOpen(false)} />
     </div>
   );
 };
