@@ -280,7 +280,9 @@ const Dashboard: React.FC = () => {
           {/* --- ЗАДАЧИ ПО СТАТУСАМ --- */}
           {blockVisible('byStatus') && visibleStatuses.length > 0 && (
             <div className="dashboard-section" style={{ order: sectionOrder('byStatus') }}>
-              <h3 className="dashboard-section-title">Задачи по статусам</h3>
+              <div className="dashboard-section-header">
+                <h3 className="dashboard-section-title">Задачи по статусам</h3>
+              </div>
               <div className="dashboard-status-grid">
                 {visibleStatuses.map((s) => (
                   <div
