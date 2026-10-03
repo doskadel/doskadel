@@ -63,7 +63,7 @@ const Dashboard: React.FC = () => {
   const [error, setError] = useState('');
   const [byStatusOrder, setByStatusOrder] = useState<string[] | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [settingsSnap, setSettingsSnap] = useState<{ blocks: any; byStatusOrder: any; upcomingDays: number } | null>(null);
+  const [settingsSnap, setSettingsSnap] = useState<{ blocks: any; byStatusOrder: any; upcomingDays: number; numStr?: Record<string, string> } | null>(null);
   const buildNumStr = (bl: any[], days: number): Record<string, string> => {
     const ns: Record<string, string> = { upcomingDays: String(days) };
     bl.forEach((b) => {
@@ -75,7 +75,7 @@ const Dashboard: React.FC = () => {
   };
 
   const openSettings = () => {
-    setSettingsSnap({ blocks, byStatusOrder, upcomingDays });
+    setSettingsSnap({ blocks, byStatusOrder, upcomingDays, numStr: buildNumStr(blocks, upcomingDays) });
     setNumStr(buildNumStr(blocks, upcomingDays));
     setSettingsErr('');
     setSettingsOpen(true);
@@ -93,8 +93,8 @@ const Dashboard: React.FC = () => {
   const closeSettings = async () => {
     const changed =
       !!settingsSnap &&
-      JSON.stringify([blocks, byStatusOrder, upcomingDays]) !==
-        JSON.stringify([settingsSnap.blocks, settingsSnap.byStatusOrder, settingsSnap.upcomingDays]);
+      JSON.stringify([blocks, byStatusOrder, upcomingDays, numStr]) !==
+        JSON.stringify([settingsSnap.blocks, settingsSnap.byStatusOrder, settingsSnap.upcomingDays, settingsSnap.numStr]);
     if (changed && settingsSnap) {
       const ok = await confirm({
         title: 'Есть несохранённые данные',
@@ -106,6 +106,7 @@ const Dashboard: React.FC = () => {
       setBlocks(settingsSnap.blocks);
       setByStatusOrder(settingsSnap.byStatusOrder);
       setUpcomingDays(settingsSnap.upcomingDays);
+      if (settingsSnap.numStr) setNumStr(settingsSnap.numStr);
     }
     setSettingsOpen(false);
   };
@@ -504,7 +505,7 @@ const Dashboard: React.FC = () => {
                   const days = r.data?.settings?.upcomingDays ?? 3;
                   setUpcomingDays(days);
                   setNumStr(buildNumStr(bl, days));
-                  setSettingsSnap({ blocks: bl, byStatusOrder: b && b.config ? (b.config.statusIds || []) : [], upcomingDays: days });
+                  setSettingsSnap({ blocks: bl, byStatusOrder: b && b.config ? (b.config.statusIds || []) : [], upcomingDays: days, numStr: buildNumStr(bl, days) });
                   const st = await api.get('/api/statuses');
                   setAllStatuses(st.data?.statuses || []);
                   fetchDashboard();
