@@ -231,13 +231,11 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
 
   // ==== DnD ====
   const handleDragStart = (e: DragStartEvent) => {
-    console.log('[cal-dnd] start', e.active.id);
     const id = String(e.active.id).replace('task-', '');
     setActiveTask(tasks.find((t) => t._id === id) || null);
   };
 
   const handleDragEnd = async (e: DragEndEvent) => {
-    console.log('[cal-dnd] end', e.active.id, 'over', e.over ? e.over.id : null);
     setActiveTask(null);
     const { active, over } = e;
     if (!over || !onTaskMoved) return;
@@ -255,9 +253,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
     if (oldDate && sameDay(oldDate, dropDay)) return;
 
     const newDue = buildNewDue(task, dropDay);
-    console.log('[cal-dnd] moving', taskId, 'from', task.dueDate, 'to', newDue);
-    const ok = await onTaskMoved(task._id, newDue);
-    console.log('[cal-dnd] moved ok=', ok);
+    await onTaskMoved(task._id, newDue);
   };
 
   // ==== месяц ====
@@ -351,7 +347,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
   );
 
   return (
-    <DndContext sensors={sensors} collisionDetection={pointerWithin} onDragStart={handleDragStart} onDragOver={(e) => console.log('[cal-dnd] over', e.over ? e.over.id : null)} onDragEnd={handleDragEnd}>
+    <DndContext sensors={sensors} collisionDetection={pointerWithin} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div className="calendar">
         <div className="calendar-viewswitch">
           {(['month', 'week', 'day'] as ViewMode[]).map((v) => (

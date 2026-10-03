@@ -314,15 +314,17 @@ const Tasks: React.FC = () => {
     const prev = tasks.find((t) => t._id === id);
     if (!prev) return false;
     const prevDue = prev.dueDate;
-    // оптимистично
-    setTasks((cur) => cur.map((t) => (t._id === id ? { ...t, dueDate: newDueDate } : t)));
+    const prevNext = prev.nextOccurrenceDueAt;
+    // оптимистично: разовой задаче dueDate == nextOccurrenceDueAt, обновляем оба,
+    // иначе календарь (строит день по nextOccurrenceDueAt || dueDate) не перерисует задачу
+    setTasks((cur) => cur.map((t) => (t._id === id ? { ...t, dueDate: newDueDate, nextOccurrenceDueAt: newDueDate } : t)));
     try {
       await api.put(`/api/tasks/${id}`, { dueDate: newDueDate });
       return true;
     } catch (err) {
       console.error('Error moving task:', err);
       // откат
-      setTasks((cur) => cur.map((t) => (t._id === id ? { ...t, dueDate: prevDue ?? null } : t)));
+      setTasks((cur) => cur.map((t) => (t._id === id ? { ...t, dueDate: prevDue ?? null, nextOccurrenceDueAt: prevNext ?? null } : t)));
       window.alert('Не удалось перенести задачу. Попробуйте ещё раз.');
       return false;
     }
