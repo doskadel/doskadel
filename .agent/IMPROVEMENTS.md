@@ -42,6 +42,9 @@
 - F2 proposed. Кнопка бота в нижнем баре (Layout.tsx) открывает SearchModal. Либо заглушка «Помощник скоро» с честным текстом, либо оставить поиск, но сменить title и иконку, чтобы не вводить в заблуждение. Реальный бот последним.
 - F3 proposed. Профиль сейчас модалка (ProfileModal). По PLAN приоритет 4: отдельный раздел /profile, объединить с настройками и переключателем темы.
 
+## Исправленные баги (добавлено 2026-10-03)
+- X5 done. Календарь: повторяющаяся задача с неподтверждённой просрочкой не показывала красную метку в день последней просрочки (задача попадала только в день nextOccurrenceDueAt). Фикс: tasksByDay включает повторяющихся с lastOverdueAt в день последней просрочки, и не дублирует в день будущей итерации. Бэк отдаёт lastOverdueAt.
+
 ## Документация, устарела относительно кода
 - X1 proposed. README.md и PROJECT_PLAN.md описывают JWT на 24 часа. Фактически: access 15 минут, refresh в httpOnly cookie с ротацией и reuse-detection, есть /api/auth/refresh, /api/auth/logout, /api/settings/dashboard, модель RefreshToken, Status.key, User.dashboardSettings. Обновить разделы Аутентификация, API, Модели, Архитектура.
 - X2 proposed. BUGS.md: B1 закрыт (refresh реализован), B6 закрыт (api.ts на относительном /api, setupProxy.js), в frontend/.env.example остался неиспользуемый REACT_APP_API_URL. B5 (CORS) не закрыт: server.js ставит cors({ origin: true, credentials: true }), то есть любой origin с куками. Для прода ограничить; при схеме «один домен + reverse-proxy» CORS можно убрать.

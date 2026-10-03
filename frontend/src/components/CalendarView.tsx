@@ -46,6 +46,11 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
   for (let d = 1; d <= daysInMonth; d++) cells.push(new Date(year, month, d));
 
   const tasksByDay = (day: Date) => tasks.filter((t) => {
+    // повторяющиеся с неподтверждённой просрочкой — только в день последней просрочки
+    if (t.recurrence && t.lastOverdueAt) {
+      const od = new Date(t.lastOverdueAt);
+      return !isNaN(od.getTime()) && sameDay(od, day);
+    }
     const td = taskDate(t);
     return td && sameDay(td, day);
   });
