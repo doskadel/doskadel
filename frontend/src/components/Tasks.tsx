@@ -646,54 +646,24 @@ const Tasks: React.FC = () => {
                       Статус: {getStatusName(task.statusId)}
                     </span>
 
-                    {task.recurrence ? (
-                      <>
-                        <span className="task-card-meta-item">
-                          🔄 {formatRecurrenceShort(task.recurrence)}
-                        </span>
-                        {dueFilter && displayDate && (
-                          <span
-                            className="task-card-meta-item"
-                            style={{
-                              color: dueFilter === 'overdue' ? 'var(--color-danger)' : 'var(--color-text-muted)',
-                              fontWeight: dueFilter === 'overdue' ? 500 : 400,
-                            }}
-                          >
-                            {dueFilter === 'overdue' ? 'Просрочено до' : 'Срок до'} {formatDueDate(displayDate)}
-                          </span>
-                        )}
-                        {(task.pendingOccurrenceCount || 0) > 0 && !dueFilter && (
-                          <span className="task-pending-badge task-pending-badge--sm">
-                            {task.pendingOccurrenceCount}
-                          </span>
-                        )}
-                      </>
-                    ) : (
-                      dueFilter && displayDate ? (
-                        <span
-                          className="task-card-meta-item"
-                          style={{
-                            color: dueFilter === 'overdue' ? 'var(--color-danger)' : 'var(--color-text-muted)',
-                            fontWeight: dueFilter === 'overdue' ? 500 : 400,
-                          }}
-                        >
-                          {dueFilter === 'overdue' ? 'Просрочено до' : 'Срок до'} {formatDueDate(displayDate)}
-                        </span>
-                      ) : (
-                        task.dueDate && isOverdue(task.dueDate) && (
-                          <span
-                            className="task-card-meta-item"
-                            style={{ color: 'var(--color-danger)', fontWeight: 500 }}
-                          >
-                            Срок до {formatDueDate(task.dueDate)}
-                          </span>
-                        )
-                      )
+                    {task.recurrence && (
+                      <span className="task-card-meta-item">
+                        🔄 {formatRecurrenceShort(task.recurrence)}
+                      </span>
                     )}
-
-                    <span className="task-card-meta-item">
-                      Создано: {new Date(task.createdAt).toLocaleDateString('ru-RU')}
-                    </span>
+                    {displayDate && (
+                      <span
+                        className="task-card-meta-item"
+                        style={isOverdue(displayDate) ? { color: 'var(--color-danger)', fontWeight: 500 } : undefined}
+                      >
+                        Срок до {formatDueDate(displayDate)}
+                      </span>
+                    )}
+                    {(task.pendingOccurrenceCount || 0) > 0 && (
+                      <span className="task-pending-badge task-pending-badge--sm">
+                        {task.pendingOccurrenceCount}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
