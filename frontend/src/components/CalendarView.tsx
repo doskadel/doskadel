@@ -152,7 +152,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
     return (
       <div className="calendar-week">
         {days.map((day) => {
-          const dayTasks = tasksByDay(day);
+          const overdueCount = tasksByDay(day).filter((t) => isOverdueForDay(t, day)).length;
           const isToday = sameDay(day, today);
           const isSelected = sameDay(day, selected);
           return (
@@ -164,10 +164,10 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
             >
               <span className="calendar-week-dayname">{WEEKDAYS[(day.getDay() + 6) % 7]}</span>
               <span className="calendar-week-daynum">{day.getDate()}</span>
-              {dayTasks.length > 0 && (
+              {overdueCount > 0 && (
                 <span className="calendar-dots">
-                  {Array.from({ length: Math.min(dayTasks.length, 4) }).map((_, k) => (
-                    <span key={k} className={'calendar-dot' + (isOverdueForDay(dayTasks[k], day) ? ' calendar-dot--overdue' : '')} />
+                  {Array.from({ length: Math.min(overdueCount, 3) }).map((_, k) => (
+                    <span key={k} className="calendar-dot calendar-dot--overdue" />
                   ))}
                 </span>
               )}
