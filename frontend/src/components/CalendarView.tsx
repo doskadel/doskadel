@@ -215,10 +215,12 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
       </div>
 
       <div className="calendar-header">
-        <button type="button" className="calendar-nav" onClick={() => navigate(-1)} aria-label="Назад">‹</button>
         <div className="calendar-title">{title}</div>
-        <button type="button" className="calendar-nav" onClick={() => navigate(1)} aria-label="Вперёд">›</button>
-        <button type="button" className="calendar-today-btn" onClick={goToday}>Сегодня</button>
+        <div className="calendar-nav-row">
+          <button type="button" className="calendar-nav" onClick={() => navigate(-1)} aria-label="Назад">‹</button>
+          <button type="button" className="calendar-today-btn" onClick={goToday}>Сегодня</button>
+          <button type="button" className="calendar-nav" onClick={() => navigate(1)} aria-label="Вперёд">›</button>
+        </div>
       </div>
 
       {view !== 'day' && (
