@@ -24,7 +24,7 @@ input:focus:not(:focus-visible) {
   background: var(--color-surface);
   text-align: center;
 }
-.dashboard-sections { display: flex; flex-direction: column; gap: 0; }
+.dashboard-sections { display: flex; flex-direction: column; gap: var(--space-xl); }
 .dash-set-row { display: flex; align-items: center; gap: 10px; padding: 8px 4px; cursor: pointer; font-size: 15px; }
 .dash-block-row { display: flex; align-items: center; gap: 8px; padding: 6px 4px; font-size: 15px; }
 .dash-block-name { flex: 1; }
@@ -2331,11 +2331,6 @@ color: var(--color-text);
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
-}
-/* Разделитель между секциями дашборда (кроме первой) */
-.dashboard-sections > .dashboard-section + .dashboard-section {
-  padding-top: var(--space-xl);
-  border-top: 1px solid var(--surface-border);
 }
 
 .dashboard-section-header {
