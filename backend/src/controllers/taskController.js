@@ -3,6 +3,7 @@ const Status = require('../models/Status');
 const Occurrence = require('../models/Occurrence');
 const { getNextOccurrences } = require('../utils/recurrence');
 const escapeRegex = require('../utils/escapeRegex');
+const { SINGLE, RECURRING } = require('../utils/taskKinds');
 
 const OCCURRENCE_HORIZON_DAYS = 7;
 
@@ -116,9 +117,9 @@ const getTasks = async (req, res) => {
     }
 
     if (taskType === 'single') {
-      filter.recurrence = null;
+      Object.assign(filter, SINGLE);
     } else if (taskType === 'recurring') {
-      filter['recurrence.type'] = { $exists: true };
+      Object.assign(filter, RECURRING);
     }
 
     const wantsOverdue = overdue === 'true';
@@ -146,7 +147,7 @@ const getTasks = async (req, res) => {
         userId: req.user._id,
         statusId: { $in: activeStatusIds },
         dueDate: { $ne: null, ...dateCondition },
-        'recurrence.type': { $exists: false }
+        ...SINGLE
       }).select('_id');
 
       const simpleTaskIds = simpleTasks.map((t) => String(t._id));
@@ -182,7 +183,7 @@ const getTasks = async (req, res) => {
         _id: { $in: recurringTaskIds },
         userId: req.user._id,
         statusId: { $in: activeStatusIds },
-        'recurrence.type': { $exists: true }
+        ...RECURRING
       }).select('_id');
 
       const recurringTaskIdSet = new Set(recurringTasks.map((t) => String(t._id)));

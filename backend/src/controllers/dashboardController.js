@@ -3,6 +3,7 @@ const Status = require('../models/Status');
 const Article = require('../models/Article');
 const Occurrence = require('../models/Occurrence');
 const User = require('../models/User');
+const { SINGLE } = require('../utils/taskKinds');
 
 // Конец дня (23:59:59.999) через N календарных дней от сегодня (локальное время сервера).
 const endOfDayPlus = (n) => {
@@ -41,7 +42,7 @@ const getDashboard = async (req, res) => {
       userId,
       statusId: { $in: activeStatusIds },
       dueDate: { $ne: null, $lt: now },
-      'recurrence.type': { $exists: false }
+      ...SINGLE
     }).select('_id title statusId priority dueDate').lean();
 
     // 2) Повторяющиеся: группируем occurrences по taskId,
@@ -121,7 +122,7 @@ const getDashboard = async (req, res) => {
       userId,
       statusId: { $in: activeStatusIds },
       dueDate: { $gte: now, $lte: upcomingLimit },
-      'recurrence.type': { $exists: false }
+      ...SINGLE
     }).select('_id title statusId priority dueDate').lean();
 
     // 2) Повторяющиеся: группируем, берём БЛИЖАЙШУЮ будущую итерацию

@@ -4,6 +4,7 @@
 
 const Agenda = require('agenda');
 const Task = require('./models/Task');
+const { SINGLE, RECURRING } = require('./utils/taskKinds');
 const Occurrence = require('./models/Occurrence');
 const Status = require('./models/Status');
 const User = require('./models/User');
@@ -65,7 +66,7 @@ const startAgenda = async () => {
   // ==========================================================
   agenda.define('generate recurring occurrences', async () => {
     const now = new Date();
-    const recurringTasks = await Task.find({ 'recurrence.type': { $exists: true } });
+    const recurringTasks = await Task.find({ ...RECURRING });
     let created = 0;
 
     for (const task of recurringTasks) {
@@ -274,7 +275,7 @@ const startAgenda = async () => {
     const activeStatusIds = activeStatuses.map((s) => s._id);
 
     const tasks = await Task.find({
-      recurrence: null,
+      ...SINGLE,
       statusId: { $in: activeStatusIds },
       dueDate: { $gte: windowStart, $lt: windowEnd },
       'notificationsSent.beforeDue': null
@@ -316,7 +317,7 @@ const startAgenda = async () => {
     const activeStatusIds = activeStatuses.map((s) => s._id);
 
     const tasks = await Task.find({
-      recurrence: null,
+      ...SINGLE,
       statusId: { $in: activeStatusIds },
       dueDate: { $gte: windowStart, $lt: windowEnd },
       'notificationsSent.atDue': null
@@ -359,7 +360,7 @@ const startAgenda = async () => {
     const activeStatusIds = activeStatuses.map((s) => s._id);
 
     const tasks = await Task.find({
-      recurrence: null,
+      ...SINGLE,
       statusId: { $in: activeStatusIds },
       dueDate: { $gte: windowStart, $lt: windowEnd },
       'notificationsSent.overdue': null
@@ -401,7 +402,7 @@ const startAgenda = async () => {
     const activeStatusIds = activeStatuses.map((s) => s._id);
 
     const tasks = await Task.find({
-      recurrence: null,
+      ...SINGLE,
       statusId: { $in: activeStatusIds },
       dueDate: { $gte: windowStart, $lt: windowEnd },
       'notificationsSent.dayBefore': null
@@ -433,7 +434,7 @@ const startAgenda = async () => {
   // 10. Очистка старых occurrences
   // ==========================================================
   agenda.define('cleanup old occurrences', async () => {
-    const recurringTasks = await Task.find({ 'recurrence.type': { $exists: true } }).select('_id');
+    const recurringTasks = await Task.find({ ...RECURRING }).select('_id');
     let deleted = 0;
 
     for (const task of recurringTasks) {
