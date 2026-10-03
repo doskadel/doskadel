@@ -491,7 +491,25 @@ margin-bottom: var(--space-md);
 
 /* ==================== MORE DROPDOWN (Ещё ▾) ==================== */
 .more-dd-wrap { position: relative; }
-.more-dd-btn { gap: 4px; }
+.more-dd-btn {
+  gap: 4px;
+  /* сброс UA-стилей <button> (соседние пункты — <a>) */
+  background: transparent;
+  border: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  appearance: none;
+}
+.more-dd-btn:hover,
+.more-dd-btn[data-headlessui-state~='open'] {
+  background-color: var(--color-surface-alt);
+  color: var(--color-text);
+}
+.more-dd-btn:focus { outline: none; }
+.more-dd-btn:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+.more-dd-btn .lucide-chevron-down { transition: transform 0.15s; }
+.more-dd-btn[data-headlessui-state~='open'] .lucide-chevron-down { transform: rotate(180deg); }
 .more-dd-panel {
   position: absolute; top: calc(100% + 6px); left: 0; z-index: 50;
   min-width: 220px; padding: 6px;
