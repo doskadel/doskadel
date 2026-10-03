@@ -348,36 +348,43 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
   return (
     <DndContext sensors={sensors} collisionDetection={pointerWithin} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div className="calendar">
-        <div className="calendar-viewswitch">
-          {(['month', 'week', 'day'] as ViewMode[]).map((v) => (
-            <button
-              key={v}
-              type="button"
-              className={'calendar-viewswitch-btn' + (view === v ? ' calendar-viewswitch-btn--active' : '')}
-              onClick={() => switchView(v)}
-            >
-              {v === 'month' ? 'Месяц' : v === 'week' ? 'Неделя' : 'День'}
-            </button>
-          ))}
-        </div>
+        {/* Карточка календаря */}
+        <div className="calendar-card">
+          <div className="calendar-card-header">
+            <div className="calendar-title">{title}</div>
+            <div className="calendar-viewswitch">
+              {(['month', 'week', 'day'] as ViewMode[]).map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  className={'calendar-viewswitch-btn' + (view === v ? ' calendar-viewswitch-btn--active' : '')}
+                  onClick={() => switchView(v)}
+                >
+                  {v === 'month' ? 'Месяц' : v === 'week' ? 'Неделя' : 'День'}
+                </button>
+              ))}
+            </div>
+          </div>
 
-        <div className="calendar-header">
-          <div className="calendar-title">{title}</div>
-          <div className="calendar-nav-row">
-            <button type="button" className="calendar-nav" onClick={() => navigate(-1)} aria-label="Назад">‹</button>
-            <button type="button" className="calendar-today-btn" onClick={goToday}>Сегодня</button>
-            <button type="button" className="calendar-nav" onClick={() => navigate(1)} aria-label="Вперёд">›</button>
+          <div className="calendar-card-body">
+            <div className="calendar-nav-row">
+              <button type="button" className="calendar-nav" onClick={() => navigate(-1)} aria-label="Назад">‹</button>
+              <button type="button" className="calendar-today-btn" onClick={goToday}>Сегодня</button>
+              <button type="button" className="calendar-nav" onClick={() => navigate(1)} aria-label="Вперёд">›</button>
+            </div>
+
+            {view !== 'day' && (
+              <div className="calendar-weekdays">
+                {WEEKDAYS.map((w) => <div key={w} className="calendar-weekday">{w}</div>)}
+              </div>
+            )}
+
+            {view === 'month' && renderMonth()}
+            {view === 'week' && renderWeek()}
           </div>
         </div>
 
-        {view !== 'day' && (
-          <div className="calendar-weekdays">
-            {WEEKDAYS.map((w) => <div key={w} className="calendar-weekday">{w}</div>)}
-          </div>
-        )}
-
-        {view === 'month' && renderMonth()}
-        {view === 'week' && renderWeek()}
+        {/* Задачи дня — отдельная карточка */}
         {renderDayPanel()}
       </div>
 
