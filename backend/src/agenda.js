@@ -85,6 +85,8 @@ const startAgenda = async () => {
           toCreate.map((d) => ({
             taskId: task._id,
             userId: task.userId,
+            workspaceId: task.workspaceId,
+            createdBy: task.createdBy || task.userId,
             dueAt: d,
             status: 'pending',
             notificationsSent: {
