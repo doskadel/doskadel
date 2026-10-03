@@ -4,6 +4,9 @@ import { Home, CheckSquare, BookOpen, User, Bot, MoreHorizontal, Search } from '
 import SearchModal from './SearchModal';
 import ProfileModal from './ProfileModal';
 import api from '../utils/api';
+import { useGlobalHotkey } from '../hooks/useGlobalHotkey';
+
+const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
 
 interface LayoutProps {
   children: ReactNode;
@@ -14,6 +17,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const navigate = useNavigate();
   const [searchOpen, setSearchOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+
+  // Ctrl/Cmd+K — открыть/закрыть поиск; '/' — открыть (когда фокус не в поле)
+  useGlobalHotkey({ keyCode: 'KeyK', onTrigger: () => setSearchOpen((v) => !v) });
+  useGlobalHotkey({ key: '/', onTrigger: () => setSearchOpen(true) });
 
 
   const segments = location.pathname.split('/').filter(Boolean);
@@ -99,12 +106,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               type="button"
               className="layout-search-btn"
               onClick={() => setSearchOpen(true)}
-              title="Поиск (Ctrl+K)"
-              aria-label="Поиск"
+              title={`Поиск (${isMac ? '⌘' : 'Ctrl'}+K)`}
+              aria-label="Открыть поиск"
+              aria-haspopup="dialog"
             >
               <Search size={18} />
-              <span className="layout-search-text">Поиск…</span>
-              <kbd className="layout-search-kbd">Ctrl K</kbd>
+              <span className="layout-search-text">Поиск</span>
+              <kbd className="layout-search-kbd">{isMac ? '⌘' : 'Ctrl'} K</kbd>
             </button>
             <button
               type="button"
