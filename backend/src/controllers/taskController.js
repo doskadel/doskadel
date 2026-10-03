@@ -247,11 +247,9 @@ const getTasks = async (req, res) => {
 
     let tasks = await query;
 
-    // Сроковая сводка по задаче — единая функция (R1).
-    const recurringIds = tasks
-      .filter((t) => t.recurrence && t.recurrence.freq)
-      .map((t) => t._id);
-    const summary = await summarizeOccurrences(req.workspaceId, recurringIds);
+    // Сроковая сводка по задаче — на лету (F1c этап 2).
+    const recurringTasks = tasks.filter((t) => t.recurrence && t.recurrence.freq).map((t) => t.toObject());
+    const summary = await summarizeOccurrences(req.workspaceId, recurringTasks);
     tasks = tasks.map((t) => enrichTaskDue(t.toObject(), summary));
 
     // Для overdue/dueSoon — сортируем по дате (самое срочное сверху)

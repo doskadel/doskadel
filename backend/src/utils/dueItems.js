@@ -23,8 +23,9 @@ async function computeOccurrences(window, ctx = {}) {
   const out = [];
   for (const t of tasks) {
     if (t.notifications && t.notifications.enabled === false) continue;
-    // считаем вхождения чуть раньше окна (чтобы захватить начало)
-    const from = new Date(window.gte.getTime() - 24 * 60 * 60 * 1000);
+    // считаем вхождения чуть раньше окна (чтобы захватить начало), но не глубже 90 дней назад
+    const floor = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
+    const from = new Date(Math.max(window.gte.getTime() - 24 * 60 * 60 * 1000, floor.getTime()));
     const dates = getNextOccurrences(t.recurrence, from, 60).filter(
       (d) => d >= window.gte && d < window.lt
     );
@@ -68,26 +69,42 @@ async function getDueItems(kind, field, window, ctx = {}) {
   const notifKey = `notificationsSent.${field}`;
 
   if (kind === 'occurrence') {
-    const rows = await Occurrence.find({
-      status: 'pending',
-      dueAt: { $gte: window.gte, $lt: window.lt },
-      [notifKey]: null
-    })
-      .populate('taskId', 'title notifications userId')
-      .lean();
-
-    return rows
-      .filter((o) => o.taskId && !(o.taskId.notifications && o.taskId.notifications.enabled === false))
-      .map((o) => ({
+    // Вхождения на лету + материализация под уведомление (upsert по {taskId, originalDate}).
+    const computed = await computeOccurrences(window, ctx);
+    const out = [];
+    for (const c of computed) {
+      const t = c.task;
+      // upsert записи (идемпотентно через unique {taskId, originalDate})
+      const res = await Occurrence.findOneAndUpdate(
+        { taskId: t._id, originalDate: c.originalDate },
+        {
+          $setOnInsert: {
+            taskId: t._id,
+            originalDate: c.originalDate,
+            dueAt: c.dueAt,
+            status: 'pending',
+            workspaceId: t.workspaceId,
+            userId: t.userId,
+            createdBy: t.createdBy || t.userId,
+          }
+        },
+        { new: true, upsert: true, setDefaultsOnInsert: true }
+      ).lean();
+      // если запись уже была отправлена по этому полю — пропускаем
+      if (res.notificationsSent && res.notificationsSent[field]) continue;
+      if (res.status !== 'pending') continue; // done/skipped/missed — не шлём
+      out.push({
         source: 'occurrence',
-        id: o._id,
-        taskId: o.taskId._id,
-        userId: o.userId,
-        title: o.taskId.title,
-        dueAt: o.dueAt,
-        occurrenceId: String(o._id),
-        requiresConfirm: true
-      }));
+        id: res._id,
+        taskId: t._id,
+        userId: t.userId,
+        title: t.title,
+        dueAt: res.dueAt,
+        occurrenceId: String(res._id),
+        requiresConfirm: true,
+      });
+    }
+    return out;
   }
 
   if (!ctx.activeStatusIds) ctx.activeStatusIds = await getActiveStatusIds();
@@ -113,13 +130,18 @@ async function getDueItems(kind, field, window, ctx = {}) {
     }));
 }
 
-/** Пометить отправку в исходном документе. */
+/**
+ * Пометить отправку атомарно (compare-and-set): ставим флаг только если он ещё не установлен.
+ * Возвращает true, если пометка удалась (значит пуш можно считать отправленным нами).
+ */
 async function markNotified(item, field) {
   const Model = item.source === 'occurrence' ? Occurrence : Task;
-  await Model.updateOne(
-    { _id: item.id },
-    { $set: { [`notificationsSent.${field}`]: new Date() } }
+  const res = await Model.findOneAndUpdate(
+    { _id: item.id, [`notificationsSent.${field}`]: null },
+    { $set: { [`notificationsSent.${field}`]: new Date() } },
+    { new: true }
   );
+  return !!res;
 }
 
 // Кэш настроек пользователя на прогон (в одном job юзер может встретиться многократно).
@@ -160,12 +182,12 @@ async function sendDuePushes(kind, field, window, buildPush, deps) {
     if (!userWantsPush(user, field)) continue;
     if (isInQuietHours(user, now)) continue;
 
-    const payload = buildPush(item);
-    const result = await sendToUser(item.userId, { icon: '/logo192.png', ...payload });
+    // compare-and-set: атомарно занимаем флаг; если уже занят — другой job/прогон отправил
+    const claimed = await markNotified(item, field);
+    if (!claimed) continue;
 
-    if (result && result.sent > 0) {
-      await markNotified(item, field);
-    }
+    const payload = buildPush(item);
+    await sendToUser(item.userId, { icon: '/logo192.png', ...payload });
   }
 }
 

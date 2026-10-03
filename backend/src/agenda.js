@@ -7,10 +7,8 @@ const Task = require('./models/Task');
 const { SINGLE, RECURRING } = require('./utils/taskKinds');
 const { sendDuePushes } = require('./utils/dueItems');
 const Occurrence = require('./models/Occurrence');
-const { getNextOccurrences } = require('./utils/recurrence');
 const { sendToUser, isConfigured } = require('./utils/webPush');
 
-const OCCURRENCE_HORIZON_DAYS = 7;
 const OCCURRENCE_LIMIT_PER_TASK = 100;
 const PUSH_BEFORE_MINUTES = 5;
 const OVERDUE_AFTER_HOURS = 1;
@@ -61,49 +59,10 @@ const startAgenda = async () => {
   });
 
   // ==========================================================
-  // 1. Генерация occurrences
+  // 1. Вхождения повторяющихся — считаются НА ЛЕТУ (F1c этап 2).
+  //    Occurrence материализуются только под пуш (dueItems) или при действии.
+  //    Job 'generate recurring occurrences' удалён.
   // ==========================================================
-  agenda.define('generate recurring occurrences', async () => {
-    const now = new Date();
-    const recurringTasks = await Task.find({ ...RECURRING });
-    let created = 0;
-
-    for (const task of recurringTasks) {
-      if (!task.recurrence || !task.recurrence.freq) continue;
-      const dates = getNextOccurrences(task.recurrence, now, OCCURRENCE_HORIZON_DAYS);
-      if (dates.length === 0) continue;
-
-      const existing = await Occurrence.find({
-        taskId: task._id,
-        dueAt: { $in: dates }
-      }).select('dueAt');
-      const existingSet = new Set(existing.map((o) => o.dueAt.getTime()));
-      const toCreate = dates.filter((d) => !existingSet.has(d.getTime()));
-
-      if (toCreate.length > 0) {
-        await Occurrence.insertMany(
-          toCreate.map((d) => ({
-            taskId: task._id,
-            userId: task.userId,
-            workspaceId: task.workspaceId,
-            createdBy: task.createdBy || task.userId,
-            originalDate: d,
-            dueAt: d,
-            status: 'pending',
-            notificationsSent: {
-              dayBefore: null,
-              beforeDue: null,
-              atDue: null,
-              overdue: null
-            }
-          }))
-        );
-        created += toCreate.length;
-      }
-    }
-
-    if (created > 0) console.log(`[AGENDA] Created ${created} occurrences`);
-  });
 
   // ==========================================================
   // 2. pre-due (за 5 минут) — разовые + повторяющиеся через единую абстракцию
@@ -244,7 +203,6 @@ const startAgenda = async () => {
 await new Promise((resolve) => setTimeout(resolve, 2000));
 
   // Каждую минуту
-  await agenda.every('* * * * *', 'generate recurring occurrences');
   await agenda.every('* * * * *', 'send pre-due pushes');
   await agenda.every('* * * * *', 'send at-due pushes');
   await agenda.every('* * * * *', 'send overdue pushes');

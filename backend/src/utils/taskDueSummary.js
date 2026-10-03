@@ -4,36 +4,57 @@
 // Убирает дублирование 4 агрегаций (2 в dashboard, 2 в getTasks).
 
 const Occurrence = require('../models/Occurrence');
+const { getNextOccurrences } = require('./recurrence');
 
 /**
- * Сводка по повторяющимся задачам: pendingCount, lastOverdueAt, nextDueAt.
+ * Сводка по повторяющимся задачам на лету (F1c этап 2):
+ * pendingCount (невыполненные просроченные), lastOverdueAt, nextDueAt.
+ * Учитывает исключения: выполненные/пропущенные вхождения не считаются.
  * @param {ObjectId} workspaceId
- * @param {ObjectId[]} taskIds
+ * @param {Array} recurringTasks — lean-задачи с recurrence.freq
  * @returns {Promise<Map<string,{count:number,lastAt:Date|null,nextAt:Date|null}>>}
  */
-async function summarizeOccurrences(workspaceId, taskIds) {
+async function summarizeOccurrences(workspaceId, recurringTasks) {
   const map = new Map();
-  if (!taskIds || taskIds.length === 0) return map;
-
+  if (!recurringTasks || recurringTasks.length === 0) return map;
   const now = new Date();
 
-  // Просроченные неподтверждённые: count + самая свежая
-  const overdueAgg = await Occurrence.aggregate([
-    { $match: { workspaceId, taskId: { $in: taskIds }, status: 'pending', dueAt: { $lt: now } } },
-    { $group: { _id: '$taskId', count: { $sum: 1 }, lastAt: { $max: '$dueAt' } } }
-  ]);
-  overdueAgg.forEach((o) => map.set(String(o._id), { count: o.count, lastAt: o.lastAt, nextAt: null }));
+  for (const t of recurringTasks) {
+    const tid = String(t._id);
+    // исключения из БД: done/skipped по originalDate (и перенесённые dueAt)
+    const excl = await Occurrence.find({
+      taskId: t._id,
+      $or: [{ status: { $in: ['done', 'skipped', 'missed'] } }, { dueAt: { $ne: null } }],
+    }).select('originalDate dueAt status').lean();
+    const doneOrSkipped = new Set();
+    const movedByOrig = new Map();
+    for (const e of excl) {
+      if (e.status === 'done' || e.status === 'skipped') doneOrSkipped.add(e.originalDate.getTime());
+      if (e.dueAt && e.originalDate && e.dueAt.getTime() !== e.originalDate.getTime()) {
+        movedByOrig.set(e.originalDate.getTime(), e.dueAt);
+      }
+    }
 
-  // Ближайшая будущая неподтверждённая
-  const nextAgg = await Occurrence.aggregate([
-    { $match: { workspaceId, taskId: { $in: taskIds }, status: 'pending', dueAt: { $gte: now } } },
-    { $group: { _id: '$taskId', nextAt: { $min: '$dueAt' } } }
-  ]);
-  nextAgg.forEach((o) => {
-    const cur = map.get(String(o._id)) || { count: 0, lastAt: null };
-    cur.nextAt = o.nextAt;
-    map.set(String(o._id), cur);
-  });
+    // окно: от начала жизни задачи (createdAt), но не глубже года назад
+    const yearAgo = new Date(now.getTime() - 366 * 24 * 60 * 60 * 1000);
+    const created = t.createdAt ? new Date(t.createdAt) : yearAgo;
+    const from = created > yearAgo ? created : yearAgo;
+    const dates = getNextOccurrences(t.recurrence, from, 500);
+    let count = 0;
+    let lastAt = null;
+    let nextAt = null;
+    for (const d of dates) {
+      if (doneOrSkipped.has(d.getTime())) continue;
+      const effective = movedByOrig.get(d.getTime()) || d;
+      if (effective.getTime() < now.getTime()) {
+        count++;
+        if (!lastAt || effective > lastAt) lastAt = effective;
+      } else {
+        if (!nextAt || effective < nextAt) nextAt = effective;
+      }
+    }
+    map.set(tid, { count, lastAt, nextAt });
+  }
 
   return map;
 }
