@@ -2,6 +2,8 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const User = require('../models/User');
 const Status = require('../models/Status');
+const Workspace = require('../models/Workspace');
+const Membership = require('../models/Membership');
 const RefreshToken = require('../models/RefreshToken');
 const DEFAULT_STATUSES = require('../utils/defaultStatuses');
 const { validationResult } = require('express-validator');
@@ -75,7 +77,20 @@ const register = async (req, res) => {
     const user = new User({ username, email, password });
     await user.save();
 
-    const statuses = DEFAULT_STATUSES.map(s => ({ ...s, userId: user._id }));
+    // Личное пространство + членство(owner) — фундамент workspace
+    const workspace = await Workspace.create({
+      name: 'Личное',
+      isPersonal: true,
+      createdBy: user._id
+    });
+    await Membership.create({ userId: user._id, workspaceId: workspace._id, role: 'owner' });
+
+    const statuses = DEFAULT_STATUSES.map(s => ({
+      ...s,
+      userId: user._id,
+      workspaceId: workspace._id,
+      createdBy: user._id
+    }));
     await Status.insertMany(statuses);
 
     const accessToken = generateAccessToken(user._id);
