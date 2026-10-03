@@ -1,10 +1,11 @@
 const Status = require('../models/Status');
+const { canByMembership } = require('../utils/can');
 const Task = require('../models/Task');
 
 // Получение всех статусов пользователя
 const getStatuses = async (req, res) => {
   try {
-    const statuses = await Status.find({ userId: req.user._id })
+    const statuses = await Status.find({ workspaceId: req.workspaceId })
       .sort({ order: 1 });
 
     res.json({
@@ -23,6 +24,7 @@ const getStatuses = async (req, res) => {
 // Создание статуса
 const createStatus = async (req, res) => {
   try {
+    if (!canByMembership(req.membership, 'create')) return res.status(403).json({ success: false, message: 'Forbidden' });
     const { name, color, isFinal } = req.body;
 
     if (!name || !name.trim()) {
@@ -32,12 +34,14 @@ const createStatus = async (req, res) => {
       });
     }
 
-    const lastStatus = await Status.findOne({ userId: req.user._id })
+    const lastStatus = await Status.findOne({ workspaceId: req.workspaceId })
       .sort({ order: -1 });
     const order = lastStatus ? lastStatus.order + 1 : 0;
 
     const status = new Status({
+      workspaceId: req.workspaceId,
       userId: req.user._id,
+      createdBy: req.user._id,
       name: name.trim(),
       color: color || '#9ca3af',
       order,
@@ -62,6 +66,7 @@ const createStatus = async (req, res) => {
 // Обновление статуса (name, color, order, isFinal)
 const updateStatus = async (req, res) => {
   try {
+    if (!canByMembership(req.membership, 'update')) return res.status(403).json({ success: false, message: 'Forbidden' });
     const { name, color, order, isFinal } = req.body;
 
     const update = {};
@@ -71,7 +76,7 @@ const updateStatus = async (req, res) => {
     if (isFinal !== undefined) update.isFinal = !!isFinal;
 
     const status = await Status.findOneAndUpdate(
-      { _id: req.params.id, userId: req.user._id },
+      { _id: req.params.id, workspaceId: req.workspaceId },
       update,
       { new: true, runValidators: true }
     );
@@ -110,12 +115,12 @@ const reorderStatuses = async (req, res) => {
 
     for (const item of order) {
       await Status.updateOne(
-        { _id: item.id, userId: req.user._id },
+        { _id: item.id, workspaceId: req.workspaceId },
         { order: item.order }
       );
     }
 
-    const statuses = await Status.find({ userId: req.user._id })
+    const statuses = await Status.find({ workspaceId: req.workspaceId })
       .sort({ order: 1 });
 
     res.json({
@@ -134,9 +139,10 @@ const reorderStatuses = async (req, res) => {
 // Удаление статуса
 const deleteStatus = async (req, res) => {
   try {
+    if (!canByMembership(req.membership, 'delete')) return res.status(403).json({ success: false, message: 'Forbidden' });
     const status = await Status.findOne({
       _id: req.params.id,
-      userId: req.user._id
+      workspaceId: req.workspaceId
     });
 
     if (!status) {
@@ -148,7 +154,7 @@ const deleteStatus = async (req, res) => {
 
     const tasksCount = await Task.countDocuments({
       statusId: status._id,
-      userId: req.user._id
+      workspaceId: req.workspaceId
     });
 
     if (tasksCount > 0) {

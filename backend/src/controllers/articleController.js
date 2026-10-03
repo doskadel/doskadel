@@ -1,13 +1,17 @@
 const Article = require('../models/Article');
 const escapeRegex = require('../utils/escapeRegex');
+const { canByMembership } = require('../utils/can');
 
 // Создание статьи
 const createArticle = async (req, res) => {
   try {
+    if (!canByMembership(req.membership, 'create')) return res.status(403).json({ success: false, message: 'Forbidden' });
     const { title, content } = req.body;
     const article = new Article({
       title, content,
-      userId: req.user._id
+      workspaceId: req.workspaceId,
+      userId: req.user._id,
+      createdBy: req.user._id
     });
 
     await article.save();
@@ -30,7 +34,7 @@ const getArticles = async (req, res) => {
   try {
     const { q, dateFrom, dateTo, sort } = req.query;
 
-    const filter = { userId: req.user._id };
+    const filter = { workspaceId: req.workspaceId };
 
     // Поиск по title + content
     if (q && q.trim()) {
@@ -99,7 +103,7 @@ const getArticleById = async (req, res) => {
   try {
     const article = await Article.findOne({
       _id: req.params.id,
-      userId: req.user._id
+      workspaceId: req.workspaceId
     });
 
     if (!article) {
@@ -125,10 +129,11 @@ const getArticleById = async (req, res) => {
 // Обновление статьи
 const updateArticle = async (req, res) => {
   try {
+    if (!canByMembership(req.membership, 'update')) return res.status(403).json({ success: false, message: 'Forbidden' });
     const updateData = {};
     ['title', 'content'].forEach((k) => { if (req.body[k] !== undefined) updateData[k] = req.body[k]; });
     const article = await Article.findOneAndUpdate(
-      { _id: req.params.id, userId: req.user._id },
+      { _id: req.params.id, workspaceId: req.workspaceId },
       updateData,
       { new: true, runValidators: true }
     );
@@ -156,9 +161,10 @@ const updateArticle = async (req, res) => {
 // Удаление статьи
 const deleteArticle = async (req, res) => {
   try {
+    if (!canByMembership(req.membership, 'delete')) return res.status(403).json({ success: false, message: 'Forbidden' });
     const article = await Article.findOneAndDelete({
       _id: req.params.id,
-      userId: req.user._id
+      workspaceId: req.workspaceId
     });
 
     if (!article) {

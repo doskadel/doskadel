@@ -10,8 +10,26 @@ const occurrenceSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
+    required: true
+  },
+  workspaceId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Workspace',
     required: true,
     index: true
+  },
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
+  completedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
+  deletedAt: {
+    type: Date,
+    default: null
   },
   dueAt: {
     type: Date,
@@ -39,7 +57,7 @@ const occurrenceSchema = new mongoose.Schema({
   timestamps: true
 });
 
-occurrenceSchema.index({ userId: 1, status: 1, dueAt: 1 });
+occurrenceSchema.index({ workspaceId: 1, status: 1, dueAt: 1 });
 occurrenceSchema.index({ taskId: 1, dueAt: -1 });
 occurrenceSchema.index({ taskId: 1, status: 1 });
 

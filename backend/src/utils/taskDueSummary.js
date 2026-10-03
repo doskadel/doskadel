@@ -7,11 +7,11 @@ const Occurrence = require('../models/Occurrence');
 
 /**
  * Сводка по повторяющимся задачам: pendingCount, lastOverdueAt, nextDueAt.
- * @param {ObjectId} userId
+ * @param {ObjectId} workspaceId
  * @param {ObjectId[]} taskIds
  * @returns {Promise<Map<string,{count:number,lastAt:Date|null,nextAt:Date|null}>>}
  */
-async function summarizeOccurrences(userId, taskIds) {
+async function summarizeOccurrences(workspaceId, taskIds) {
   const map = new Map();
   if (!taskIds || taskIds.length === 0) return map;
 
@@ -19,14 +19,14 @@ async function summarizeOccurrences(userId, taskIds) {
 
   // Просроченные неподтверждённые: count + самая свежая
   const overdueAgg = await Occurrence.aggregate([
-    { $match: { userId, taskId: { $in: taskIds }, status: 'pending', dueAt: { $lt: now } } },
+    { $match: { workspaceId, taskId: { $in: taskIds }, status: 'pending', dueAt: { $lt: now } } },
     { $group: { _id: '$taskId', count: { $sum: 1 }, lastAt: { $max: '$dueAt' } } }
   ]);
   overdueAgg.forEach((o) => map.set(String(o._id), { count: o.count, lastAt: o.lastAt, nextAt: null }));
 
   // Ближайшая будущая неподтверждённая
   const nextAgg = await Occurrence.aggregate([
-    { $match: { userId, taskId: { $in: taskIds }, status: 'pending', dueAt: { $gte: now } } },
+    { $match: { workspaceId, taskId: { $in: taskIds }, status: 'pending', dueAt: { $gte: now } } },
     { $group: { _id: '$taskId', nextAt: { $min: '$dueAt' } } }
   ]);
   nextAgg.forEach((o) => {

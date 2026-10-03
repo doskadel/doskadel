@@ -1,12 +1,13 @@
 const express = require('express');
 const auth = require('../middleware/auth');
+const workspaceContext = require('../middleware/workspace');
 const Task = require('../models/Task');
 const Article = require('../models/Article');
 const escapeRegex = require('../utils/escapeRegex');
 const router = express.Router();
 
 // Поиск задач и статей
-router.get('/', auth, async (req, res) => {
+router.get('/', auth, workspaceContext, async (req, res) => {
   try {
     const { q } = req.query;
 
@@ -21,7 +22,7 @@ router.get('/', auth, async (req, res) => {
 
     // Поиск задач
     const tasks = await Task.find({
-      userId: req.user._id,
+      workspaceId: req.workspaceId,
       $or: [
         { title: { $regex: safe, $options: 'i' } },
         { description: { $regex: safe, $options: 'i' } }
@@ -30,7 +31,7 @@ router.get('/', auth, async (req, res) => {
 
     // Поиск статей
     const articles = await Article.find({
-      userId: req.user._id,
+      workspaceId: req.workspaceId,
       $or: [
         { title: { $regex: safe, $options: 'i' } },
         { content: { $regex: safe, $options: 'i' } }

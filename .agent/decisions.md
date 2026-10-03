@@ -2,6 +2,26 @@
 
 Новые — сверху. Формат: контекст, решение, следствия.
 
+## 2026-10-04 — ADR: данные привязаны к workspace, доступ через can()
+
+**Решение:** данные привязаны к workspace; доступ через can(); личный режим = workspace из одного человека; групповой/корпоративный добавляет приглашения и роли без смены схемы.
+
+**Реализовано (ветка wip/foundation-workspaces):**
+- Модели Workspace, Membership (роли owner/admin/member/viewer как данные).
+- can() (utils/can.js): роль -> набор действий, единый хелпер.
+- workspaceId (ObjectId, index) во всех доменных моделях: Task, Occurrence, Article, Status.
+- createdBy/updatedBy (пока createdBy), assigneeId (nullable), deletedAt (мягкое удаление) — поля добавлены.
+- Миграция migrate-workspaces.js (идемпотентная, dry-run): личный workspace + membership(owner) каждому User, бэкфилл workspaceId/createdBy.
+- Middleware workspaceContext: wsId из X-Workspace-Id (валидация по membership), иначе личное; req.workspaceId/req.membership; из body/query НЕ берём.
+- Контроллеры переведены на workspaceId (tasks, occurrences, articles, statuses, dashboard, search). Создание: workspaceId/createdBy из контекста. Чужой id -> 404.
+- Agenda: новые Occurrence наследуют workspaceId/createdBy серии; push по userId (устройство принадлежит человеку).
+- Регистрация: создаёт Workspace+Membership(owner)+статусы с workspaceId.
+- Тест изоляции (scripts/test-isolation.js): 8/8 pass.
+
+**Дополнено (ревью арбитра):** can() подключена в контроллерах (create/update/delete) через canByMembership(req.membership); unit-тест can() 18/18. workspaceId required + составные индексы {workspaceId,...}, userId-индексы удалены. Личный ws — partial unique индекс {createdBy} при isPersonal:true (ровно один). Тест изоляции расширен 11/11 (search/dashboard/Occurrence).
+
+**Отложено (триггер возврата):** приглашения, UI ролей, переключатель пространств (клиент начнёт слать X-Workspace-Id), биллинг, организации над workspace, user_settings/workspace_settings (сейчас настройки в User), auth_identities (OAuth/SSO), переименование userId->createdBy, правило получателей push (assigneeId/участники).
+
 ## 2026-10-04 — Фундамент workspace: решение по идентификаторам
 
 **Контекст:** план фундамента (workspaces/can/workspaceId) предполагал п.7 — переход на UUID/ULID. Аудит (AUDIT_FOUNDATION.md) показал: проект на MongoDB, ObjectId.

@@ -68,13 +68,34 @@ const taskSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
+  },
+  // Фундамент workspace: добавляется миграцией; после бэкфилла — required+index
+  workspaceId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Workspace',
+    required: true,
+    index: true
+  },
+  // Авторство (createdBy = бывший userId). Позже — updatedBy/assigneeId/deletedAt
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
+  assigneeId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
+  deletedAt: {
+    type: Date,
+    default: null
   }
 }, {
   timestamps: true
 });
 
-taskSchema.index({ userId: 1, statusId: 1, order: 1 });
-taskSchema.index({ userId: 1, 'recurrence.type': 1 });
-taskSchema.index({ userId: 1, dueDate: 1 }); // для выборки разовых с близким dueDate
+taskSchema.index({ workspaceId: 1, statusId: 1, order: 1 });
+taskSchema.index({ workspaceId: 1, 'recurrence.type': 1 });
+taskSchema.index({ workspaceId: 1, dueDate: 1 }); // для выборки разовых с близким dueDate
 
 module.exports = mongoose.model('Task', taskSchema);

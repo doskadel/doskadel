@@ -4,6 +4,7 @@ const Occurrence = require('../models/Occurrence');
 const { getNextOccurrences } = require('../utils/recurrence');
 const escapeRegex = require('../utils/escapeRegex');
 const { SINGLE, RECURRING } = require('../utils/taskKinds');
+const { canByMembership } = require('../utils/can');
 const { summarizeOccurrences, enrichTaskDue } = require('../utils/taskDueSummary');
 
 const OCCURRENCE_HORIZON_DAYS = 7;
@@ -26,6 +27,8 @@ const generateOccurrencesForTask = async (task) => {
       toCreate.map((d) => ({
         taskId: task._id,
         userId: task.userId,
+        workspaceId: task.workspaceId,
+        createdBy: task.createdBy || task.userId,
         dueAt: d,
         status: 'pending',
         notificationsSent: {
@@ -41,10 +44,13 @@ const generateOccurrencesForTask = async (task) => {
 
 const createTask = async (req, res) => {
   try {
+    if (!canByMembership(req.membership, 'create')) {
+      return res.status(403).json({ success: false, message: 'Forbidden' });
+    }
     let { statusId } = req.body;
 
     if (!statusId) {
-      const firstStatus = await Status.findOne({ userId: req.user._id })
+      const firstStatus = await Status.findOne({ workspaceId: req.workspaceId })
         .sort({ order: 1 });
       if (!firstStatus) {
         return res.status(400).json({
@@ -56,7 +62,7 @@ const createTask = async (req, res) => {
     }
 
     const lastTask = await Task.findOne({
-      userId: req.user._id,
+      workspaceId: req.workspaceId,
       statusId
     }).sort({ order: -1 });
     const order = lastTask ? lastTask.order + 1 : 0;
@@ -66,7 +72,9 @@ const createTask = async (req, res) => {
       title, description, priority, dueDate, recurrence, notifications,
       statusId,
       order,
-      userId: req.user._id
+      workspaceId: req.workspaceId,
+      userId: req.user._id,
+      createdBy: req.user._id
     });
 
     await task.save();
@@ -86,7 +94,7 @@ const getTasks = async (req, res) => {
       dateFrom, dateTo, sort, overdue, dueSoon, taskType
     } = req.query;
 
-    const filter = { userId: req.user._id };
+    const filter = { workspaceId: req.workspaceId };
 
     if (q && q.trim()) {
       const regex = new RegExp(escapeRegex(q.trim()), 'i');
@@ -133,7 +141,7 @@ const getTasks = async (req, res) => {
     let occurrenceDateByTaskId = new Map(); // taskId → Date (для повторяющихся)
 
     if (wantsOverdue || wantsDueSoon) {
-      const statuses = await Status.find({ userId: req.user._id });
+      const statuses = await Status.find({ workspaceId: req.workspaceId });
       const activeStatusIds = statuses.filter((s) => !s.isFinal).map((s) => s._id);
 
       const now = new Date();
@@ -145,7 +153,7 @@ const getTasks = async (req, res) => {
 
       // --- 1) Разовые задачи ---
       const simpleTasks = await Task.find({
-        userId: req.user._id,
+        workspaceId: req.workspaceId,
         statusId: { $in: activeStatusIds },
         dueDate: { $ne: null, ...dateCondition },
         ...SINGLE
@@ -155,7 +163,7 @@ const getTasks = async (req, res) => {
 
       // --- 2) Повторяющиеся задачи через Occurrence ---
       const occurrenceMatch = {
-        userId: req.user._id,
+        workspaceId: req.workspaceId,
         status: 'pending',
         dueAt: dateCondition
       };
@@ -182,7 +190,7 @@ const getTasks = async (req, res) => {
 
       const recurringTasks = await Task.find({
         _id: { $in: recurringTaskIds },
-        userId: req.user._id,
+        workspaceId: req.workspaceId,
         statusId: { $in: activeStatusIds },
         ...RECURRING
       }).select('_id');
@@ -242,7 +250,7 @@ const getTasks = async (req, res) => {
     const recurringIds = tasks
       .filter((t) => t.recurrence && t.recurrence.type)
       .map((t) => t._id);
-    const summary = await summarizeOccurrences(req.user._id, recurringIds);
+    const summary = await summarizeOccurrences(req.workspaceId, recurringIds);
     tasks = tasks.map((t) => enrichTaskDue(t.toObject(), summary));
 
     // Для overdue/dueSoon — сортируем по дате (самое срочное сверху)
@@ -268,7 +276,7 @@ const getTasks = async (req, res) => {
 
 const getTaskById = async (req, res) => {
   try {
-    const task = await Task.findOne({ _id: req.params.id, userId: req.user._id });
+    const task = await Task.findOne({ _id: req.params.id, workspaceId: req.workspaceId });
     if (!task) return res.status(404).json({ success: false, message: 'Task not found' });
     res.json({ success: true, task });
   } catch (error) {
@@ -281,9 +289,12 @@ const updateTask = async (req, res) => {
   try {
     const oldTask = await Task.findOne({
       _id: req.params.id,
-      userId: req.user._id
+      workspaceId: req.workspaceId
     });
     if (!oldTask) return res.status(404).json({ success: false, message: 'Task not found' });
+    if (!canByMembership(req.membership, 'update')) {
+      return res.status(403).json({ success: false, message: 'Forbidden' });
+    }
 
     const recurrenceChanged = JSON.stringify(oldTask.recurrence || null) !==
       JSON.stringify(req.body.recurrence !== undefined ? req.body.recurrence : oldTask.recurrence);
@@ -316,7 +327,7 @@ const updateTask = async (req, res) => {
     }
 
     const task = await Task.findOneAndUpdate(
-      { _id: req.params.id, userId: req.user._id },
+      { _id: req.params.id, workspaceId: req.workspaceId },
       updateData,
       { new: true, runValidators: true }
     );
@@ -335,9 +346,12 @@ const updateTask = async (req, res) => {
 
 const deleteTask = async (req, res) => {
   try {
+    if (!canByMembership(req.membership, 'delete')) {
+      return res.status(403).json({ success: false, message: 'Forbidden' });
+    }
     const task = await Task.findOneAndDelete({
       _id: req.params.id,
-      userId: req.user._id
+      workspaceId: req.workspaceId
     });
     if (!task) return res.status(404).json({ success: false, message: 'Task not found' });
     await Occurrence.deleteMany({ taskId: task._id });
@@ -356,7 +370,7 @@ const reorderTasks = async (req, res) => {
     }
     for (const item of tasks) {
       await Task.updateOne(
-        { _id: item.id, userId: req.user._id },
+        { _id: item.id, workspaceId: req.workspaceId },
         { statusId: item.statusId, order: item.order }
       );
     }

@@ -1,10 +1,12 @@
 const express = require('express');
 const auth = require('../middleware/auth');
+const workspaceContext = require('../middleware/workspace');
 const statusController = require('../controllers/statusController');
 const router = express.Router();
 
 // Все маршруты требуют аутентификации
 router.use(auth);
+router.use(workspaceContext);
 
 router.get('/', statusController.getStatuses);
 router.post('/', statusController.createStatus);
