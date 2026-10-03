@@ -75,6 +75,34 @@ const rnd = () => Math.random().toString(36).slice(2, 8);
   const afterCount = await Task.countDocuments({ workspaceId: t4.workspaceId });
   check('following на первом = all (без новой Task)', fp.code === 200 && afterCount === beforeCount);
 
+  // auto-missed: 3 просроченных pending -> 2 missed, последнее pending; не трогает с отправкой
+  const { runAutoMissed } = require('../src/utils/autoMissed');
+  const Occurrence = require('../src/models/Occurrence');
+  const t5 = JSON.parse((await req('POST', '/api/tasks', tok, { title: 'missed', priority: 2, recurrence: { freq: 'daily', time: '09:00' } })).body).task;
+  const occs = [];
+  for (let i = 0; i < 3; i++) {
+    const d = new Date(Date.now() - (3 - i) * 24 * 3600 * 1000);
+    occs.push(await Occurrence.create({ taskId: t5._id, originalDate: d, dueAt: d, status: 'pending', workspaceId: t5.workspaceId, userId: t5.userId, createdBy: t5.userId }));
+  }
+  // одна с отправкой (не должна стать missed)
+  const sent = occs[0];
+  await Occurrence.updateOne({ _id: sent._id }, { $set: { 'notificationsSent.beforeDue': new Date() } });
+  const dry = await runAutoMissed(true);
+  check('auto-missed dry-run считает', dry >= 1);
+  const marked = await runAutoMissed(false);
+  const missedCount = await Occurrence.countDocuments({ taskId: t5._id, status: 'missed' });
+  const pendingLeft = await Occurrence.countDocuments({ taskId: t5._id, status: 'pending' });
+  check('auto-missed: помечено missed', missedCount >= 1);
+  // pending остаются: последняя чистая (1) + запись с отправкой (1) = 2
+  check('auto-missed: последнее чистое + с отправкой остались pending', pendingLeft === 2);
+  const sentStill = await Occurrence.findById(sent._id).lean();
+  check('auto-missed: с отправкой не стал missed', sentStill.status === 'pending');
+
+  // история по seriesId: обе части серии
+  const seriesTasks = await Task.find({ seriesId: t._id }).lean();
+  check('история seriesId: >= 2 части', seriesTasks.length >= 2);
+  check('все части с одним seriesId', seriesTasks.every((x) => String(x.seriesId) === String(t._id)));
+
   // уборка
   const db = mongoose.connection.db;
   const wsIds = (await db.collection('workspaces').find({ createdBy: uid }).toArray()).map((w) => w._id);

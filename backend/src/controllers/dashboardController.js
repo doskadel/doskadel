@@ -20,7 +20,7 @@ const getDashboard = async (req, res) => {
     const statuses = await Status.find({ workspaceId }).sort({ order: 1 }).lean();
     const statusCounts = await Promise.all(
       statuses.map(async (s) => {
-        const count = await Task.countDocuments({ workspaceId, statusId: s._id });
+        const count = await Task.countDocuments({ workspaceId, statusId: s._id, closedReason: null });
         return { statusId: s._id, name: s.name, color: s.color, count, key: s.key || null };
       })
     );
@@ -149,10 +149,10 @@ const getDashboard = async (req, res) => {
     const upcomingTasks = allUpcoming.slice(0, limitOf('upcoming', 5));
 
     // Общие счётчики
-    const totalTasks = await Task.countDocuments({ workspaceId });
+    const totalTasks = await Task.countDocuments({ workspaceId, closedReason: null });
     const totalArticles = await Article.countDocuments({ workspaceId });
 
-    const recentTasks = await Task.find({ workspaceId })
+    const recentTasks = await Task.find({ workspaceId, closedReason: null })
       .sort({ updatedAt: -1 })
       .limit(5)
       .select('_id title statusId priority updatedAt');

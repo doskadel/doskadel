@@ -6,6 +6,7 @@ const Agenda = require('agenda');
 const Task = require('./models/Task');
 const { SINGLE, RECURRING } = require('./utils/taskKinds');
 const { sendDuePushes } = require('./utils/dueItems');
+const { runAutoMissed } = require('./utils/autoMissed');
 const Occurrence = require('./models/Occurrence');
 const { sendToUser, isConfigured } = require('./utils/webPush');
 
@@ -69,20 +70,7 @@ const startAgenda = async () => {
   //     Правило 'показывать только последнее просроченное'.
   // ==========================================================
   agenda.define('auto-missed occurrences', async () => {
-    const now = new Date();
-    // группируем pending-просрочки по taskId, оставляем последнюю, старые -> missed
-    const agg = await Occurrence.aggregate([
-      { $match: { status: 'pending', dueAt: { $lt: now } } },
-      { $sort: { taskId: 1, dueAt: 1 } },
-      { $group: { _id: '$taskId', ids: { $push: { id: '$_id', dueAt: '$dueAt' } } } },
-    ]);
-    let marked = 0;
-    for (const g of agg) {
-      if (g.ids.length <= 1) continue;
-      const oldIds = g.ids.slice(0, -1).map((x) => x.id); // все кроме последней
-      const r = await Occurrence.updateMany({ _id: { $in: oldIds } }, { $set: { status: 'missed' } });
-      marked += r.modifiedCount;
-    }
+    const marked = await runAutoMissed(false);
     if (marked > 0) console.log(`[AGENDA] auto-missed: ${marked}`);
   });
 

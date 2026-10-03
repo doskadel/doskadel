@@ -96,6 +96,8 @@ const getTasks = async (req, res) => {
     } = req.query;
 
     const filter = { workspaceId: req.workspaceId };
+    // closedReason != null (split/manual) — не активная, скрыта из списков/доски
+    if (req.query.includeClosed !== 'true') filter.closedReason = null;
 
     if (q && q.trim()) {
       const regex = new RegExp(escapeRegex(q.trim()), 'i');

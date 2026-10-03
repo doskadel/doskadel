@@ -5,6 +5,7 @@
 
 ## Архитектура: фундамент workspace (done 2026-10-04, ветка wip/foundation-workspaces)
 - W3 proposed. Настройка tz пользователя/workspace в UI (сейчас recurrence.tz дефолт Europe/Moscow из миграции).
+- W4 proposed. Компенсация split без транзакции: при падении процесса посередине остаётся промежуточное состояние (newTask создан, старая не закрыта). Варианты: скрипт-аудит консистентности seriesId/prevTaskId, либо replica set + транзакции. Сейчас компенсация только на исключениях.
 - W2 proposed (не блокирует). Тест agenda: сейчас косвенный (через getDueItems). Добавить прямой тест job с двумя workspace. cleanup-orphans.js — утилита, dry-run по умолчанию (удаление только с --apply), остаётся в проекте.
 - W1 done. Мультитенантность: Workspace/Membership, can(), workspaceId во всех моделях, миграция, middleware workspaceContext, перевод API, тест изоляции 8/8. Личный режим = workspace из одного. ADR: decisions.md 2026-10-04. Отложено: приглашения, UI ролей, переключатель пространств, настройки user/workspace, auth_identities.
 
