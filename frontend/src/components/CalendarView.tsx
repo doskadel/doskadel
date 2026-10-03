@@ -3,10 +3,12 @@ import {
   DndContext,
   DragOverlay,
   PointerSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   useDraggable,
   useDroppable,
+  pointerWithin,
   type DragEndEvent,
   type DragStartEvent,
 } from '@dnd-kit/core';
@@ -105,16 +107,26 @@ const DayCell: React.FC<{
 };
 
 // ==== Draggable карточка задачи ====
+const formatTime = (t: CalendarTask): string | null => {
+  const d = taskDate(t);
+  if (!d) return null;
+  // полночь считаем «без времени» (all-day)
+  if (d.getHours() === 0 && d.getMinutes() === 0) return null;
+  return d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+};
+
 const DraggableTask: React.FC<{
   task: CalendarTask;
   onOpen: () => void;
 }> = ({ task, onOpen }) => {
   const recurring = isRecurring(task);
-  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+  const { attributes, listeners, setNodeRef, setActivatorNodeRef, isDragging } = useDraggable({
     id: `task-${task._id}`,
     data: { taskId: task._id },
     disabled: recurring,
   });
+
+  const time = formatTime(task);
 
   return (
     <div
@@ -123,13 +135,23 @@ const DraggableTask: React.FC<{
       onClick={onOpen}
       role="button"
       tabIndex={0}
-      title={recurring ? 'Повторяющаяся задача: перенос пока недоступен' : 'Перетащите, чтобы изменить дедлайн'}
+      title={recurring ? 'Повторяющаяся задача: перенос пока недоступен' : undefined}
       onKeyDown={(e) => { if (e.key === 'Enter') onOpen(); }}
-      {...(recurring ? {} : listeners)}
-      {...(recurring ? {} : { ...attributes, role: 'button', tabIndex: 0 })}
     >
+      {!recurring && (
+        <span
+          ref={setActivatorNodeRef}
+          className="calendar-task-grip"
+          title="Перетащить на другой день"
+          onClick={(e) => e.stopPropagation()}
+          {...listeners}
+          {...attributes}
+        >⠿</span>
+      )}
+      {recurring && <span className="calendar-task-grip calendar-task-grip--locked">🔄</span>}
       <span className={'calendar-task-priority calendar-task-priority--' + (task.priority || 1)} />
-      {task.title}
+      <span className="calendar-task-title">{task.title}</span>
+      {time && <span className="calendar-task-time">{time}</span>}
     </div>
   );
 };
@@ -142,7 +164,10 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
   const [selected, setSelected] = useState<Date>(today);
   const [activeTask, setActiveTask] = useState<CalendarTask | null>(null);
 
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } })
+  );
 
   const tasksByDay = (day: Date) => tasks.filter((t) => {
     if (t.recurrence && t.lastOverdueAt) {
@@ -196,11 +221,13 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
 
   // ==== DnD ====
   const handleDragStart = (e: DragStartEvent) => {
+    console.log('[cal-dnd] start', e.active.id);
     const id = String(e.active.id).replace('task-', '');
     setActiveTask(tasks.find((t) => t._id === id) || null);
   };
 
   const handleDragEnd = async (e: DragEndEvent) => {
+    console.log('[cal-dnd] end', e.active.id, 'over', e.over ? e.over.id : null);
     setActiveTask(null);
     const { active, over } = e;
     if (!over || !onTaskMoved) return;
@@ -307,7 +334,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
   );
 
   return (
-    <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+    <DndContext sensors={sensors} collisionDetection={pointerWithin} onDragStart={handleDragStart} onDragOver={(e) => console.log('[cal-dnd] over', e.over ? e.over.id : null)} onDragEnd={handleDragEnd}>
       <div className="calendar">
         <div className="calendar-viewswitch">
           {(['month', 'week', 'day'] as ViewMode[]).map((v) => (

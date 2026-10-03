@@ -859,12 +859,17 @@ z-index: 10;
 .calendar-task--dragging { opacity: 0.4; }
 .calendar-task--locked { cursor: not-allowed; }
 .calendar-task--overlay { background: var(--color-surface); box-shadow: var(--shadow-md); cursor: grabbing; }
+.calendar-task-grip { cursor: grab; color: var(--color-text-muted); touch-action: none; user-select: none; font-size: 14px; line-height: 1; padding: 0 2px; flex-shrink: 0; }
+.calendar-task-grip:active { cursor: grabbing; }
+.calendar-task-grip--locked { cursor: not-allowed; }
+.calendar-task-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.calendar-task-time { margin-left: auto; color: var(--color-text-muted); font-size: 13px; white-space: nowrap; flex-shrink: 0; }
 .calendar-day-panel { margin-top: var(--space-md); }
 .calendar-day-title { font-weight: 600; margin-bottom: var(--space-sm); text-transform: capitalize; }
 .calendar-empty { color: var(--color-text-muted); font-size: 14px; }
 .calendar-task {
   display: flex; align-items: center; gap: var(--space-sm); padding: 10px 12px; border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm); background: var(--color-surface); margin-bottom: 6px; cursor: pointer;
+  border-radius: var(--radius-sm); background: var(--color-surface); margin-bottom: 6px; cursor: pointer; user-select: none;
 }
 .calendar-task:hover { background: var(--color-bg); }
 .calendar-task-priority { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
