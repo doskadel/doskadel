@@ -70,7 +70,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, onOpenTask }) => {
           const dayTasks = tasksByDay(day);
           const overdueCount = dayTasks.filter((t) => {
             const d = taskDate(t);
-            return d && startOfDay(d) < today;
+            return d && d.getTime() < Date.now();
           }).length;
           const isToday = sameDay(day, today);
           const isSelected = sameDay(day, selected);
