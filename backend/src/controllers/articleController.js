@@ -1,10 +1,12 @@
 const Article = require('../models/Article');
+const escapeRegex = require('../utils/escapeRegex');
 
 // Создание статьи
 const createArticle = async (req, res) => {
   try {
+    const { title, content } = req.body;
     const article = new Article({
-      ...req.body,
+      title, content,
       userId: req.user._id
     });
 
@@ -32,7 +34,7 @@ const getArticles = async (req, res) => {
 
     // Поиск по title + content
     if (q && q.trim()) {
-      const regex = new RegExp(q.trim(), 'i');
+      const regex = new RegExp(escapeRegex(q.trim()), 'i');
       filter.$or = [
         { title: regex },
         { content: regex }
@@ -123,9 +125,11 @@ const getArticleById = async (req, res) => {
 // Обновление статьи
 const updateArticle = async (req, res) => {
   try {
+    const updateData = {};
+    ['title', 'content'].forEach((k) => { if (req.body[k] !== undefined) updateData[k] = req.body[k]; });
     const article = await Article.findOneAndUpdate(
       { _id: req.params.id, userId: req.user._id },
-      req.body,
+      updateData,
       { new: true, runValidators: true }
     );
 

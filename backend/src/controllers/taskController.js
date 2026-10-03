@@ -2,6 +2,7 @@ const Task = require('../models/Task');
 const Status = require('../models/Status');
 const Occurrence = require('../models/Occurrence');
 const { getNextOccurrences } = require('../utils/recurrence');
+const escapeRegex = require('../utils/escapeRegex');
 
 const OCCURRENCE_HORIZON_DAYS = 7;
 
@@ -58,8 +59,9 @@ const createTask = async (req, res) => {
     }).sort({ order: -1 });
     const order = lastTask ? lastTask.order + 1 : 0;
 
+    const { title, description, priority, dueDate, recurrence, notifications } = req.body;
     const task = new Task({
-      ...req.body,
+      title, description, priority, dueDate, recurrence, notifications,
       statusId,
       order,
       userId: req.user._id
@@ -85,7 +87,7 @@ const getTasks = async (req, res) => {
     const filter = { userId: req.user._id };
 
     if (q && q.trim()) {
-      const regex = new RegExp(q.trim(), 'i');
+      const regex = new RegExp(escapeRegex(q.trim()), 'i');
       filter.$or = [{ title: regex }, { description: regex }];
     }
 
@@ -320,7 +322,9 @@ const updateTask = async (req, res) => {
       (oldTask.dueDate ? new Date(oldTask.dueDate).toISOString() : null) !==
       (newDue ? new Date(newDue).toISOString() : null);
 
-    const updateData = { ...req.body };
+    const allowed = ['title', 'description', 'statusId', 'priority', 'order', 'dueDate', 'recurrence', 'notifications'];
+    const updateData = {};
+    allowed.forEach((k) => { if (req.body[k] !== undefined) updateData[k] = req.body[k]; });
     if (dueChanged) {
       updateData.notificationsSent = {
         dayBefore: null,

@@ -2,6 +2,7 @@ const express = require('express');
 const auth = require('../middleware/auth');
 const Task = require('../models/Task');
 const Article = require('../models/Article');
+const escapeRegex = require('../utils/escapeRegex');
 const router = express.Router();
 
 // Поиск задач и статей
@@ -16,12 +17,14 @@ router.get('/', auth, async (req, res) => {
       });
     }
 
+    const safe = escapeRegex(q);
+
     // Поиск задач
     const tasks = await Task.find({
       userId: req.user._id,
       $or: [
-        { title: { $regex: q, $options: 'i' } },
-        { description: { $regex: q, $options: 'i' } }
+        { title: { $regex: safe, $options: 'i' } },
+        { description: { $regex: safe, $options: 'i' } }
       ]
     }).sort({ updatedAt: -1 });
 
@@ -29,8 +32,8 @@ router.get('/', auth, async (req, res) => {
     const articles = await Article.find({
       userId: req.user._id,
       $or: [
-        { title: { $regex: q, $options: 'i' } },
-        { content: { $regex: q, $options: 'i' } }
+        { title: { $regex: safe, $options: 'i' } },
+        { content: { $regex: safe, $options: 'i' } }
       ]
     }).sort({ createdAt: -1 });
 
@@ -44,6 +47,7 @@ router.get('/', auth, async (req, res) => {
       }
     });
   } catch (error) {
+    console.error('Search error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'

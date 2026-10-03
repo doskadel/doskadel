@@ -5,6 +5,7 @@ const Status = require('../models/Status');
 const RefreshToken = require('../models/RefreshToken');
 const DEFAULT_STATUSES = require('../utils/defaultStatuses');
 const { validationResult } = require('express-validator');
+const { JWT_SECRET } = require('../config');
 
 const ACCESS_TTL = '15m';
 const REFRESH_TTL_DAYS = 30;
@@ -12,7 +13,7 @@ const IS_PROD = process.env.NODE_ENV === 'production';
 const COOKIE_NAME = 'doskadel_refresh';
 
 const generateAccessToken = (userId) => {
-  return jwt.sign({ userId }, process.env.JWT_SECRET || 'doskadel_secret', { expiresIn: ACCESS_TTL });
+  return jwt.sign({ userId }, JWT_SECRET, { expiresIn: ACCESS_TTL });
 };
 
 const issueRefreshToken = async (userId, family) => {
