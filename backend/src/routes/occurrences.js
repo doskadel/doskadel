@@ -5,7 +5,6 @@ const router = express.Router();
 
 router.use(auth);
 
-router.get('/pending', occurrenceController.getPending);
 router.get('/by-task/:taskId', occurrenceController.getByTask);
 router.get('/:id', occurrenceController.getById);
 

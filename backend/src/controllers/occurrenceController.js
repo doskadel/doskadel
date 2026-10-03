@@ -2,25 +2,6 @@ const mongoose = require('mongoose');
 const Occurrence = require('../models/Occurrence');
 const Task = require('../models/Task');
 
-// GET /api/occurrences/pending — только наступившие (dueAt <= now)
-const getPending = async (req, res) => {
-  try {
-    const occurrences = await Occurrence.find({
-      userId: req.user._id,
-      status: 'pending',
-      dueAt: { $lte: new Date() }
-    }).sort({ dueAt: 1 }).lean();
-
-    res.json({
-      success: true,
-      occurrences
-    });
-  } catch (error) {
-    console.error('Get pending occurrences error:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
-  }
-};
-
 // GET /api/occurrences/by-task/:taskId?status=pending|done
 const getByTask = async (req, res) => {
   try {
@@ -153,7 +134,6 @@ const unconfirmBatch = async (req, res) => {
 };
 
 module.exports = {
-  getPending,
   getByTask,
   getById,
   confirmBatch,
