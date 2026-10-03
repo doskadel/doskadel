@@ -433,10 +433,10 @@ z-index: 10;
 /* ==================== PULL TO REFRESH ==================== */
 /* Переопределяем контейнер библиотеки: без этого он схлопывается в 0 */
 .ptr-container {
-  height: auto;
-  min-height: 100%;
-  overflow: visible;
-  contain: none;
+  height: auto !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+  contain: none !important;
 }
 .ptr-wrapper {
   position: relative;
