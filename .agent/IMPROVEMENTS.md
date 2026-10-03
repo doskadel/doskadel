@@ -4,7 +4,7 @@
 Обновлено 2026-10-03 (вечер): добавлены S1-S4 (безопасность), F1-F3 (функционал), X1-X4 (документация); уточнены O6 и A3. Новые пункты получены чтением кода, не запуском: перед правкой перепроверять по реальному коду.
 
 ## Архитектура (добавлено 2026-10-03, приоритет перед F1/D1/D5)
-- R1 proposed, высокий приоритет. Разделение разовых и повторяющихся: в UI плюс, в хранении минус (две модели: Task.dueDate vs Occurrence; дубли логики в agenda/dashboard/getTasks/календаре; два смысла «выполнено»; хрупкие условия recurrence:null vs $exists:false). План: (1) единая функция «список сроков» (taskId, dueAt, kind: single|occurrence) для dashboard/getTasks/календаря/agenda; (2) параметризовать job в agenda (4 вместо 8); (3) единое условие «разовая» ($exists:false) везде. Модель НЕ переписывать сейчас. Делать ДО F1 (календарь) и D1/D5, иначе баги класса календаря повторятся.
+- R1 in-progress, высокий приоритет (шаг 3 done, шаги 1-2 done в agenda; осталось применить getDueItems в dashboard/getTasks/calendar). Разделение разовых и повторяющихся: в UI плюс, в хранении минус (две модели: Task.dueDate vs Occurrence; дубли логики в agenda/dashboard/getTasks/календаре; два смысла «выполнено»; хрупкие условия recurrence:null vs $exists:false). План: (1) единая функция «список сроков» (taskId, dueAt, kind: single|occurrence) для dashboard/getTasks/календаря/agenda; (2) параметризовать job в agenda (4 вместо 8); (3) единое условие «разовая» ($exists:false) везде. Модель НЕ переписывать сейчас. Делать ДО F1 (календарь) и D1/D5, иначе баги класса календаря повторятся.
 
 ## Оптимизация
 - O1 proposed. Ленивая загрузка маршрутов (React.lazy + Suspense): Tasks, Knowledge, CalendarView, ProfileModal, SearchModal. В src нет lazy/Suspense, всё грузится одним бандлом.
