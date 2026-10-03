@@ -2,6 +2,15 @@ const Task = require('../models/Task');
 const Status = require('../models/Status');
 const Article = require('../models/Article');
 const Occurrence = require('../models/Occurrence');
+const User = require('../models/User');
+
+// Конец дня (23:59:59.999) через N календарных дней от сегодня (локальное время сервера).
+const endOfDayPlus = (n) => {
+  const d = new Date();
+  d.setDate(d.getDate() + n);
+  d.setHours(23, 59, 59, 999);
+  return d;
+};
 
 const getDashboard = async (req, res) => {
   try {
@@ -11,13 +20,15 @@ const getDashboard = async (req, res) => {
     const statusCounts = await Promise.all(
       statuses.map(async (s) => {
         const count = await Task.countDocuments({ userId, statusId: s._id });
-        return { statusId: s._id, name: s.name, color: s.color, count };
+        return { statusId: s._id, name: s.name, color: s.color, count, key: s.key || null };
       })
     );
 
     const activeStatusIds = statuses.filter((s) => !s.isFinal).map((s) => s._id);
     const now = new Date();
-    const upcomingLimit = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+    const user = await User.findById(userId).select('dashboardSettings');
+    const upcomingDays = (user && user.dashboardSettings && user.dashboardSettings.upcomingDays) || 3;
+    const upcomingLimit = endOfDayPlus(upcomingDays);
 
     // ==== ПРОСРОЧЕНО ====
     // 1) Разовые задачи с dueDate < now
@@ -189,6 +200,7 @@ const getDashboard = async (req, res) => {
     res.json({
       success: true,
       dashboard: {
+        upcomingDays,
         statusCounts,
         totalTasks,
         totalArticles,
