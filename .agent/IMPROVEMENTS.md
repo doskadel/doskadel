@@ -13,8 +13,8 @@
 
 ## Дизайн-система и цвет
 - D1 proposed. Заменить 19 hex-цветов и россыпь rgba в index.css токенами, общие --shadow-sm/md/lg. Без этого тёмная тема будет неровной.
-- D2 proposed. Палитра по готовым шкалам: Radix Colors (MIT, пары light/dark) или палитра Tailwind. Один акцент, нейтральные серые, семантические success/warning/danger. Контраст текста не ниже AA 4.5:1.
-- D3 proposed. Тёмная тема: не чистый чёрный, слои поверхностей, менее насыщенный акцент.
+- D2 done (базово, 2026-10-03). Палитра в tokens.css, контраст проверен: все пары ≥5.19 (AA 4.5 пройден, light+dark). Radix Colors (MIT, пары light/dark) или палитра Tailwind. Один акцент, нейтральные серые, семантические success/warning/danger. Контраст текста не ниже AA 4.5:1.
+- D3 done (базово, 2026-10-03). Тёмная тема: не чёрный (#14171a), слои surface/surface-alt, акцент менее насыщенный (#4c9aff). не чистый чёрный, слои поверхностей, менее насыщенный акцент.
 - D4 proposed. Шрифт Inter (OFL) через @fontsource, self-host. Шкала размеров токенами. tabular-nums для чисел и дат.
 - D5 proposed. Единые радиусы (карточки ~12px, кнопки ~10px), одна лёгкая тень плюс рамка.
 - D6 proposed. Кнопки: primary / secondary / ghost / destructive; состояния hover, active (scale 0.98), focus, disabled, loading; цель нажатия 44px.
@@ -26,7 +26,7 @@
 - D12 info. Инструменты для подбора: Realtime Colors, Coolors (сайты, не зависимости).
 
 ## Доступность
-- A1 proposed. Глобальный :focus-visible (сейчас найден только в двух правилах).
+- A1 done (2026-10-03). Глобальный :focus-visible (2px primary, offset 2), мышь не подсвечивается. (сейчас найден только в двух правилах).
 - A2 proposed. Цель нажатия не меньше 44px у всех иконок-кнопок.
 - A3 check. CalendarView: ячейки дней это button (ок), а задачи дня это div role=button с tabIndex и обработчиком только Enter, без Space. То же в Dashboard (dashboard-item), Tasks (task-card) и Knowledge (article-card): везде только Enter. Сделать общий хелпер или заменить на button/a.
 - A4 check. prefers-reduced-motion не проверен.
