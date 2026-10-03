@@ -32,6 +32,10 @@ const recurrenceValidation = body('recurrence')
     if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(value.time || '')) {
       throw new Error('recurrence.time must be HH:mm');
     }
+    const { isValidTz } = require('../utils/tz');
+    if (!isValidTz(value.tz)) {
+      throw new Error('recurrence.tz must be a valid IANA timezone');
+    }
     if (value.interval !== undefined && (!Number.isInteger(value.interval) || value.interval < 1)) {
       throw new Error('recurrence.interval must be >= 1');
     }

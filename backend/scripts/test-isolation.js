@@ -91,7 +91,7 @@ const check = (name, cond) => { if (cond) { pass++; console.log('  OK  ', name);
   check('A dashboard does not contain B task', !dAIds.includes(String(tB._id)));
 
   // Occurrence наследует workspaceId задачи (повторяющаяся)
-  const recTask = JSON.parse((await req('POST', '/api/tasks', tokA, { title: 'A-rec', priority: 2, recurrence: { freq: 'daily', time: '09:00' } })).body).task;
+  const recTask = JSON.parse((await req('POST', '/api/tasks', tokA, { title: 'A-rec', priority: 2, recurrence: { freq: 'daily', time: '09:00', tz: 'Europe/Moscow' } })).body).task;
   await new Promise(r => setTimeout(r, 500));
   // Вхождения считаются на лету (F1c): проверяем через getDueItems в широком окне (floor 0)
   const mongooseEarly = require('mongoose');
