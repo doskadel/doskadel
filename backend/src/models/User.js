@@ -26,6 +26,18 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: null
   },
+  dashboardSettings: {
+    upcomingDays: { type: Number, default: 3, min: 1, max: 30 },
+    blocks: {
+      type: [{
+        id: { type: String, required: true },
+        visible: { type: Boolean, default: true },
+        order: { type: Number, default: 0 },
+        statusIds: [{ type: mongoose.Schema.Types.ObjectId }]
+      }],
+      default: undefined
+    }
+  },
   notificationSettings: {
     enabled: { type: Boolean, default: true },
     beforeDue: { type: Boolean, default: true },

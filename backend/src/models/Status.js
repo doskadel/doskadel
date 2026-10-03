@@ -28,6 +28,12 @@ const statusSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
     required: true
+  },
+  // Системный ключ для дефолтных статусов (pending/in_progress/done/cancelled).
+  // null — кастомный статус. Не зависит от названия (переименование не ломает логику).
+  key: {
+    type: String,
+    default: null
   }
 }, {
   timestamps: true

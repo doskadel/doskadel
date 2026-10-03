@@ -63,6 +63,7 @@ const startServer = async () => {
   app.use('/api/occurrences', require('./src/routes/occurrences'));
   app.use('/api/push', require('./src/routes/push'));
   app.use('/api/users', require('./src/routes/users'));
+  app.use('/api/settings', require('./src/routes/settings'));
 
   app.use((err, req, res, next) => {
     console.error(err.stack);
