@@ -1,9 +1,9 @@
 const Task = require('../models/Task');
 const Status = require('../models/Status');
 const Article = require('../models/Article');
-const Occurrence = require('../models/Occurrence');
 const User = require('../models/User');
 const { SINGLE } = require('../utils/taskKinds');
+const { aggregateOccurrenceSummary } = require('../utils/taskDueSummary');
 
 // Конец дня (23:59:59.999) через N календарных дней от сегодня (локальное время сервера).
 const endOfDayPlus = (n) => {
@@ -45,47 +45,25 @@ const getDashboard = async (req, res) => {
       ...SINGLE
     }).select('_id title statusId priority dueDate').lean();
 
-    // 2) Повторяющиеся: группируем occurrences по taskId,
-    //    берём САМУЮ СВЕЖУЮ просрочку (max dueAt < now) и общий count.
-    const overdueOccurrenceAgg = await Occurrence.aggregate([
-      {
-        $match: {
-          userId,
-          status: 'pending',
-          dueAt: { $lt: now }
-        }
-      },
-      {
-        $group: {
-          _id: '$taskId',
-          latestDueAt: { $max: '$dueAt' },
-          count: { $sum: 1 }
-        }
-      }
-    ]);
+    // 2) Повторяющиеся: единая агрегация (R1) — дата + count за один проход.
+    const overdueSummary = await aggregateOccurrenceSummary(userId, { $lt: now }, 'max');
 
-    // Загружаем сами задачи для тех taskId, что попали в агрегацию
-    const overdueRecurringTaskIds = overdueOccurrenceAgg.map((o) => o._id);
+    const overdueRecurringTaskIds = Array.from(overdueSummary.keys());
     const overdueRecurringTasks = await Task.find({
       _id: { $in: overdueRecurringTaskIds },
       userId,
-      statusId: { $in: activeStatusIds } // фильтруем по активным статусам
+      statusId: { $in: activeStatusIds }
     }).select('_id title statusId priority').lean();
 
-    // Индексируем агрегацию по taskId для быстрого доступа
-    const aggByTaskId = new Map(
-      overdueOccurrenceAgg.map((o) => [String(o._id), o])
-    );
-
     const overdueFromRecurring = overdueRecurringTasks.map((task) => {
-      const agg = aggByTaskId.get(String(task._id));
+      const s = overdueSummary.get(String(task._id));
       return {
         _id: task._id,
         title: task.title,
         statusId: task.statusId,
         priority: task.priority,
-        dueDate: agg.latestDueAt, // самая свежая просрочка
-        occurrenceCount: agg.count, // сколько всего просрочено
+        dueDate: s.dateAt,
+        occurrenceCount: s.count,
         isRecurring: true
       };
     });
@@ -125,44 +103,25 @@ const getDashboard = async (req, res) => {
       ...SINGLE
     }).select('_id title statusId priority dueDate').lean();
 
-    // 2) Повторяющиеся: группируем, берём БЛИЖАЙШУЮ будущую итерацию
-    const upcomingOccurrenceAgg = await Occurrence.aggregate([
-      {
-        $match: {
-          userId,
-          status: 'pending',
-          dueAt: { $gte: now, $lte: upcomingLimit }
-        }
-      },
-      {
-        $group: {
-          _id: '$taskId',
-          earliestDueAt: { $min: '$dueAt' },
-          count: { $sum: 1 }
-        }
-      }
-    ]);
+    // 2) Повторяющиеся: единая агрегация (R1) — дата + count за один проход.
+    const upcomingSummary = await aggregateOccurrenceSummary(userId, { $gte: now, $lte: upcomingLimit }, 'min');
 
-    const upcomingRecurringTaskIds = upcomingOccurrenceAgg.map((o) => o._id);
+    const upcomingRecurringTaskIds = Array.from(upcomingSummary.keys());
     const upcomingRecurringTasks = await Task.find({
       _id: { $in: upcomingRecurringTaskIds },
       userId,
       statusId: { $in: activeStatusIds }
     }).select('_id title statusId priority').lean();
 
-    const upcomingAggByTaskId = new Map(
-      upcomingOccurrenceAgg.map((o) => [String(o._id), o])
-    );
-
     const upcomingFromRecurring = upcomingRecurringTasks.map((task) => {
-      const agg = upcomingAggByTaskId.get(String(task._id));
+      const s = upcomingSummary.get(String(task._id));
       return {
         _id: task._id,
         title: task.title,
         statusId: task.statusId,
         priority: task.priority,
-        dueDate: agg.earliestDueAt,
-        occurrenceCount: agg.count,
+        dueDate: s.dateAt,
+        occurrenceCount: s.count,
         isRecurring: true
       };
     });
