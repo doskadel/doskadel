@@ -14,14 +14,14 @@ const getByTask = async (req, res) => {
 
     const task = await Task.findOne({
       _id: taskId,
-      userId: req.user._id
+      workspaceId: req.workspaceId
     }).select('_id');
 
     if (!task) {
       return res.status(404).json({ success: false, message: 'Task not found' });
     }
 
-    const filter = { taskId, userId: req.user._id };
+    const filter = { taskId, workspaceId: req.workspaceId };
     if (status === 'pending' || status === 'done') {
       filter.status = status;
     }
@@ -49,7 +49,7 @@ const getById = async (req, res) => {
 
     const occurrence = await Occurrence.findOne({
       _id: id,
-      userId: req.user._id
+      workspaceId: req.workspaceId
     }).lean();
 
     if (!occurrence) {
@@ -78,11 +78,11 @@ const confirmBatch = async (req, res) => {
     const result = await Occurrence.updateMany(
       {
         _id: { $in: validIds },
-        userId: req.user._id,
+        workspaceId: req.workspaceId,
         status: 'pending'
       },
       {
-        $set: { status: 'done', confirmedAt: new Date() }
+        $set: { status: 'done', confirmedAt: new Date(), completedBy: req.user._id }
       }
     );
 
@@ -113,7 +113,7 @@ const unconfirmBatch = async (req, res) => {
     const result = await Occurrence.updateMany(
       {
         _id: { $in: validIds },
-        userId: req.user._id,
+        workspaceId: req.workspaceId,
         status: 'done'
       },
       {

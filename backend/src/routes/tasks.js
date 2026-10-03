@@ -1,10 +1,12 @@
 const express = require('express');
 const { body } = require('express-validator');
 const auth = require('../middleware/auth');
+const workspaceContext = require('../middleware/workspace');
 const taskController = require('../controllers/taskController');
 const router = express.Router();
 
 router.use(auth);
+router.use(workspaceContext);
 
 const priorityValidation = body('priority')
   .optional()
