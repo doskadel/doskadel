@@ -1,19 +1,21 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 
 import Login from './components/Login';
 import Register from './components/Register';
-import Dashboard from './components/Dashboard';
-import Tasks from './components/Tasks';
-import TaskDetail from './components/TaskDetail';
-import Knowledge from './components/Knowledge';
-import ArticleDetail from './components/ArticleDetail';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
-import MorePage from './components/MorePage';
 import { ConfirmProvider } from './components/ConfirmProvider';
+import LoadingOverlay from './components/LoadingOverlay';
 import { getToken } from './utils/token';
+
+const Dashboard = lazy(() => import('./components/Dashboard'));
+const Tasks = lazy(() => import('./components/Tasks'));
+const TaskDetail = lazy(() => import('./components/TaskDetail'));
+const Knowledge = lazy(() => import('./components/Knowledge'));
+const ArticleDetail = lazy(() => import('./components/ArticleDetail'));
+const MorePage = lazy(() => import('./components/MorePage'));
 
 function App() {
   const token = getToken();
@@ -21,6 +23,7 @@ function App() {
   return (
     <ConfirmProvider>
       <div className="App">
+        <Suspense fallback={<LoadingOverlay active text="Загрузка..." />}>
         <Routes>
           <Route path="/login" element={token ? <Navigate to="/" replace /> : <Login />} />
           <Route path="/register" element={token ? <Navigate to="/" replace /> : <Register />} />
@@ -32,6 +35,7 @@ function App() {
           <Route path="/more" element={<ProtectedRoute><Layout><MorePage /></Layout></ProtectedRoute>} />
           <Route path="/search" element={<Navigate to="/" replace />} />
         </Routes>
+        </Suspense>
       </div>
     </ConfirmProvider>
   );
