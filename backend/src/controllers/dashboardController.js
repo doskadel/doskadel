@@ -108,7 +108,7 @@ const getDashboard = async (req, res) => {
     // Сортируем: сначала самая свежая просрочка, потом остальные
     allOverdue.sort((a, b) => new Date(b.dueDate) - new Date(a.dueDate));
 
-    const overdueTasks = allOverdue.slice(0, 5);
+    const overdueTasks = allOverdue.slice(0, limitOf('overdue', 5));
 
     // ==== БЛИЖАЙШИЕ ====
     // 1) Разовые задачи
@@ -181,7 +181,7 @@ const getDashboard = async (req, res) => {
     // Сортируем: сначала ближайшее
     allUpcoming.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
 
-    const upcomingTasks = allUpcoming.slice(0, 5);
+    const upcomingTasks = allUpcoming.slice(0, limitOf('upcoming', 5));
 
     // Общие счётчики
     const totalTasks = await Task.countDocuments({ userId });

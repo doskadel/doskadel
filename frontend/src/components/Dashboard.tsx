@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AlertTriangle, Calendar, Settings } from 'lucide-react';
 import SortableSettings from './shared/SortableSettings';
+import { useConfirm } from './ConfirmProvider';
 import Modal from './Modal';
 import PullToRefresh from './PullToRefresh';
 import LoadingOverlay from './LoadingOverlay';
@@ -55,6 +56,7 @@ interface DashboardData {
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
+  const confirm = useConfirm();
 
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -377,7 +379,7 @@ const Dashboard: React.FC = () => {
                 id: b.id,
                 label: BLOCK_LABELS[b.id] || b.id,
                 enabled: b.visible,
-                extra: (b.id === 'recentTasks' || b.id === 'recentArticles') ? (
+                extra: (b.id === 'recentTasks' || b.id === 'recentArticles' || b.id === 'overdue' || b.id === 'upcoming') ? (
                   <input
                     type="number"
                     min={1}
@@ -435,10 +437,31 @@ const Dashboard: React.FC = () => {
             <button
               type="button"
               className="button button--white"
-              onClick={() => {
-                setBlocks(blocks.map((b, i) => ({ ...b, order: i, visible: true })));
-                setUpcomingDays(3);
-                setByStatusOrder([]);
+              disabled={savingSettings}
+              onClick={async () => {
+                const ok = await confirm({
+                  title: 'Сбросить всё по умолчанию?',
+                  message: 'Настройки дашборда И статусы вернутся к исходному состоянию. Статусы, созданные вами (без задач), будут удалены, дефолтные — восстановлены.',
+                  confirmLabel: 'Сбросить',
+                  danger: true,
+                });
+                if (!ok) return;
+                setSavingSettings(true);
+                try {
+                  const r = await api.post('/api/settings/dashboard/reset');
+                  const bl = r.data?.settings?.blocks || [];
+                  setBlocks(bl);
+                  const b = bl.find((x: any) => x.id === 'byStatus');
+                  setByStatusOrder(b && b.config ? (b.config.statusIds || []) : []);
+                  setUpcomingDays(r.data?.settings?.upcomingDays ?? 3);
+                  const st = await api.get('/api/statuses');
+                  setAllStatuses(st.data?.statuses || []);
+                  fetchDashboard();
+                } catch (e: any) {
+                  alert(e?.response?.data?.message || 'Не удалось сбросить');
+                } finally {
+                  setSavingSettings(false);
+                }
               }}
             >
               Сбросить по умолчанию

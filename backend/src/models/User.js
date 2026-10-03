@@ -33,7 +33,7 @@ const userSchema = new mongoose.Schema({
         id: { type: String, required: true },
         visible: { type: Boolean, default: true },
         order: { type: Number, default: 0 },
-        statusIds: [{ type: mongoose.Schema.Types.ObjectId }]
+        config: { type: mongoose.Schema.Types.Mixed, default: {} }
       }],
       default: undefined
     }
