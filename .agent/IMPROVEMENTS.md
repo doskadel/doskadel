@@ -4,6 +4,7 @@
 Обновлено 2026-10-03 (вечер): добавлены S1-S4 (безопасность), F1-F3 (функционал), X1-X4 (документация); уточнены O6 и A3. Новые пункты получены чтением кода, не запуском: перед правкой перепроверять по реальному коду.
 
 ## Архитектура: фундамент workspace (done 2026-10-04, ветка wip/foundation-workspaces)
+- W3 proposed. Настройка tz пользователя/workspace в UI (сейчас recurrence.tz дефолт Europe/Moscow из миграции).
 - W2 proposed (не блокирует). Тест agenda: сейчас косвенный (через getDueItems). Добавить прямой тест job с двумя workspace. cleanup-orphans.js — утилита, dry-run по умолчанию (удаление только с --apply), остаётся в проекте.
 - W1 done. Мультитенантность: Workspace/Membership, can(), workspaceId во всех моделях, миграция, middleware workspaceContext, перевод API, тест изоляции 8/8. Личный режим = workspace из одного. ADR: decisions.md 2026-10-04. Отложено: приглашения, UI ролей, переключатель пространств, настройки user/workspace, auth_identities.
 

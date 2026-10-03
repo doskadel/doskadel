@@ -23,8 +23,9 @@ async function computeOccurrences(window, ctx = {}) {
   const out = [];
   for (const t of tasks) {
     if (t.notifications && t.notifications.enabled === false) continue;
-    // считаем вхождения чуть раньше окна (чтобы захватить начало), но не глубже 90 дней назад
-    const floor = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
+    // считаем вхождения чуть раньше окна; floor — параметр (дефолт 90 дней для job)
+    const floorDays = ctx.floorDays != null ? ctx.floorDays : 90;
+    const floor = floorDays > 0 ? new Date(Date.now() - floorDays * 24 * 60 * 60 * 1000) : new Date(0);
     const from = new Date(Math.max(window.gte.getTime() - 24 * 60 * 60 * 1000, floor.getTime()));
     const dates = getNextOccurrences(t.recurrence, from, 60).filter(
       (d) => d >= window.gte && d < window.lt
@@ -134,14 +135,28 @@ async function getDueItems(kind, field, window, ctx = {}) {
  * Пометить отправку атомарно (compare-and-set): ставим флаг только если он ещё не установлен.
  * Возвращает true, если пометка удалась (значит пуш можно считать отправленным нами).
  */
+const MAX_SEND_ATTEMPTS = 3;
+
 async function markNotified(item, field) {
   const Model = item.source === 'occurrence' ? Occurrence : Task;
   const res = await Model.findOneAndUpdate(
     { _id: item.id, [`notificationsSent.${field}`]: null },
-    { $set: { [`notificationsSent.${field}`]: new Date() } },
+    { $set: { [`notificationsSent.${field}`]: new Date() }, $inc: { [`notificationsSent.${field}Attempts`]: 1 } },
     { new: true }
   );
   return !!res;
+}
+
+/** Снять флаг отправки (при ошибке), чтобы можно было повторить (до MAX_SEND_ATTEMPTS). */
+async function unmarkNotified(item, field) {
+  const Model = item.source === 'occurrence' ? Occurrence : Task;
+  const cur = await Model.findById(item.id).select(`notificationsSent.${field}Attempts`).lean();
+  const attempts = (cur && cur.notificationsSent && cur.notificationsSent[`${field}Attempts`]) || 0;
+  if (attempts >= MAX_SEND_ATTEMPTS) {
+    console.error(`[push] ${field}: превышено попыток (${attempts}), пуш потерян для ${item.id}`);
+    return; // оставляем флаг (не спамим), логируем
+  }
+  await Model.updateOne({ _id: item.id }, { $set: { [`notificationsSent.${field}`]: null } });
 }
 
 // Кэш настроек пользователя на прогон (в одном job юзер может встретиться многократно).
@@ -187,8 +202,15 @@ async function sendDuePushes(kind, field, window, buildPush, deps) {
     if (!claimed) continue;
 
     const payload = buildPush(item);
-    await sendToUser(item.userId, { icon: '/logo192.png', ...payload });
+    try {
+      const result = await sendToUser(item.userId, { icon: '/logo192.png', ...payload });
+      // если никому не ушло (нет подписок) — снимаем флаг, чтобы не считать отправленным
+      if (result && result.sent === 0) await unmarkNotified(item, field);
+    } catch (e) {
+      console.error('[push] ошибка отправки:', e.message);
+      await unmarkNotified(item, field);
+    }
   }
 }
 
-module.exports = { getDueItems, markNotified, getActiveStatusIds, sendDuePushes, clearUserCache };
+module.exports = { getDueItems, markNotified, unmarkNotified, getActiveStatusIds, sendDuePushes, clearUserCache };

@@ -53,7 +53,11 @@ const taskSchema = new mongoose.Schema({
     dayBefore: { type: Date, default: null },
     beforeDue: { type: Date, default: null },
     atDue: { type: Date, default: null },
-    overdue: { type: Date, default: null }
+    overdue: { type: Date, default: null },
+    dayBeforeAttempts: { type: Number, default: 0 },
+    beforeDueAttempts: { type: Number, default: 0 },
+    atDueAttempts: { type: Number, default: 0 },
+    overdueAttempts: { type: Number, default: 0 }
   },
   userId: {
     type: mongoose.Schema.Types.ObjectId,
