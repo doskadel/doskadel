@@ -249,7 +249,9 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
     if (oldDate && sameDay(oldDate, dropDay)) return;
 
     const newDue = buildNewDue(task, dropDay);
-    await onTaskMoved(task._id, newDue);
+    console.log('[cal-dnd] moving', taskId, 'from', task.dueDate, 'to', newDue);
+    const ok = await onTaskMoved(task._id, newDue);
+    console.log('[cal-dnd] moved ok=', ok);
   };
 
   // ==== месяц ====
