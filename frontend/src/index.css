@@ -413,6 +413,9 @@ margin-bottom: var(--space-md);
   font-weight: 600;
 }
 
+.layout-nav-link:focus { outline: none; }
+.layout-nav-link:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+
 .layout-logout {
   margin-left: var(--space-sm);
   padding: 6px 12px;
