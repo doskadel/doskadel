@@ -6,7 +6,7 @@
 ## Оптимизация
 - O1 proposed. Ленивая загрузка маршрутов (React.lazy + Suspense): Tasks, Knowledge, CalendarView, ProfileModal, SearchModal. В src нет lazy/Suspense, всё грузится одним бандлом.
 - O2 proposed. .lean() в read-запросах бэка (в backend/src не найдено ни одного).
-- O3 proposed. Индексы: Task по {userId, срок} (сначала проверить имя поля срока и запросы дашборда), text-индекс для поиска статей. У Occurrence индексы есть.
+- O3 частично done (2026-10-03). Task-индексы были (userId+statusId+order, userId+recurrence.type, userId+dueDate). Добавлены Article (userId+createdAt, userId+title). Text-индекс ОТЛОЖЕН: $regex его не использует, нужен переход на $text (отдельная задача). (сначала проверить имя поля срока и запросы дашборда), text-индекс для поиска статей. У Occurrence индексы есть.
 - O4 proposed. Удалить мёртвые зависимости @mui/material и @emotion/* (не используются в src).
 - O5 proposed. Тесты (jest + supertest на бэке): порог «Ближайшие», refresh-токены, проверка владельца.
 - O6 proposed. dump.txt и dump.bat лежат в корне. В .gitignore они уже есть, по git ls-files не отслеживаются, PROJECT.md и BUGS.md (B2) по этому пункту устарели. Сделать: проверить git ls-files dump.txt, при необходимости git rm --cached; убрать с диска или перенести в scripts/; поправить PROJECT.md и закрыть B2 (см. X3).
