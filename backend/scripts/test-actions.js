@@ -1,0 +1,78 @@
+// Тест F1c этап 3: действия над вхождением (done/skip/undo/move), scope, split, завершение.
+const http = require('http');
+const mongoose = require('mongoose');
+const BASE = 'http://localhost:5000';
+const req = (method, path, token, body) => new Promise((resolve) => {
+  const data = body ? JSON.stringify(body) : null;
+  const q = http.request(BASE + path, { method, headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: 'Bearer ' + token } : {}) } }, (s) => {
+    let x = ''; s.on('data', (c) => (x += c)); s.on('end', () => resolve({ code: s.statusCode, body: x }));
+  });
+  if (data) q.write(data); q.end();
+});
+let pass = 0, fail = 0;
+const check = (n, c) => { if (c) { pass++; console.log('  OK  ', n); } else { fail++; console.log('  FAIL', n); } };
+const rnd = () => Math.random().toString(36).slice(2, 8);
+
+(async () => {
+  const reg = JSON.parse((await req('POST', '/api/auth/register', null, { username: 'act_' + rnd(), email: `act_${rnd()}@t.com`, password: 'test123' })).body);
+  const tok = reg.token, uid = reg.user.id;
+  // повторяющаяся daily
+  const t = JSON.parse((await req('POST', '/api/tasks', tok, { title: 'daily', priority: 2, recurrence: { freq: 'daily', time: '09:00' } })).body).task;
+  const orig1 = new Date(Date.now() + 2 * 24 * 3600 * 1000); orig1.setUTCHours(9, 0, 0, 0);
+  const orig2 = new Date(orig1.getTime() + 24 * 3600 * 1000);
+
+  // done идемпотентно
+  const d1 = await req('POST', '/api/occurrences/action', tok, { taskId: t._id, originalDate: orig1.toISOString(), action: 'done' });
+  check('done -> 200', d1.code === 200);
+  const d2 = await req('POST', '/api/occurrences/action', tok, { taskId: t._id, originalDate: orig1.toISOString(), action: 'done' });
+  check('done twice -> 200 (идемпотентно)', d2.code === 200);
+
+  // skip
+  const s1 = await req('POST', '/api/occurrences/action', tok, { taskId: t._id, originalDate: orig2.toISOString(), action: 'skip' });
+  check('skip -> 200', s1.code === 200);
+
+  // чужой id -> 404
+  const other = JSON.parse((await req('POST', '/api/auth/register', null, { username: 'oth_' + rnd(), email: `oth_${rnd()}@t.com`, password: 'test123' })).body);
+  const foreign = await req('POST', '/api/occurrences/action', tok, { taskId: t._id, originalDate: new Date().toISOString(), action: 'done' });
+  // своя задача -> ок; проверим чужой workspace не через action (там taskId), а через get
+  const getForeign = await req('GET', `/api/tasks/${t._id}`, other.token);
+  check('чужой task по id -> 404', getForeign.code === 404);
+
+  // move this: вхождение с новым dueAt
+  const orig3 = new Date(orig2.getTime() + 24 * 3600 * 1000);
+  const mv = await req('POST', '/api/occurrences/action', tok, { taskId: t._id, originalDate: orig3.toISOString(), action: 'move', dueAt: new Date(orig3.getTime() + 2 * 3600 * 1000).toISOString(), scope: 'this' });
+  check('move this -> 200', mv.code === 200);
+
+  // split following
+  const orig4 = new Date(orig3.getTime() + 24 * 3600 * 1000);
+  const sp = await req('POST', '/api/occurrences/action', tok, { taskId: t._id, originalDate: orig4.toISOString(), action: 'move', dueAt: new Date(orig4.getTime() + 3600 * 1000).toISOString(), scope: 'following' });
+  check('split following -> 200', sp.code === 200);
+
+  // проверка БД: старая until, новая seriesId
+  await mongoose.connect(process.env.MONGODB_URI || 'mongodb://mongo:27017/doskadel');
+  const Task = require('../src/models/Task');
+  const oldT = await Task.findById(t._id).lean();
+  check('старая: until установлен', !!oldT.recurrence.until);
+  check('старая: closedReason=split', oldT.closedReason === 'split');
+  const newT = await Task.findOne({ prevTaskId: t._id }).lean();
+  check('новая Task-продолжение создана', !!newT);
+  check('новая: seriesId = _id старой', newT && String(newT.seriesId) === String(t._id));
+
+  // уборка
+  const db = mongoose.connection.db;
+  const wsIds = (await db.collection('workspaces').find({ createdBy: uid }).toArray()).map((w) => w._id);
+  for (const c of ['tasks', 'occurrences', 'articles', 'status', 'memberships']) await db.collection(c).deleteMany({ workspaceId: { $in: wsIds } });
+  await db.collection('workspaces').deleteMany({ _id: { $in: wsIds } });
+  await db.collection('refreshtokens').deleteMany({ userId: uid });
+  await db.collection('users').deleteOne({ _id: new mongoose.Types.ObjectId(uid) });
+  const otherUid = other.user.id;
+  const ows = (await db.collection('workspaces').find({ createdBy: otherUid }).toArray()).map((w) => w._id);
+  for (const c of ['tasks', 'occurrences', 'articles', 'status', 'memberships']) await db.collection(c).deleteMany({ workspaceId: { $in: ows } });
+  await db.collection('workspaces').deleteMany({ _id: { $in: ows } });
+  await db.collection('refreshtokens').deleteMany({ userId: otherUid });
+  await db.collection('users').deleteOne({ _id: new mongoose.Types.ObjectId(otherUid) });
+  await mongoose.disconnect();
+
+  console.log(`\nИТОГ actions: pass=${pass} fail=${fail}`);
+  process.exit(fail === 0 ? 0 : 1);
+})().catch((e) => { console.error(e); process.exit(1); });
