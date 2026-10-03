@@ -2,41 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import PullToRefresh from './PullToRefresh';
 import LoadingOverlay from './LoadingOverlay';
 import CalendarView from './CalendarView';
-import { DndContext, closestCenter, PointerSensor, TouchSensor, KeyboardSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
-import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
-import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers';
-import { CSS } from '@dnd-kit/utilities';
+import SortableSettings from './shared/SortableSettings';
 import { GripVertical, X, Plus, Settings, CalendarDays, Columns, List, Info, LayoutList } from 'lucide-react';
 
-interface SortableViewRowProps {
-  id: TaskView;
-  label: string;
-  enabled: boolean;
-  onToggle: () => void;
-}
-
-const SortableViewRow: React.FC<SortableViewRowProps> = ({ id, label, enabled, onToggle }) => {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
-  const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.6 : 1 };
-  return (
-    <div ref={setNodeRef} style={style} className={'ve-row' + (isDragging ? ' ve-row--dragging' : '')}>
-      <button type="button" className="ve-handle" {...attributes} {...listeners} aria-label="Перетащить">
-        <GripVertical size={18} />
-      </button>
-      <span className="ve-label">{label}</span>
-      <button
-        type="button"
-        className={'ve-toggle' + (enabled ? ' ve-toggle--on' : '')}
-        onClick={onToggle}
-        role="switch"
-        aria-checked={enabled}
-        aria-label={enabled ? 'Скрыть вкладку' : 'Показать вкладку'}
-      >
-        <span className="ve-toggle-knob" />
-      </button>
-    </div>
-  );
-};
 import { useSearchParams } from 'react-router-dom';
 import api from '../utils/api';
 import KanbanBoard, { KanbanTask } from './KanbanBoard';
@@ -144,20 +112,6 @@ const Tasks: React.FC = () => {
     };
   }, [infoOpen]);
 
-  const dndSensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
-  );
-
-  const handleViewsDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-    const oldIndex = viewTabs.indexOf(active.id as TaskView);
-    const newIndex = viewTabs.indexOf(over.id as TaskView);
-    if (oldIndex < 0 || newIndex < 0) return;
-    setViewTabs(arrayMove(viewTabs, oldIndex, newIndex));
-  };
 
   const [createOpen, setCreateOpen] = useState(false);
   const [statusManagerOpen, setStatusManagerOpen] = useState(false);
@@ -696,31 +650,17 @@ const Tasks: React.FC = () => {
           <p style={{ color: 'var(--color-text-muted)', fontSize: 14, marginTop: 0 }}>
             Включайте виды переключателем, меняйте порядок перетаскиванием за ручку.
           </p>
-          <DndContext
-            sensors={dndSensors}
-            collisionDetection={closestCenter}
-            modifiers={[restrictToVerticalAxis, restrictToParentElement]}
-            onDragEnd={handleViewsDragEnd}
-          >
-            <SortableContext items={viewTabs} strategy={verticalListSortingStrategy}>
-              <div className="ve-list">
-                {viewTabs.map((v) => (
-                  <SortableViewRow
-                    key={v}
-                    id={v}
-                    label={VIEW_LABELS[v]}
-                    enabled={viewTabs.includes(v)}
-                    onToggle={() => {
-                      const next = viewTabs.filter((x) => x !== v);
-                      if (next.length === 0) return; // хотя бы одна включена
-                      setViewTabs(next);
-                      if (!next.includes(view)) setView(next[0]);
-                    }}
-                  />
-                ))}
-              </div>
-            </SortableContext>
-          </DndContext>
+          <SortableSettings
+            items={viewTabs.map((v) => ({ id: v, label: VIEW_LABELS[v], enabled: true }))}
+            onToggle={(id) => {
+              const next = viewTabs.filter((x) => x !== id);
+              if (next.length === 0) return; // хотя бы одна включена
+              setViewTabs(next);
+              if (!next.includes(view)) setView(next[0]);
+            }}
+            onReorder={(ids) => setViewTabs(ids as TaskView[])}
+            toggleAria="Скрыть вкладку"
+          />
 
           {ALL_VIEWS.filter((v) => !viewTabs.includes(v)).length > 0 && (
             <>

@@ -63,7 +63,7 @@ const Dashboard: React.FC = () => {
   const [upcomingDays, setUpcomingDays] = useState<number>(3);
   const [allStatuses, setAllStatuses] = useState<Array<{ _id: string; name: string; key?: string | null }>>([]);
   const [savingSettings, setSavingSettings] = useState(false);
-  const [blocks, setBlocks] = useState<Array<{ id: string; visible: boolean; order: number; statusIds: string[] }>>([]);
+  const [blocks, setBlocks] = useState<Array<{ id: string; visible: boolean; order: number; config: any }>>([]);
 
   const BLOCK_LABELS: Record<string, string> = {
     byStatus: 'Задачи по статусам',
@@ -80,7 +80,7 @@ const Dashboard: React.FC = () => {
         const bl = r.data?.settings?.blocks || [];
         setBlocks(bl);
         const b = bl.find((x: any) => x.id === 'byStatus');
-        setByStatusOrder(b ? b.statusIds : []);
+        setByStatusOrder(b && b.config ? (b.config.statusIds || []) : []);
         if (r.data?.settings?.upcomingDays) setUpcomingDays(r.data.settings.upcomingDays);
       })
       .catch(() => setByStatusOrder([]));
@@ -388,6 +388,20 @@ const Dashboard: React.FC = () => {
                   onChange={() => setBlocks(blocks.map((x) => x.id === b.id ? { ...x, visible: !x.visible } : x))}
                 />
                 <span className="dash-block-name">{BLOCK_LABELS[b.id] || b.id}</span>
+                {(b.id === 'recentTasks' || b.id === 'recentArticles') && (
+                  <input
+                    type="number"
+                    min={1}
+                    max={20}
+                    value={(b.config && b.config.limit) || 5}
+                    onChange={(e) => {
+                      const lim = Math.min(20, Math.max(1, parseInt(e.target.value, 10) || 1));
+                      setBlocks(blocks.map((x) => x.id === b.id ? { ...x, config: { ...(x.config || {}), limit: lim } } : x));
+                    }}
+                    className="dash-num"
+                    title="Сколько элементов показывать"
+                  />
+                )}
                 <button type="button" className="dash-arrow" disabled={i === 0}
                   onClick={() => moveBlock(b.id, -1)} aria-label="Выше">↑</button>
                 <button type="button" className="dash-arrow" disabled={i === arr.length - 1}
@@ -446,7 +460,7 @@ const Dashboard: React.FC = () => {
                 setSavingSettings(true);
                 try {
                   const outBlocks = blocks.map((b) =>
-                    b.id === 'byStatus' ? { ...b, statusIds: byStatusOrder || [] } : b
+                    b.id === 'byStatus' ? { ...b, config: { ...(b.config || {}), statusIds: byStatusOrder || [] } } : b
                   );
                   await api.put('/api/settings/dashboard', { upcomingDays, blocks: outBlocks });
                   setSettingsOpen(false);
