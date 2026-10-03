@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AlertTriangle, Calendar, Settings } from 'lucide-react';
+import SortableSettings from './shared/SortableSettings';
 import Modal from './Modal';
 import PullToRefresh from './PullToRefresh';
 import LoadingOverlay from './LoadingOverlay';
@@ -135,15 +136,6 @@ const Dashboard: React.FC = () => {
       .filter((s) => orderMap.has(s.statusId))
       .sort((a, b) => (orderMap.get(a.statusId)! - orderMap.get(b.statusId)!));
   })();
-
-  const moveBlock = (id: string, dir: -1 | 1) => {
-    const sorted = [...blocks].sort((a, b) => a.order - b.order);
-    const idx = sorted.findIndex((b) => b.id === id);
-    const j = idx + dir;
-    if (idx < 0 || j < 0 || j >= sorted.length) return;
-    [sorted[idx], sorted[j]] = [sorted[j], sorted[idx]];
-    setBlocks(sorted.map((b, i) => ({ ...b, order: i })));
-  };
 
   const sectionOrder = (id: string): number => {
     const b = blocks.find((x) => x.id === id);
@@ -380,15 +372,12 @@ const Dashboard: React.FC = () => {
         <Modal open onClose={() => setSettingsOpen(false)} title="Настройки дашборда">
           <div className="fb-field">
             <span className="fb-field-label">Блоки и порядок</span>
-            {[...blocks].sort((a, b) => a.order - b.order).map((b, i, arr) => (
-              <div key={b.id} className="dash-block-row">
-                <input
-                  type="checkbox"
-                  checked={b.visible}
-                  onChange={() => setBlocks(blocks.map((x) => x.id === b.id ? { ...x, visible: !x.visible } : x))}
-                />
-                <span className="dash-block-name">{BLOCK_LABELS[b.id] || b.id}</span>
-                {(b.id === 'recentTasks' || b.id === 'recentArticles') && (
+            <SortableSettings
+              items={[...blocks].sort((a, b) => a.order - b.order).map((b) => ({
+                id: b.id,
+                label: BLOCK_LABELS[b.id] || b.id,
+                enabled: b.visible,
+                extra: (b.id === 'recentTasks' || b.id === 'recentArticles') ? (
                   <input
                     type="number"
                     min={1}
@@ -396,18 +385,20 @@ const Dashboard: React.FC = () => {
                     value={(b.config && b.config.limit) || 5}
                     onChange={(e) => {
                       const lim = Math.min(20, Math.max(1, parseInt(e.target.value, 10) || 1));
-                      setBlocks(blocks.map((x) => x.id === b.id ? { ...x, config: { ...(x.config || {}), limit: lim } } : x));
+                      setBlocks((prev) => prev.map((x) => x.id === b.id ? { ...x, config: { ...(x.config || {}), limit: lim } } : x));
                     }}
                     className="dash-num"
                     title="Сколько элементов показывать"
                   />
-                )}
-                <button type="button" className="dash-arrow" disabled={i === 0}
-                  onClick={() => moveBlock(b.id, -1)} aria-label="Выше">↑</button>
-                <button type="button" className="dash-arrow" disabled={i === arr.length - 1}
-                  onClick={() => moveBlock(b.id, 1)} aria-label="Ниже">↓</button>
-              </div>
-            ))}
+                ) : undefined,
+              }))}
+              onToggle={(id) => setBlocks((prev) => prev.map((x) => x.id === id ? { ...x, visible: !x.visible } : x))}
+              onReorder={(ids) => setBlocks((prev) => {
+                const map = new Map(prev.map((b) => [b.id, b]));
+                return ids.map((id, i) => ({ ...(map.get(id) as any), order: i }));
+              })}
+              toggleAria="Показать/скрыть блок"
+            />
           </div>
 
           <div className="fb-field" style={{ marginTop: 12 }}>
