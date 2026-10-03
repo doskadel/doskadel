@@ -2157,20 +2157,29 @@ color: var(--color-text);
 
 .dashboard-section-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   gap: var(--space-md);
-  padding-left: var(--space-lg);
+  min-height: 36px;
+  padding: 0 var(--space-lg);
+  margin: 0;
 }
 
 .dashboard-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
   font-size: 16px;
   font-weight: 600;
+  line-height: 24px;
   color: var(--color-text);
-  margin: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+}
+.dashboard-section-title > svg {
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
 }
 
 .dashboard-section-link {

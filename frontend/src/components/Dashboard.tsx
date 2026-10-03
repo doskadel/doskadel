@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AlertTriangle, Calendar, Settings } from 'lucide-react';
+import { Settings } from 'lucide-react';
 import SortableSettings from './shared/SortableSettings';
 import { useConfirm } from './ConfirmProvider';
 import Modal from './Modal';
@@ -200,7 +200,7 @@ const Dashboard: React.FC = () => {
             <div className="dashboard-section" style={{ order: sectionOrder('overdue') }}>
               <div className="dashboard-section-header">
                 <h3 className="dashboard-section-title dashboard-section-title--danger">
-                  <AlertTriangle size={18} /> Просрочено ({data.overdueDistinctTasks ?? data.overdueTasks.length})
+                  Просрочено ({data.overdueDistinctTasks ?? data.overdueTasks.length})
                 </h3>
                 <button
                   type="button"
@@ -241,7 +241,7 @@ const Dashboard: React.FC = () => {
             <div className="dashboard-section" style={{ order: sectionOrder('upcoming') }}>
               <div className="dashboard-section-header">
                 <h3 className="dashboard-section-title">
-                  <Calendar size={18} /> Ближайшие сроки ({data.upcomingDistinctTasks ?? data.upcomingTasks.length})
+                  Ближайшие сроки ({data.upcomingDistinctTasks ?? data.upcomingTasks.length})
                 </h3>
                 <button
                   type="button"
