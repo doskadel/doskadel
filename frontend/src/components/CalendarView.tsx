@@ -352,6 +352,9 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
         <div className="calendar-card">
           <div className="calendar-card-header">
             <div className="calendar-title">{title}</div>
+          </div>
+
+          <div className="calendar-card-body">
             <div className="calendar-viewswitch">
               {(['month', 'week', 'day'] as ViewMode[]).map((v) => (
                 <button
@@ -364,9 +367,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
                 </button>
               ))}
             </div>
-          </div>
 
-          <div className="calendar-card-body">
             <div className="calendar-nav-row">
               <button type="button" className="calendar-nav" onClick={() => navigate(-1)} aria-label="Назад">‹</button>
               <button type="button" className="calendar-today-btn" onClick={goToday}>Сегодня</button>
