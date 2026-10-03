@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { deadlineLevel } from '../utils/date';
 import {
   DndContext,
   DragOverlay,
@@ -127,7 +128,12 @@ const DraggableTask: React.FC<{
     disabled: recurring,
   });
 
-  const time = formatTime(getDayDate(task, day));
+  const dayDate = getDayDate(task, day);
+  const time = formatTime(dayDate);
+
+  // Цвет по дедлайну (как в списке/доске): overdue=3(красный), soon=2(оранжевый), far=1(зелёный)
+  const lvl = deadlineLevel(dayDate ? dayDate.toISOString() : null, 3);
+  const dotClass = lvl === 'overdue' ? 3 : lvl === 'soon' ? 2 : 1;
 
   return (
     <div
@@ -150,7 +156,7 @@ const DraggableTask: React.FC<{
         >⠿</span>
       )}
       {recurring && <span className="calendar-task-lock" title="Повторяющаяся: перенос недоступен">🔄</span>}
-      <span className={'calendar-task-priority calendar-task-priority--' + (task.priority || 1)} />
+      <span className={'calendar-task-priority calendar-task-priority--' + dotClass} />
       <span className="calendar-task-title">{task.title}</span>
       {time && <span className="calendar-task-time">{time}</span>}
     </div>
@@ -164,8 +170,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
   const [cursor, setCursor] = useState<Date>(new Date(today.getFullYear(), today.getMonth(), 1));
   const [selected, setSelected] = useState<Date>(today);
   const [activeTask, setActiveTask] = useState<CalendarTask | null>(null);
-
-  console.log('[cal-tasks]', tasks.map((t) => ({ t: t.title, rec: !!(t.recurrence && t.recurrence.type), st: t.statusId, due: t.dueDate, last: t.lastOverdueAt, pend: t.pendingOccurrenceCount })));
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
