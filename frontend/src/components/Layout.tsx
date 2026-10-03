@@ -5,6 +5,7 @@ import SearchModal from './SearchModal';
 import ProfileModal from './ProfileModal';
 import api from '../utils/api';
 import { useGlobalHotkey } from '../hooks/useGlobalHotkey';
+import BotStub from './BotStub';
 
 const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
 
@@ -17,6 +18,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const navigate = useNavigate();
   const [searchOpen, setSearchOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [botOpen, setBotOpen] = useState(false);
 
   // Ctrl/Cmd+K — открыть/закрыть поиск; '/' — открыть (когда фокус не в поле)
   useGlobalHotkey({ keyCode: 'KeyK', onTrigger: () => setSearchOpen((v) => !v) });
@@ -114,6 +116,17 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <span className="layout-search-text">Поиск</span>
               <kbd className="layout-search-kbd">{isMac ? '⌘' : 'Ctrl'} K</kbd>
             </button>
+            {/* Бот — заглушка, паритет с мобилкой */}
+            <button
+              type="button"
+              className="layout-bot-btn"
+              onClick={() => setBotOpen(true)}
+              title="Помощник"
+              aria-label="Помощник"
+            >
+              <Bot size={18} />
+              <span className="layout-bot-text">Помощник</span>
+            </button>
             <button
               type="button"
               className="layout-avatar"
@@ -161,6 +174,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       </nav>
 
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
+      <BotStub open={botOpen} onClose={() => setBotOpen(false)} />
       <ProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} />
     </div>
   );

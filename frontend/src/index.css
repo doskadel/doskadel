@@ -473,6 +473,56 @@ margin-bottom: var(--space-md);
   }
 }
 
+/* ==================== TOASTS ==================== */
+.toast-stack {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 400;
+  width: calc(100% - 32px);
+  max-width: 420px;
+  pointer-events: none;
+}
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--color-surface);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  pointer-events: auto;
+  animation: toast-in 0.2s ease-out;
+}
+@keyframes toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.toast-icon { display: inline-flex; flex-shrink: 0; }
+.toast--success .toast-icon { color: var(--color-success); }
+.toast--error .toast-icon { color: var(--color-danger); }
+.toast--info .toast-icon { color: var(--color-primary); }
+.toast-text { flex: 1; font-size: 14px; color: var(--color-text); }
+.toast-close { display: inline-flex; border: none; background: transparent; color: var(--color-text-muted); cursor: pointer; padding: 2px; border-radius: 4px; }
+.toast-close:hover { color: var(--color-text); }
+
+/* ==================== BOT STUB ==================== */
+.bot-stub { text-align: center; padding: var(--space-md) 0; }
+.bot-stub-icon { display: inline-flex; align-items: center; justify-content: center; width: 72px; height: 72px; border-radius: 50%; background: var(--color-surface-alt); color: var(--color-primary); margin-bottom: var(--space-md); }
+.bot-stub-title { margin: 0 0 var(--space-sm); font-size: 18px; }
+.bot-stub-text { color: var(--color-text-muted); font-size: 14px; line-height: 1.5; margin: 0 0 var(--space-md); }
+.bot-stub-note { display: inline-flex; align-items: center; gap: 6px; color: var(--color-primary); font-size: 13px; margin: 0; }
+
+.layout-bot-btn {
+  display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px;
+  background: var(--color-surface-alt); border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md); color: var(--color-text-muted); font: inherit; font-size: 14px;
+  cursor: pointer; transition: border-color 0.15s, color 0.15s;
+}
+.layout-bot-btn:hover { border-color: var(--color-primary); color: var(--color-primary); }
+
 /* ==================== LOADING OVERLAY ==================== */
 .loading-overlay {
   position: fixed;
@@ -607,7 +657,8 @@ margin-bottom: var(--space-md);
   }
 
   .layout-search-text,
-  .layout-search-kbd {
+  .layout-search-kbd,
+  .layout-bot-text {
     display: none;
   }
 

@@ -7,6 +7,7 @@ import Register from './components/Register';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import { ConfirmProvider } from './components/ConfirmProvider';
+import { ToastProvider } from './components/Toast';
 import LoadingOverlay from './components/LoadingOverlay';
 import { getToken } from './utils/token';
 
@@ -22,6 +23,7 @@ function App() {
 
   return (
     <ConfirmProvider>
+      <ToastProvider>
       <div className="App">
         <Suspense fallback={<LoadingOverlay active text="Загрузка..." />}>
         <Routes>
@@ -37,6 +39,7 @@ function App() {
         </Routes>
         </Suspense>
       </div>
+      </ToastProvider>
     </ConfirmProvider>
   );
 }
