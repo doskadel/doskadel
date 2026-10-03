@@ -97,27 +97,86 @@ async function moveOccurrence(task, orig, newDue, scope, req) {
     return null;
   }
   if (scope === 'following') {
-    // старое правило: обрезаем до дня перед orig
-    const cutoff = new Date(orig.getTime() - 1);
-    const oldRec = { ...(task.recurrence || {}) };
-    // новое правило: копия с новым якорем (time/день из newDue), без until/count
-    const d = new Date(newDue);
-    const newRec = { ...(task.recurrence || {}) };
-    newRec.until = null;
-    newRec.count = null;
-    const hh = String(d.getUTCHours()).padStart(2, '0');
-    const mm = String(d.getUTCMinutes()).padStart(2, '0');
-    newRec.time = `${hh}:${mm}`;
-    if (newRec.freq === 'monthly') newRec.byMonthDay = d.getUTCDate();
-    // создаём новую задачу-продолжение (или меняем текущую?). Меняем текущую на новое правило, старую историю оставляем
-    task.recurrence = newRec;
-    task.markModified('recurrence');
-    await task.save();
-    // запись этого вхождения с новым dueAt (originalDate = orig, чтобы не потерять связь)
-    return upsertOccurrence(task, orig, { dueAt: newDue, status: 'pending', notificationsSent: { dayBefore: null, beforeDue: null, atDue: null, overdue: null } });
+    return splitSeries(task, orig, newDue);
   }
   // неизвестный scope — как this
   return upsertOccurrence(task, orig, { dueAt: newDue, status: 'pending' });
+}
+
+/**
+ * Split серии (scope following): старая Task.until = перед orig; новая Task-продолжение с новым правилом.
+ * Исключения (Occurrence) с originalDate >= orig переносятся к новой Task.
+ * Если orig — самое первое вхождение, split не нужен (эквивалент all).
+ */
+async function splitSeries(task, orig, newDue) {
+  const rec = { ...(task.recurrence || {}) };
+  // самое первое вхождение? (нет закрытых/перенесённых до orig)
+  const beforeCount = await Occurrence.countDocuments({
+    taskId: task._id,
+    originalDate: { $lt: orig },
+    $or: [{ status: { $in: ['done', 'skipped', 'missed'] } }, { dueAt: { $ne: null } }],
+  });
+  if (beforeCount === 0) {
+    // first вхождение — как all: меняем якорь
+    const d = new Date(newDue);
+    rec.time = `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`;
+    if (rec.freq === 'monthly') rec.byMonthDay = d.getUTCDate();
+    task.recurrence = rec;
+    task.markModified('recurrence');
+    await task.save();
+    return null;
+  }
+
+  const seriesId = task.seriesId || task._id;
+  const oldUntil = new Date(orig.getTime() - 1);
+
+  // 1) новая Task-продолжение
+  const d = new Date(newDue);
+  const newRec = { ...(task.recurrence || {}) };
+  newRec.until = null;
+  if (newRec.count) {
+    // пересчёт count: исходное минус число уже прошедших вхождений
+    const passed = await Occurrence.countDocuments({ taskId: task._id, originalDate: { $lt: orig } });
+    newRec.count = Math.max(1, (rec.count || 0) - passed);
+  }
+  newRec.time = `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`;
+  if (newRec.freq === 'monthly') newRec.byMonthDay = d.getUTCDate();
+
+  const newTask = await Task.create({
+    title: task.title,
+    description: task.description,
+    statusId: task.statusId,
+    priority: task.priority,
+    order: task.order,
+    dueDate: null,
+    recurrence: newRec,
+    notifications: task.notifications,
+    workspaceId: task.workspaceId,
+    userId: task.userId,
+    createdBy: task.createdBy || task.userId,
+    assigneeId: task.assigneeId || null,
+    seriesId,
+    prevTaskId: task._id,
+  });
+
+  // 2) перенос исключений (Occurrence с originalDate >= orig) к новой Task (с защитой unique)
+  const toMove = await Occurrence.find({ taskId: task._id, originalDate: { $gte: orig } }).select('_id originalDate').lean();
+  for (const o of toMove) {
+    const exists = await Occurrence.findOne({ taskId: newTask._id, originalDate: o.originalDate }).select('_id').lean();
+    if (exists) { await Occurrence.deleteOne({ _id: o._id }); continue; }
+    await Occurrence.updateOne({ _id: o._id }, { $set: { taskId: newTask._id, workspaceId: newTask.workspaceId } });
+  }
+
+  // 3) закрыть старую: until = перед orig, seriesId, причина split
+  rec.until = oldUntil;
+  task.recurrence = rec;
+  task.seriesId = seriesId;
+  task.closedReason = 'split';
+  task.markModified('recurrence');
+  await task.save();
+
+  // 4) перенесённое вхождение (само orig) — новая дата
+  return upsertOccurrence(newTask, orig, { dueAt: newDue, status: 'pending', notificationsSent: { dayBefore: null, beforeDue: null, atDue: null, overdue: null } });
 }
 
 /** Если правило конечное (count/until) и все вхождения закрыты — завершить задачу. */

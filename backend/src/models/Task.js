@@ -64,6 +64,22 @@ const taskSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
+  // F1c split: общий id серии (у первой задачи = её _id) и ссылка на предыдущую часть
+  seriesId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Task',
+    index: true
+  },
+  prevTaskId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Task',
+    default: null
+  },
+  // Причина завершения (например, 'split') — чтобы отличать от выполненной
+  closedReason: {
+    type: String,
+    default: null
+  },
   // Фундамент workspace: добавляется миграцией; после бэкфилла — required+index
   workspaceId: {
     type: mongoose.Schema.Types.ObjectId,
