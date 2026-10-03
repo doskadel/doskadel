@@ -1,5 +1,5 @@
 /* Токены — в tokens.css */
-.dashboard-sections { display: flex; flex-direction: column; }
+.dashboard-sections { display: flex; flex-direction: column; gap: var(--space-xl); }
 .dash-set-row { display: flex; align-items: center; gap: 10px; padding: 8px 4px; cursor: pointer; font-size: 15px; }
 .dash-block-row { display: flex; align-items: center; gap: 8px; padding: 6px 4px; font-size: 15px; }
 .dash-block-name { flex: 1; }
@@ -2071,7 +2071,6 @@ color: var(--color-text);
 .dashboard {
   display: flex;
   flex-direction: column;
-  gap: var(--space-xl);
 }
 
 .dashboard-item-extra {
