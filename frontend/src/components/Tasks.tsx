@@ -588,6 +588,14 @@ const Tasks: React.FC = () => {
                       Статус: {getStatusName(task.statusId)}
                     </span>
 
+                    {displayDate && (
+                      <span
+                        className="task-card-meta-item"
+                        style={!isFinal && isOverdue(displayDate) ? { color: 'var(--color-danger)', fontWeight: 500 } : undefined}
+                      >
+                        Срок до {formatDueDate(displayDate)}
+                      </span>
+                    )}
                     {task.recurrence && (
                       <span className="task-card-meta-item" style={{ whiteSpace: 'nowrap' }}>
                         🔄 {formatRecurrenceShort(task.recurrence)}
@@ -596,14 +604,6 @@ const Tasks: React.FC = () => {
                             {task.pendingOccurrenceCount}
                           </span>
                         )}
-                      </span>
-                    )}
-                    {displayDate && (
-                      <span
-                        className="task-card-meta-item"
-                        style={!isFinal && isOverdue(displayDate) ? { color: 'var(--color-danger)', fontWeight: 500 } : undefined}
-                      >
-                        Срок до {formatDueDate(displayDate)}
                       </span>
                     )}
                   </div>
