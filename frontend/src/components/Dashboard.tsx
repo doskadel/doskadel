@@ -157,24 +157,25 @@ const Dashboard: React.FC = () => {
   return (
     <PullToRefresh onRefresh={handleRefresh}>
     <div className="dashboard">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-lg)', gap: 'var(--space-md)', flexWrap: 'wrap' }}>
-        <h2 className="page-title" style={{ margin: 0 }}>Главная</h2>
-        <div style={{ display: 'flex', gap: 'var(--space-md)', alignItems: 'center', flexWrap: 'wrap' }}>
+      <h2 className="page-title" style={{ margin: 0, marginBottom: 'var(--space-md)' }}>Главная</h2>
+      <div className="tasks-actions-row">
+        <div style={{ display: 'flex', gap: 'var(--space-sm)', flexWrap: 'wrap' }}>
           <button
             type="button"
-            className="button button--white"
+            className="button button--white button--sm"
             onClick={() => navigate('/tasks?new=1')}
           >
-            + Добавить задачу
+            + Задачу
           </button>
           <button
             type="button"
-            className="button"
+            className="button button--sm"
             onClick={() => navigate('/knowledge?new=1')}
           >
-            + Добавить статью
+            + Статью
           </button>
-          <button
+        </div>
+        <button
             type="button"
             className="icon-button settings-btn"
             onClick={() => setSettingsOpen(true)}
@@ -183,7 +184,6 @@ const Dashboard: React.FC = () => {
           >
             <Settings size={20} />
           </button>
-        </div>
       </div>
 
       {isEmpty ? (
