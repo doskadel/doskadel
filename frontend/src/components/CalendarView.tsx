@@ -11,6 +11,7 @@ interface CalendarTask {
 
 interface CalendarViewProps {
   tasks: CalendarTask[];
+  finalStatusIds?: string[];
   onOpenTask: (id: string) => void;
 }
 
@@ -24,7 +25,8 @@ const taskDate = (t: CalendarTask): Date | null => {
   return raw ? new Date(raw) : null;
 };
 
-const CalendarView: React.FC<CalendarViewProps> = ({ tasks, onOpenTask }) => {
+const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [], onOpenTask }) => {
+  const finalSet = new Set(finalStatusIds);
   const today = startOfDay(new Date());
   const [cursor, setCursor] = useState<Date>(new Date(today.getFullYear(), today.getMonth(), 1));
   const [selected, setSelected] = useState<Date>(today);
@@ -69,6 +71,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, onOpenTask }) => {
           if (!day) return <div key={'e' + i} className="calendar-cell calendar-cell--empty" />;
           const dayTasks = tasksByDay(day);
           const overdueCount = dayTasks.filter((t) => {
+            if (t.statusId && finalSet.has(t.statusId)) return false;
             const d = taskDate(t);
             return d && d.getTime() < Date.now();
           }).length;

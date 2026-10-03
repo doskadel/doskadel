@@ -578,6 +578,8 @@ const Tasks: React.FC = () => {
             // Для overdue/dueSoon показываем nextOccurrenceDueAt (дата самого срочного вхождения)
             // для повторяющихся, либо dueDate для разовых
             const displayDate = task.nextOccurrenceDueAt || task.dueDate;
+            const st = statuses.find((s) => s._id === task.statusId);
+            const isFinal = !!st && !!st.isFinal;
 
             return (
               <div
@@ -588,7 +590,7 @@ const Tasks: React.FC = () => {
                 tabIndex={0}
                 onKeyDown={(e) => { if (e.key === 'Enter') openTask(task._id); }}
               >
-                <div className={'task-card-rail' + (task.recurrence ? ((task.pendingOccurrenceCount || 0) > 0 ? ' task-card-rail--overdue' : ' task-card-rail--far') : (deadlineLevel(task.dueDate, upcomingDays) ? ' task-card-rail--' + deadlineLevel(task.dueDate, upcomingDays) : ''))} />
+                <div className={'task-card-rail' + (isFinal ? ' task-card-rail--far' : (task.recurrence ? ((task.pendingOccurrenceCount || 0) > 0 ? ' task-card-rail--overdue' : ' task-card-rail--far') : (deadlineLevel(task.dueDate, upcomingDays) ? ' task-card-rail--' + deadlineLevel(task.dueDate, upcomingDays) : '')))} />
                 <div className="task-card-content">
                   <h3 className="task-card-title">{task.title}</h3>
                   {task.description && (
@@ -610,7 +612,7 @@ const Tasks: React.FC = () => {
                     {displayDate && (
                       <span
                         className="task-card-meta-item"
-                        style={isOverdue(displayDate) ? { color: 'var(--color-danger)', fontWeight: 500 } : undefined}
+                        style={!isFinal && isOverdue(displayDate) ? { color: 'var(--color-danger)', fontWeight: 500 } : undefined}
                       >
                         Срок до {formatDueDate(displayDate)}
                       </span>
@@ -629,7 +631,7 @@ const Tasks: React.FC = () => {
       )}
 
       {view === 'calendar' && (
-        <CalendarView tasks={tasks as any} onOpenTask={openTask} />
+        <CalendarView tasks={tasks as any} finalStatusIds={statuses.filter((s) => s.isFinal).map((s) => s._id)} onOpenTask={openTask} />
       )}
 
       {viewsEditOpen && settingsView === 'main' && (

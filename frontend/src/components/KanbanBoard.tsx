@@ -48,10 +48,11 @@ const getTextColorForBackground = (hex: string): string => {
 interface DraggableTaskProps {
   task: KanbanTask;
   statusColor: string;
+  statusIsFinal?: boolean;
   onOpenTask: (id: string) => void;
 }
 
-const DraggableTask: React.FC<DraggableTaskProps> = ({ task, statusColor, onOpenTask }) => {
+const DraggableTask: React.FC<DraggableTaskProps> = ({ task, statusColor, statusIsFinal, onOpenTask }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task._id,
     data: { type: 'task', statusId: task.statusId },
@@ -63,13 +64,16 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, statusColor, onOpen
     opacity: isDragging ? 0.4 : 1,
   };
 
-  const overdue = isOverdue(task.dueDate);
+  const isFinal = !!statusIsFinal;
+  const overdue = !isFinal && isOverdue(task.dueDate);
   const isRecurring = !!task.recurrence;
   const pendingCount = task.pendingOccurrenceCount || 0;
   const upcomingDays = useUpcomingDays();
-  const dl = isRecurring
-    ? (pendingCount > 0 ? 'overdue' : 'far')
-    : deadlineLevel(task.dueDate, upcomingDays);
+  const dl = isFinal
+    ? 'far'
+    : (isRecurring
+      ? (pendingCount > 0 ? 'overdue' : 'far')
+      : deadlineLevel(task.dueDate, upcomingDays));
 
   return (
     <div
@@ -172,6 +176,7 @@ const Column: React.FC<ColumnProps> = ({ status, tasks, onOpenTask }) => {
                 key={task._id}
                 task={task}
                 statusColor={status.color}
+                statusIsFinal={status.isFinal}
                 onOpenTask={onOpenTask}
               />
             ))
