@@ -48,7 +48,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
   }, [searchOpen]);
 
   const statusOptions = statuses.map((s) => ({ value: s._id, label: s.name, color: s.color }));
-  const priorityOptions = PRIORITY_OPTIONS.map((p) => ({ value: p.value, label: p.label, color: p.color }));
+  const priorityOptions = PRIORITY_OPTIONS.map((p) => ({ value: p.value, label: p.label }));
   const taskTypeOptions = [
     { value: 'single', label: 'Разовые' },
     { value: 'recurring', label: 'Повторяющиеся' },

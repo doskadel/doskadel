@@ -4,7 +4,6 @@ import PullToRefresh from './PullToRefresh';
 import LoadingOverlay from './LoadingOverlay';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
-import { getPriorityColor } from '../utils/priority';
 import { formatDueDate } from '../utils/date';
 
 interface StatusCount {
@@ -165,10 +164,6 @@ const Dashboard: React.FC = () => {
                       tabIndex={0}
                       onKeyDown={(e) => e.key === 'Enter' && navigate(`/tasks?task=${t._id}`)}
                     >
-                      <span
-                        className="dashboard-item-priority"
-                        style={{ backgroundColor: getPriorityColor(t.priority) }}
-                      />
                       <span className="dashboard-item-title">{t.title}</span>
                       <span className="dashboard-item-date dashboard-item-date--danger">
                         Срок до {formatDueDate(t.dueDate)}
@@ -210,10 +205,6 @@ const Dashboard: React.FC = () => {
                       tabIndex={0}
                       onKeyDown={(e) => e.key === 'Enter' && navigate(`/tasks?task=${t._id}`)}
                     >
-                      <span
-                        className="dashboard-item-priority"
-                        style={{ backgroundColor: getPriorityColor(t.priority) }}
-                      />
                       <span className="dashboard-item-title">{t.title}</span>
                       <span className="dashboard-item-date">
                         Срок до {formatDueDate(t.dueDate)}
@@ -279,10 +270,6 @@ const Dashboard: React.FC = () => {
                     tabIndex={0}
                     onKeyDown={(e) => e.key === 'Enter' && navigate(`/tasks?task=${t._id}`)}
                   >
-                    <span
-                      className="dashboard-item-priority"
-                      style={{ backgroundColor: getPriorityColor(t.priority) }}
-                    />
                     <span className="dashboard-item-title">{t.title}</span>
                     <span className="dashboard-item-date">{formatDate(t.updatedAt)}</span>
                   </div>

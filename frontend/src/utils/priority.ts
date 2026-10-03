@@ -7,7 +7,3 @@ export const PRIORITY_OPTIONS: Array<{ value: 1 | 2 | 3; label: string; color: s
 export const getPriorityLabel = (priority: number): string => {
   return PRIORITY_OPTIONS.find((p) => p.value === priority)?.label || 'Неизвестно';
 };
-
-export const getPriorityColor = (priority: number): string => {
-  return PRIORITY_OPTIONS.find((p) => p.value === priority)?.color || 'var(--color-text-muted)';
-};

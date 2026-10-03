@@ -2,7 +2,6 @@ import { Search } from 'lucide-react';
 import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
-import { getPriorityColor } from '../utils/priority';
 import { Status } from '../utils/status';
 import TaskModalContent from './TaskModalContent';
 import TaskModalRail from './TaskModalRail';
@@ -391,10 +390,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
                         tabIndex={0}
                         onKeyDown={(e) => e.key === 'Enter' && openTaskDetail(t._id)}
                       >
-                        <span
-                          className="command-palette-item-rail"
-                          style={{ backgroundColor: getPriorityColor(t.priority) }}
-                        />
+                        <span className="command-palette-item-rail" />
                         <div className="command-palette-item-content">
                           <div className="command-palette-item-title">{t.title}</div>
                           {t.description && (
