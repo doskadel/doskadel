@@ -739,7 +739,7 @@ z-index: 10;
 }
 .calendar-cell--empty { border: none; background: transparent; cursor: default; }
 .calendar-cell--today { border-color: var(--color-primary); font-weight: 700; }
-.calendar-cell--selected { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+.calendar-cell--selected { background: var(--color-surface); color: var(--color-primary); border-color: var(--color-primary); border-width: 2px; font-weight: 700; }
 .calendar-daynum { line-height: 1; }
 .calendar-dots { display: flex; gap: 2px; }
 .calendar-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--color-primary); }
