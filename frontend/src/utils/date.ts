@@ -46,3 +46,19 @@ export const isOverdue = (iso: string | null | undefined): boolean => {
   if (isNaN(d.getTime())) return false;
   return d.getTime() < Date.now();
 };
+
+export type DeadlineLevel = 'overdue' | 'soon' | 'far';
+
+/**
+ * Уровень близости дедлайна:
+ * overdue — прошёл, soon — до 3 дней, far — больше 3 дней. null — нет дедлайна.
+ */
+export const deadlineLevel = (iso: string | null | undefined): DeadlineLevel | null => {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return null;
+  const diff = d.getTime() - Date.now();
+  if (diff < 0) return 'overdue';
+  if (diff <= 3 * 24 * 60 * 60 * 1000) return 'soon';
+  return 'far';
+};

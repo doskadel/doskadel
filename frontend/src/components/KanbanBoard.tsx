@@ -17,9 +17,8 @@ import {
   arrayMove,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { getPriorityColor } from '../utils/priority';
 import { Status } from '../utils/status';
-import { formatDueDate, isOverdue } from '../utils/date';
+import { formatDueDate, isOverdue, deadlineLevel } from '../utils/date';
 import { Recurrence, formatRecurrenceShort } from '../utils/recurrence';
 
 export interface KanbanTask {
@@ -66,6 +65,9 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, statusColor, onOpen
   const overdue = isOverdue(task.dueDate);
   const isRecurring = !!task.recurrence;
   const pendingCount = task.pendingOccurrenceCount || 0;
+  const dl = isRecurring
+    ? (pendingCount > 0 ? 'overdue' : deadlineLevel(task.dueDate))
+    : deadlineLevel(task.dueDate);
 
   return (
     <div
@@ -76,8 +78,7 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, statusColor, onOpen
       {...attributes}
     >
       <div
-        className="kanban-card-status-rail"
-        style={{ backgroundColor: statusColor }}
+        className={'kanban-card-rail' + (dl ? ' kanban-card-rail--' + dl : '')}
       />
       <div className="kanban-card-content">
         <div className="kanban-card-row">
@@ -96,11 +97,6 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, statusColor, onOpen
           >
             {task.title}
           </a>
-          <span
-            className="kanban-card-priority"
-            style={{ backgroundColor: getPriorityColor(task.priority) }}
-            title={`Приоритет: ${task.priority}`}
-          />
         </div>
 
         {isRecurring && (
@@ -322,17 +318,10 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ tasks, statuses, onReorder, o
       <DragOverlay>
         {activeTask ? (
           <div className="kanban-card kanban-card--overlay">
-            <div
-              className="kanban-card-status-rail"
-              style={{ backgroundColor: activeStatus?.color || 'var(--color-border)' }}
-            />
+            <div className="kanban-card-rail" />
             <div className="kanban-card-content">
               <div className="kanban-card-row">
                 <span className="kanban-card-title">{activeTask.title}</span>
-                <span
-                  className="kanban-card-priority"
-                  style={{ backgroundColor: getPriorityColor(activeTask.priority) }}
-                />
               </div>
               {activeTask.recurrence && (
                 <div className="kanban-card-recurring">

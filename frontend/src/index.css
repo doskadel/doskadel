@@ -986,13 +986,17 @@ color: var(--color-text);
   cursor: grabbing;
 }
 
-.kanban-card-status-rail {
+.kanban-card-rail {
   width: 4px;
   flex-shrink: 0;
   align-self: stretch;
   border-top-left-radius: var(--radius-sm);
   border-bottom-left-radius: var(--radius-sm);
+  background: var(--color-border);
 }
+.kanban-card-rail--overdue { width: 6px; background: var(--color-danger); }
+.kanban-card-rail--soon { background: #f59e0b; }
+.kanban-card-rail--far { background: var(--color-success); }
 
 .kanban-card-content {
   flex: 1;
@@ -1699,11 +1703,17 @@ color: var(--color-text);
   border-color: var(--color-primary);
 }
 
-.task-card-status-rail {
+.task-card-rail {
   width: 4px;
   flex-shrink: 0;
   align-self: stretch;
+  background: var(--color-border);
+  border-top-left-radius: var(--radius-sm);
+  border-bottom-left-radius: var(--radius-sm);
 }
+.task-card-rail--overdue { width: 6px; background: var(--color-danger); }
+.task-card-rail--soon { background: #f59e0b; }
+.task-card-rail--far { background: var(--color-success); }
 
 .task-card-content {
   flex: 1;

@@ -47,7 +47,8 @@ import FilterBar, { TaskTypeFilter } from './FilterBar';
 import RecurrencePicker from './RecurrencePicker';
 import ClearableField from './ClearableField';
 import { useMediaQuery } from '../hooks/useMediaQuery';
-import { PRIORITY_OPTIONS, getPriorityLabel, getPriorityColor } from '../utils/priority';
+import { PRIORITY_OPTIONS, getPriorityLabel } from '../utils/priority';
+import { deadlineLevel } from '../utils/date';
 import { Status } from '../utils/status';
 import { formatDueDate, isOverdue } from '../utils/date';
 import { Recurrence, isRecurrenceValid, formatRecurrenceShort, getDefaultRecurrence } from '../utils/recurrence';
@@ -631,10 +632,7 @@ const Tasks: React.FC = () => {
                 tabIndex={0}
                 onKeyDown={(e) => { if (e.key === 'Enter') openTask(task._id); }}
               >
-                <div
-                  className="task-card-status-rail"
-                  style={{ backgroundColor: getStatusColor(task.statusId) }}
-                />
+                <div className={'task-card-rail' + (deadlineLevel(task.nextOccurrenceDueAt || task.dueDate) ? ' task-card-rail--' + deadlineLevel(task.nextOccurrenceDueAt || task.dueDate) : '')} />
                 <div className="task-card-content">
                   <h3 className="task-card-title">{task.title}</h3>
                   {task.description && (
@@ -642,10 +640,6 @@ const Tasks: React.FC = () => {
                   )}
                   <div className="task-card-meta">
                     <span className="task-card-meta-item">
-                      <span
-                        className="task-card-priority-dot"
-                        style={{ backgroundColor: getPriorityColor(task.priority) }}
-                      />
                       Приоритет: {getPriorityLabel(task.priority)}
                     </span>
                     <span className="task-card-meta-item">
