@@ -57,7 +57,8 @@ const action = async (req, res) => {
       if (!dueAt) return res.status(400).json({ success: false, message: 'dueAt required for move' });
       const nd = new Date(dueAt);
       if (isNaN(nd.getTime())) return res.status(400).json({ success: false, message: 'Invalid dueAt' });
-      occ = await upsertOccurrence(task, orig, { dueAt: nd, status: 'pending', notificationsSent: { dayBefore: null, beforeDue: null, atDue: null, overdue: null } });
+      const scope = req.body.scope || 'this';
+      occ = await moveOccurrence(task, orig, nd, scope, req);
     } else {
       return res.status(400).json({ success: false, message: 'Unknown action' });
     }
@@ -71,6 +72,53 @@ const action = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };
+
+/**
+ * Перенос вхождения с учётом scope.
+ * this — запись Occurrence с новым dueAt (originalDate не меняется).
+ * following — разделение правила: старое until = день перед originalDate; новое правило с новой датой.
+ * all — сдвиг всего правила (новый якорь = новая дата).
+ */
+async function moveOccurrence(task, orig, newDue, scope, req) {
+  if (scope === 'this') {
+    return upsertOccurrence(task, orig, { dueAt: newDue, status: 'pending', notificationsSent: { dayBefore: null, beforeDue: null, atDue: null, overdue: null } });
+  }
+  if (scope === 'all') {
+    // сдвигаем якорь правила: новое time/день из newDue
+    const rec = task.recurrence || {};
+    const d = new Date(newDue);
+    const hh = String(d.getUTCHours()).padStart(2, '0');
+    const mm = String(d.getUTCMinutes()).padStart(2, '0');
+    rec.time = `${hh}:${mm}`;
+    if (rec.freq === 'monthly') rec.byMonthDay = d.getUTCDate();
+    task.recurrence = rec;
+    task.markModified('recurrence');
+    await task.save();
+    return null;
+  }
+  if (scope === 'following') {
+    // старое правило: обрезаем до дня перед orig
+    const cutoff = new Date(orig.getTime() - 1);
+    const oldRec = { ...(task.recurrence || {}) };
+    // новое правило: копия с новым якорем (time/день из newDue), без until/count
+    const d = new Date(newDue);
+    const newRec = { ...(task.recurrence || {}) };
+    newRec.until = null;
+    newRec.count = null;
+    const hh = String(d.getUTCHours()).padStart(2, '0');
+    const mm = String(d.getUTCMinutes()).padStart(2, '0');
+    newRec.time = `${hh}:${mm}`;
+    if (newRec.freq === 'monthly') newRec.byMonthDay = d.getUTCDate();
+    // создаём новую задачу-продолжение (или меняем текущую?). Меняем текущую на новое правило, старую историю оставляем
+    task.recurrence = newRec;
+    task.markModified('recurrence');
+    await task.save();
+    // запись этого вхождения с новым dueAt (originalDate = orig, чтобы не потерять связь)
+    return upsertOccurrence(task, orig, { dueAt: newDue, status: 'pending', notificationsSent: { dayBefore: null, beforeDue: null, atDue: null, overdue: null } });
+  }
+  // неизвестный scope — как this
+  return upsertOccurrence(task, orig, { dueAt: newDue, status: 'pending' });
+}
 
 /** Если правило конечное (count/until) и все вхождения закрыты — завершить задачу. */
 async function maybeCompleteSeries(task) {
