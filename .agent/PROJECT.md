@@ -53,4 +53,4 @@
 - Ассеты: C:/projects/_assets (найти/сгенерировать → provenance → применить).
 
 ## Открытые вопросы
-См. .agent/QUESTIONS.md.
+См. .agent/QUESTIONS.md. Предложения по улучшению (оптимизация, дизайн, доступность): .agent/IMPROVEMENTS.md.
