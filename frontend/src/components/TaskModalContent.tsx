@@ -203,7 +203,7 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
               🔄 {formatRecurrence(task.recurrence)}
             </p>
             {pendingCount > 0 && (
-              <p className="task-pending-badge">
+              <p className={'task-pending-badge' + (taskFinal ? ' task-pending-badge--final' : '')}>
                 ⚠️ {pendingCount} не подтверждено
               </p>
             )}

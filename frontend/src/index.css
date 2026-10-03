@@ -2958,6 +2958,10 @@ color: var(--color-text);
   white-space: nowrap;
 }
 
+.task-pending-badge--final {
+  background: var(--color-text-muted);
+}
+
 .task-pending-badge--sm {
   display: inline-flex;
   align-items: center;

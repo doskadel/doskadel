@@ -111,7 +111,7 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, statusColor, status
               🔄 {formatRecurrenceShort(task.recurrence)}
             </span>
             {pendingCount > 0 && (
-              <span className="task-pending-badge task-pending-badge--sm">
+              <span className={'task-pending-badge task-pending-badge--sm' + (isFinal ? ' task-pending-badge--final' : '')}>
                 {pendingCount}
               </span>
             )}

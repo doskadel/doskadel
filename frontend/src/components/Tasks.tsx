@@ -618,7 +618,7 @@ const Tasks: React.FC = () => {
                       </span>
                     )}
                     {(task.pendingOccurrenceCount || 0) > 0 && (
-                      <span className="task-pending-badge task-pending-badge--sm">
+                      <span className={'task-pending-badge task-pending-badge--sm' + (isFinal ? ' task-pending-badge--final' : '')}>
                         {task.pendingOccurrenceCount}
                       </span>
                     )}
