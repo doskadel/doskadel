@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { CalendarDays, Columns3, Square } from 'lucide-react';
 import { deadlineLevel } from '../utils/date';
 import {
   DndContext,
@@ -352,9 +353,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
         <div className="calendar-card">
           <div className="calendar-card-header">
             <div className="calendar-title">{title}</div>
-          </div>
-
-          <div className="calendar-card-body">
             <div className="calendar-viewswitch">
               {(['month', 'week', 'day'] as ViewMode[]).map((v) => (
                 <button
@@ -362,12 +360,16 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
                   type="button"
                   className={'calendar-viewswitch-btn' + (view === v ? ' calendar-viewswitch-btn--active' : '')}
                   onClick={() => switchView(v)}
+                  title={v === 'month' ? 'Месяц' : v === 'week' ? 'Неделя' : 'День'}
+                  aria-label={v === 'month' ? 'Месяц' : v === 'week' ? 'Неделя' : 'День'}
                 >
-                  {v === 'month' ? 'Месяц' : v === 'week' ? 'Неделя' : 'День'}
+                  {v === 'month' ? <CalendarDays size={16} /> : v === 'week' ? <Columns3 size={16} /> : <Square size={16} />}
                 </button>
               ))}
             </div>
+          </div>
 
+          <div className="calendar-card-body">
             <div className="calendar-nav-row">
               <button type="button" className="calendar-nav" onClick={() => navigate(-1)} aria-label="Назад">‹</button>
               <button type="button" className="calendar-today-btn" onClick={goToday}>Сегодня</button>
