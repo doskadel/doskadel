@@ -157,9 +157,9 @@ const Dashboard: React.FC = () => {
   return (
     <PullToRefresh onRefresh={handleRefresh}>
     <div className="dashboard">
-      <h2 className="page-title" style={{ margin: 0, marginBottom: 'var(--space-md)' }}>Главная</h2>
+      <h2 className="page-title">Главная</h2>
       <div className="tasks-actions-row">
-        <div style={{ display: 'flex', gap: 'var(--space-sm)', flexWrap: 'wrap' }}>
+        <div className="dashboard-actions">
           <button
             type="button"
             className="button button--white button--sm"

@@ -2071,6 +2071,36 @@ color: var(--color-text);
 .dashboard {
   display: flex;
   flex-direction: column;
+  gap: var(--space-md);
+}
+
+/* Отступы на дашборде задаются только gap родителя */
+.dashboard > .page-title {
+  margin: 0;
+  line-height: 1.2;
+}
+.dashboard > .tasks-actions-row {
+  margin: 0 0 var(--space-sm);
+}
+.dashboard > .tasks-actions-row .dashboard-actions {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  gap: var(--space-sm);
+  flex-wrap: nowrap;
+}
+.dashboard > .tasks-actions-row .button--sm {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 46px;
+  padding: 0 8px;
+  font-size: 14px;
+  white-space: nowrap;
+  text-align: center;
+}
+.dashboard > .tasks-actions-row .settings-btn {
+  width: 46px;
+  height: 46px;
 }
 
 .dashboard-item-extra {
