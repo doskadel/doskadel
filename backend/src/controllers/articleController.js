@@ -74,7 +74,7 @@ const getArticles = async (req, res) => {
 
     // Collation для корректной сортировки по алфавиту
     const isTitleSort = sort === 'title_asc' || sort === 'title_desc';
-    const query = Article.find(filter).sort(sortObj);
+    const query = Article.find(filter).sort(sortObj).lean();
     if (isTitleSort) {
       query.collation({ locale: 'ru', strength: 2 });
     }

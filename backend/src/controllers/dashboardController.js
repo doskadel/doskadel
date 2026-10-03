@@ -16,7 +16,7 @@ const getDashboard = async (req, res) => {
   try {
     const userId = req.user._id;
 
-    const statuses = await Status.find({ userId }).sort({ order: 1 });
+    const statuses = await Status.find({ userId }).sort({ order: 1 }).lean();
     const statusCounts = await Promise.all(
       statuses.map(async (s) => {
         const count = await Task.countDocuments({ userId, statusId: s._id });
@@ -42,7 +42,7 @@ const getDashboard = async (req, res) => {
       statusId: { $in: activeStatusIds },
       dueDate: { $ne: null, $lt: now },
       'recurrence.type': { $exists: false }
-    }).select('_id title statusId priority dueDate');
+    }).select('_id title statusId priority dueDate').lean();
 
     // 2) Повторяющиеся: группируем occurrences по taskId,
     //    берём САМУЮ СВЕЖУЮ просрочку (max dueAt < now) и общий count.
@@ -69,7 +69,7 @@ const getDashboard = async (req, res) => {
       _id: { $in: overdueRecurringTaskIds },
       userId,
       statusId: { $in: activeStatusIds } // фильтруем по активным статусам
-    }).select('_id title statusId priority');
+    }).select('_id title statusId priority').lean();
 
     // Индексируем агрегацию по taskId для быстрого доступа
     const aggByTaskId = new Map(
@@ -122,7 +122,7 @@ const getDashboard = async (req, res) => {
       statusId: { $in: activeStatusIds },
       dueDate: { $gte: now, $lte: upcomingLimit },
       'recurrence.type': { $exists: false }
-    }).select('_id title statusId priority dueDate');
+    }).select('_id title statusId priority dueDate').lean();
 
     // 2) Повторяющиеся: группируем, берём БЛИЖАЙШУЮ будущую итерацию
     const upcomingOccurrenceAgg = await Occurrence.aggregate([
@@ -147,7 +147,7 @@ const getDashboard = async (req, res) => {
       _id: { $in: upcomingRecurringTaskIds },
       userId,
       statusId: { $in: activeStatusIds }
-    }).select('_id title statusId priority');
+    }).select('_id title statusId priority').lean();
 
     const upcomingAggByTaskId = new Map(
       upcomingOccurrenceAgg.map((o) => [String(o._id), o])

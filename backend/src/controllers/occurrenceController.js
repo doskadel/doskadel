@@ -9,7 +9,7 @@ const getPending = async (req, res) => {
       userId: req.user._id,
       status: 'pending',
       dueAt: { $lte: new Date() }
-    }).sort({ dueAt: 1 });
+    }).sort({ dueAt: 1 }).lean();
 
     res.json({
       success: true,
@@ -45,7 +45,7 @@ const getByTask = async (req, res) => {
       filter.status = status;
     }
 
-    const occurrences = await Occurrence.find(filter).sort({ dueAt: -1 });
+    const occurrences = await Occurrence.find(filter).sort({ dueAt: -1 }).lean();
 
     res.json({
       success: true,
@@ -69,7 +69,7 @@ const getById = async (req, res) => {
     const occurrence = await Occurrence.findOne({
       _id: id,
       userId: req.user._id
-    });
+    }).lean();
 
     if (!occurrence) {
       return res.status(404).json({ success: false, message: 'Occurrence not found' });

@@ -7,7 +7,7 @@ const KNOWN_BLOCKS = ['byStatus', 'overdue', 'upcoming', 'recentTasks', 'recentA
 // Собираем настройки: если у пользователя их нет — дефолт (statusKeys -> statusIds по системному key).
 async function resolveSettings(user) {
   let ds = user.dashboardSettings;
-  const own = new Set((await Status.find({ userId: user._id }).select('_id')).map((s) => String(s._id)));
+  const own = new Set((await Status.find({ userId: user._id }).select('_id').lean()).map((s) => String(s._id)));
   const cleanConfig = (id, cfg) => {
     const c = cfg || {};
     if (id === 'byStatus') return { statusIds: (c.statusIds || []).filter((x) => own.has(String(x))) };

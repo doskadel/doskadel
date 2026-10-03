@@ -70,7 +70,7 @@ const unsubscribe = async (req, res) => {
 const listSubscriptions = async (req, res) => {
   try {
     const subs = await PushSubscription.find({ userId: req.user._id })
-      .select('_id endpoint userAgent createdAt');
+      .select('_id endpoint userAgent createdAt').lean();
     res.json({ success: true, subscriptions: subs });
   } catch (error) {
     console.error('List subscriptions error:', error);
