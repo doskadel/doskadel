@@ -148,7 +148,7 @@ box-shadow: 0 1px 2px rgba(9, 105, 218, 0.3);
 /* Опасное подтверждение (кнопка в диалоге): заливка красным с наведением и нажатием */
 .button.button--danger {
   background-color: var(--color-danger);
-  color: #fff;
+  color: var(--color-on-accent);
   box-shadow: 0 1px 2px color-mix(in srgb, var(--color-danger) 35%, transparent);
 }
 .button.button--danger:hover:not(:disabled) {
@@ -646,7 +646,7 @@ z-index: 10;
 .ve-toggle--on { background: var(--color-primary); }
 .ve-toggle-knob {
   position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%;
-  background: #fff; transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+  background: var(--color-on-accent); transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.25);
 }
 .ve-toggle--on .ve-toggle-knob { transform: translateX(18px); }
 .ve-subtitle { margin-top: 16px; font-size: 13px; color: var(--color-text-muted); font-weight: 500; }
@@ -676,10 +676,10 @@ z-index: 10;
 .fb-icon-btn:hover { background: var(--color-bg); color: var(--color-text); }
 .fb-icon-btn--active {
   border-color: var(--color-primary);
-  color: #fff;
+  color: var(--color-on-accent);
   background: var(--color-primary);
 }
-.fb-icon-btn--active:hover { background: var(--color-primary-hover); color: #fff; }
+.fb-icon-btn--active:hover { background: var(--color-primary-hover); color: var(--color-on-accent); }
 .fb-dot { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; border-radius: 50%; background: var(--color-danger); box-shadow: 0 0 0 2px var(--color-surface); }
 .fb-dot--alert { background: var(--color-danger); }
 .fb-panel {
@@ -719,7 +719,7 @@ z-index: 10;
   border-left: 1px solid var(--color-border); background: transparent;
   color: var(--color-text-muted); cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
 }
-.fb-search--open .fb-search-btn { background: var(--color-primary); color: #fff; border-left-color: var(--color-primary); }
+.fb-search--open .fb-search-btn { background: var(--color-primary); color: var(--color-on-accent); border-left-color: var(--color-primary); }
 
 /* Закрыто: обычная кнопка с лупой (как фильтр и сортировка). Открыто: поле на всё место между ними. */
 .fb-search:not(.fb-search--open) { flex: 0 0 auto; border: 0; overflow: visible; background: transparent; }
@@ -752,7 +752,7 @@ z-index: 10;
 }
 .fb-option { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border-radius: var(--radius-sm); cursor: pointer; font-size: 14px; }
 .fb-option:hover, .fb-option[data-headlessui-state*="active"] { background: var(--color-bg); }
-.fb-check { width: 18px; height: 18px; border: 1.5px solid var(--color-border); border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; color: #fff; flex-shrink: 0; }
+.fb-check { width: 18px; height: 18px; border: 1.5px solid var(--color-border); border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; color: var(--color-on-accent); flex-shrink: 0; }
 .fb-check--on { background: var(--color-primary); border-color: var(--color-primary); }
 .fb-search-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; padding: 10px 12px; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-sm); }
 .fb-search-icon { color: var(--color-text-muted); flex-shrink: 0; }
@@ -795,7 +795,7 @@ z-index: 10;
 .ms-option--selected { color: var(--color-primary); font-weight: 500; }
 .ms-check {
   width: 18px; height: 18px; border: 1.5px solid var(--color-border); border-radius: 4px;
-  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; color: #fff;
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--color-on-accent);
 }
 .ms-check--on { background: var(--color-primary); border-color: var(--color-primary); }
 .ms-color { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
@@ -841,9 +841,9 @@ z-index: 10;
 }
 .calendar-task:hover { background: var(--color-bg); }
 .calendar-task-priority { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-.calendar-task-priority--1 { background: #22c55e; }
-.calendar-task-priority--2 { background: #f59e0b; }
-.calendar-task-priority--3 { background: #ef4444; }
+.calendar-task-priority--1 { background: var(--green-400); }
+.calendar-task-priority--2 { background: var(--orange-500); }
+.calendar-task-priority--3 { background: var(--red-400); }
 .view-toggle-row { display: flex; margin-bottom: var(--space-md); }
 .view-info-wrap { position: relative; display: inline-flex; }
 .view-info-icon {
@@ -1082,7 +1082,7 @@ color: var(--color-text);
   background: var(--color-border);
 }
 .kanban-card-rail--overdue { width: 6px; background: var(--color-danger); }
-.kanban-card-rail--soon { background: #f59e0b; }
+.kanban-card-rail--soon { background: var(--orange-500); }
 .kanban-card-rail--far { background: var(--color-success); }
 
 .kanban-card-content {
@@ -1220,13 +1220,13 @@ color: var(--color-text);
 
 .view-toggle-btn--active {
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-on-accent);
   box-shadow: 0 2px 8px rgba(59, 130, 246, 0.35);
 }
 
 .view-toggle-btn--active:hover {
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-on-accent);
 }
 
 /* ==================== MODAL ==================== */
@@ -1799,7 +1799,7 @@ color: var(--color-text);
   border-bottom-left-radius: var(--radius-sm);
 }
 .task-card-rail--overdue { width: 6px; background: var(--color-danger); }
-.task-card-rail--soon { background: #f59e0b; }
+.task-card-rail--soon { background: var(--orange-500); }
 .task-card-rail--far { background: var(--color-success); }
 
 .task-card-content {
@@ -2951,7 +2951,7 @@ color: var(--color-text);
   margin-top: 6px;
   padding: 2px 8px;
   background: var(--color-danger);
-  color: #fff;
+  color: var(--color-on-accent);
   font-size: 12px;
   font-weight: 500;
   border-radius: 10px;
@@ -2991,7 +2991,7 @@ color: var(--color-text);
   height: 16px;
   padding: 0 4px;
   background: var(--color-danger);
-  color: #fff;
+  color: var(--color-on-accent);
   font-size: 10px;
   font-weight: 600;
   border-radius: 8px;
@@ -3489,7 +3489,7 @@ color: var(--color-text);
   height: 36px;
   border-radius: 50%;
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-on-accent);
   border: none;
   cursor: pointer;
   display: inline-flex;
@@ -3554,7 +3554,7 @@ color: var(--color-text);
   justify-content: center;
   font-size: 28px;
   font-weight: 600;
-  color: #fff;
+  color: var(--color-on-accent);
   background: var(--color-primary);
 }
 
@@ -3605,7 +3605,7 @@ color: var(--color-text);
 
 .profile-menu-item--danger:hover {
   background: var(--color-danger);
-  color: #fff;
+  color: var(--color-on-accent);
   border-color: var(--color-danger);
 }
 
@@ -3792,7 +3792,7 @@ color: var(--color-text);
   height: 18px;
   left: 2px;
   top: 2px;
-  background: #fff;
+  background: var(--color-on-accent);
   border-radius: 50%;
   transition: transform 0.15s;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
