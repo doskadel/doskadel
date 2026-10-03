@@ -31,7 +31,7 @@ const MoreDropdown: React.FC = () => {
         {({ open }) => (
           <>
             <Menu.Button
-              className={'layout-nav-link more-dd-btn' + (open || isAnyActive ? ' layout-nav-link--active' : '')}
+              className={'layout-nav-link more-dd-btn' + (isAnyActive ? ' layout-nav-link--active' : '')}
               aria-haspopup="menu"
             >
               <MoreHorizontal size={18} />
