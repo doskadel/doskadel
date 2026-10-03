@@ -62,6 +62,9 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ open, onClose }) => {
   const [savingSettings, setSavingSettings] = useState(false);
   const [settingsError, setSettingsError] = useState('');
   const [settingsSavedAt, setSettingsSavedAt] = useState<number | null>(null);
+  const [settingsSnap, setSettingsSnap] = useState('');
+  const settingsSig = JSON.stringify(settings);
+  const notificationsDirty = view === 'notifications' && settingsSnap !== '' && settingsSig !== settingsSnap;
 
   // Push (local device)
   const [pushSupported, setPushSupported] = useState(false);
@@ -77,14 +80,16 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ open, onClose }) => {
       const res = await api.get('/api/users/me');
       setUser(res.data.user);
       if (res.data.user?.notificationSettings) {
-        setSettings({
+        const merged = {
           ...DEFAULT_SETTINGS,
           ...res.data.user.notificationSettings,
           quietHours: {
             ...DEFAULT_SETTINGS.quietHours,
             ...(res.data.user.notificationSettings.quietHours || {}),
           },
-        });
+        };
+        setSettings(merged);
+        setSettingsSnap(JSON.stringify(merged));
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Не удалось загрузить профиль');
@@ -153,14 +158,16 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ open, onClose }) => {
     try {
       const res = await api.put('/api/users/notification-settings', settings);
       if (res.data.user?.notificationSettings) {
-        setSettings({
+        const merged = {
           ...DEFAULT_SETTINGS,
           ...res.data.user.notificationSettings,
           quietHours: {
             ...DEFAULT_SETTINGS.quietHours,
             ...(res.data.user.notificationSettings.quietHours || {}),
           },
-        });
+        };
+        setSettings(merged);
+        setSettingsSnap(JSON.stringify(merged));
       }
       setSettingsSavedAt(Date.now());
     } catch (err: any) {
@@ -209,6 +216,36 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ open, onClose }) => {
     setTestBusy(false);
   };
 
+  const handleClose = async () => {
+    if (notificationsDirty) {
+      const ok = await confirm({
+        title: 'Есть несохранённые данные',
+        message: 'Изменения будут потеряны. Закрыть форму?',
+        confirmLabel: 'Закрыть',
+        danger: true,
+      });
+      if (!ok) return;
+      // откат к снимку
+      try { setSettings(JSON.parse(settingsSnap)); } catch {}
+    }
+    setView('profile');
+    onClose();
+  };
+
+  const handleBack = async () => {
+    if (notificationsDirty) {
+      const ok = await confirm({
+        title: 'Есть несохранённые данные',
+        message: 'Изменения будут потеряны. Закрыть форму?',
+        confirmLabel: 'Закрыть',
+        danger: true,
+      });
+      if (!ok) return;
+      try { setSettings(JSON.parse(settingsSnap)); } catch {}
+    }
+    setView('settings');
+  };
+
   const initials = (user?.username || '?').trim().charAt(0).toUpperCase();
   const permission = getNotificationPermission();
 
@@ -218,7 +255,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ open, onClose }) => {
     'Профиль';
 
   return (
-    <Modal open={open} onClose={onClose} title={title}>
+    <Modal open={open} onClose={handleClose} title={title}>
       {loading && <p>Загрузка...</p>}
       {error && <p style={{ color: 'var(--color-danger)' }}>{error}</p>}
 
@@ -304,7 +341,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ open, onClose }) => {
           <button
             type="button"
             className="settings-back"
-            onClick={() => setView('settings')}
+            onClick={handleBack}
           >
             ← Назад
           </button>

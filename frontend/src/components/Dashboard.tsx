@@ -66,8 +66,22 @@ const Dashboard: React.FC = () => {
   const [settingsSnap, setSettingsSnap] = useState<{ blocks: any; byStatusOrder: any; upcomingDays: number } | null>(null);
   const openSettings = () => {
     setSettingsSnap({ blocks, byStatusOrder, upcomingDays });
+    const ns: Record<string, string> = { upcomingDays: String(upcomingDays) };
+    blocks.forEach((b) => { if (b.config && b.config.limit) ns['limit:' + b.id] = String(b.config.limit); });
+    setNumStr(ns);
+    setSettingsErr('');
     setSettingsOpen(true);
   };
+  const MAX = { upcomingDays: 30, limit: 20 };
+  const onNumInput = (key: string, raw: string, max: number) => {
+    let v = raw.replace(/[^0-9]/g, '');
+    v = v.replace(/^0+/, ''); // убрать ведущие нули (и «только 0» -> пусто)
+    if (v !== '' && parseInt(v, 10) > max) v = String(max);
+    setNumStr((prev) => ({ ...prev, [key]: v }));
+    setSettingsErr('');
+  };
+  const numErr = (key: string) => numStr[key] === '' || numStr[key] === undefined;
+
   const closeSettings = async () => {
     const changed =
       !!settingsSnap &&
@@ -90,6 +104,8 @@ const Dashboard: React.FC = () => {
   const [upcomingDays, setUpcomingDays] = useState<number>(3);
   const [allStatuses, setAllStatuses] = useState<Array<{ _id: string; name: string; key?: string | null }>>([]);
   const [savingSettings, setSavingSettings] = useState(false);
+  const [numStr, setNumStr] = useState<Record<string, string>>({});
+  const [settingsErr, setSettingsErr] = useState('');
   const [blocks, setBlocks] = useState<Array<{ id: string; visible: boolean; order: number; config: any }>>([]);
 
   const BLOCK_LABELS: Record<string, string> = {
@@ -407,16 +423,12 @@ const Dashboard: React.FC = () => {
                 enabled: b.visible,
                 extra: b.visible && (b.id === 'recentTasks' || b.id === 'recentArticles' || b.id === 'overdue' || b.id === 'upcoming') ? (
                   <input
-                    type="number"
-                    min={1}
-                    max={20}
-                    value={(b.config && b.config.limit) || 5}
-                    onChange={(e) => {
-                      const lim = Math.min(20, Math.max(1, parseInt(e.target.value, 10) || 1));
-                      setBlocks((prev) => prev.map((x) => x.id === b.id ? { ...x, config: { ...(x.config || {}), limit: lim } } : x));
-                    }}
-                    className="dash-num"
-                    title="Сколько элементов показывать"
+                    type="text"
+                    inputMode="numeric"
+                    value={numStr['limit:' + b.id] ?? ''}
+                    onChange={(e) => onNumInput('limit:' + b.id, e.target.value, 20)}
+                    className={'dash-num' + (numErr('limit:' + b.id) ? ' input--error' : '')}
+                    title="Сколько элементов показывать (1-20)"
                   />
                 ) : undefined,
               }))}
@@ -451,14 +463,16 @@ const Dashboard: React.FC = () => {
           <div className="fb-field" style={{ marginTop: 12 }}>
             <span className="fb-field-label">«Ближайшие сроки» — за сколько дней</span>
             <input
-              type="number"
-              min={1}
-              max={30}
-              value={upcomingDays}
-              onChange={(e) => setUpcomingDays(Math.min(30, Math.max(1, parseInt(e.target.value, 10) || 1)))}
-              className="input"
+              type="text"
+              inputMode="numeric"
+              value={numStr['upcomingDays'] ?? ''}
+              onChange={(e) => onNumInput('upcomingDays', e.target.value, 30)}
+              className={'input' + (numErr('upcomingDays') ? ' input--error' : '')}
             />
           </div>
+          {settingsErr && (
+            <p style={{ color: 'var(--color-danger)', fontSize: 14, marginTop: 12, marginBottom: 0 }}>{settingsErr}</p>
+          )}
           <div style={{ marginTop: 16, display: 'flex', justifyContent: 'space-between', gap: 12 }}>
             <button
               type="button"
@@ -497,16 +511,34 @@ const Dashboard: React.FC = () => {
               className="button"
               disabled={savingSettings}
               onClick={async () => {
+                // валидация: все числовые поля заполнены (в т.ч. лимиты видимых блоков)
+                const need: string[] = ['upcomingDays'];
+                blocks.forEach((b) => {
+                  if (b.visible && (b.id === 'recentTasks' || b.id === 'recentArticles' || b.id === 'overdue' || b.id === 'upcoming')) need.push('limit:' + b.id);
+                });
+                const bad = need.some((k) => numStr[k] === '' || numStr[k] === undefined);
+                if (bad) {
+                  setSettingsErr('Заполните обязательные поля');
+                  return;
+                }
+                setSettingsErr('');
                 setSavingSettings(true);
                 try {
-                  const outBlocks = blocks.map((b) =>
-                    b.id === 'byStatus' ? { ...b, config: { ...(b.config || {}), statusIds: byStatusOrder || [] } } : b
-                  );
-                  await api.put('/api/settings/dashboard', { upcomingDays, blocks: outBlocks });
+                  const days = parseInt(numStr['upcomingDays'], 10);
+                  const outBlocks = blocks.map((b) => {
+                    let config = { ...(b.config || {}) };
+                    if (b.id === 'byStatus') config.statusIds = byStatusOrder || [];
+                    const lk = 'limit:' + b.id;
+                    if (numStr[lk] !== undefined && numStr[lk] !== '') config.limit = parseInt(numStr[lk], 10);
+                    return { ...b, config };
+                  });
+                  await api.put('/api/settings/dashboard', { upcomingDays: days, blocks: outBlocks });
+                  setUpcomingDays(days);
                   setSettingsOpen(false);
                   fetchDashboard();
                 } catch (e) {
                   console.error('save dashboard settings', e);
+                  setSettingsErr('Не удалось сохранить');
                 } finally {
                   setSavingSettings(false);
                 }

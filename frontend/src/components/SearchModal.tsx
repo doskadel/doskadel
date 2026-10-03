@@ -300,7 +300,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
                   setEditDueDate={taskDetail.setEditDueDate}
                   setEditRecurrence={taskDetail.setEditRecurrence}
                   onSave={taskDetail.saveEdit}
-                  onCancel={taskDetail.cancelEdit}
+                  onCancel={taskDetail.requestCancelEdit}
                   onQuickChangeStatus={taskDetail.quickChangeStatus}
                 />
               ) : (
@@ -315,7 +315,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
                   setEditTitle={articleDetail.setEditTitle}
                   setEditContent={articleDetail.setEditContent}
                   onSave={articleDetail.saveEdit}
-                  onCancel={articleDetail.cancelEdit}
+                  onCancel={articleDetail.requestCancelEdit}
                 />
               )}
             </div>

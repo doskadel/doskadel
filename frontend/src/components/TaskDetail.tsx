@@ -57,16 +57,29 @@ const TaskDetail: React.FC = () => {
     }
   };
 
+  const editSig = JSON.stringify([editTitle, editDescription, editStatusId, editPriority]);
+  const [editSnap, setEditSnap] = useState('');
   const startEdit = () => {
     if (!task) return;
     setEditTitle(task.title);
     setEditDescription(task.description || '');
     setEditStatusId(task.statusId);
     setEditPriority(task.priority);
+    setEditSnap(JSON.stringify([task.title, task.description || '', task.statusId, task.priority]));
     setIsEditing(true);
   };
 
-  const cancelEdit = () => {
+  const cancelEdit = async () => {
+    const dirty = editSnap !== '' && editSig !== editSnap;
+    if (dirty) {
+      const ok = await confirm({
+        title: 'Есть несохранённые данные',
+        message: 'Изменения не будут сохранены. Выйти без сохранения?',
+        confirmLabel: 'Выйти без сохранения',
+        danger: true,
+      });
+      if (!ok) return;
+    }
     setIsEditing(false);
   };
 

@@ -43,14 +43,27 @@ const ArticleDetail: React.FC = () => {
     }
   };
 
+  const editSig = JSON.stringify([editTitle, editContent]);
+  const [editSnap, setEditSnap] = useState('');
   const startEdit = () => {
     if (!article) return;
     setEditTitle(article.title);
     setEditContent(article.content);
+    setEditSnap(JSON.stringify([article.title, article.content]));
     setIsEditing(true);
   };
 
-  const cancelEdit = () => {
+  const cancelEdit = async () => {
+    const dirty = editSnap !== '' && editSig !== editSnap;
+    if (dirty) {
+      const ok = await confirm({
+        title: 'Есть несохранённые данные',
+        message: 'Изменения не будут сохранены. Выйти без сохранения?',
+        confirmLabel: 'Выйти без сохранения',
+        danger: true,
+      });
+      if (!ok) return;
+    }
     setIsEditing(false);
   };
 

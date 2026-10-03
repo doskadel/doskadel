@@ -50,13 +50,26 @@ const StatusManager: React.FC<StatusManagerProps> = ({ open, statuses, onClose, 
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [tipOpen]);
 
-  const goToList = () => {
+  const formSig = JSON.stringify([name, color, isFinal]);
+  const [formSnap, setFormSnap] = useState('');
+  const goToList = async () => {
+    const dirty = formSnap !== '' && formSig !== formSnap;
+    if (dirty) {
+      const ok = await confirm({
+        title: 'Есть несохранённые данные',
+        message: 'Изменения не будут сохранены. Выйти без сохранения?',
+        confirmLabel: 'Выйти без сохранения',
+        danger: true,
+      });
+      if (!ok) return;
+    }
     setMode('list');
     setEditingStatus(null);
     setError('');
     setName('');
     setColor(STATUS_COLOR_PALETTE[0]);
     setIsFinal(false);
+    setFormSnap('');
     setTipOpen(false);
   };
 
@@ -66,6 +79,7 @@ const StatusManager: React.FC<StatusManagerProps> = ({ open, statuses, onClose, 
     setName(status.name);
     setColor(status.color);
     setIsFinal(!!status.isFinal);
+    setFormSnap(JSON.stringify([status.name, status.color, !!status.isFinal]));
     setError('');
     setTipOpen(false);
   };
@@ -76,6 +90,7 @@ const StatusManager: React.FC<StatusManagerProps> = ({ open, statuses, onClose, 
     setName('');
     setColor(STATUS_COLOR_PALETTE[0]);
     setIsFinal(false);
+    setFormSnap(JSON.stringify(['', STATUS_COLOR_PALETTE[0], false]));
     setError('');
     setTipOpen(false);
   };
