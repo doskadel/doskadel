@@ -1009,7 +1009,7 @@ font-size: 14px;
 background: var(--color-surface);
 border-radius: var(--radius-md);
 padding: var(--space-lg);
-box-shadow: var(--shadow-sm);
+box-shadow: var(--shadow-card);
 margin: 0 auto var(--space-xl);
 max-width: 640px;
 }
@@ -1116,9 +1116,9 @@ color: var(--color-text);
 .kanban-card {
   position: relative;
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--surface-border);
   border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-card);
   transition: box-shadow 0.15s, border-color 0.15s;
   cursor: grab;
   user-select: none;
@@ -1839,9 +1839,9 @@ color: var(--color-text);
 .task-card {
   display: flex;
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--surface-border);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-card);
   margin-bottom: var(--space-md);
   cursor: pointer;
   overflow: hidden;
@@ -1920,9 +1920,9 @@ color: var(--color-text);
 /* ==================== ARTICLE CARD (LIST) ==================== */
 .article-card {
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--surface-border);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-card);
   padding: var(--space-lg);
   cursor: pointer;
   transition: box-shadow 0.15s, border-color 0.15s;
@@ -2261,11 +2261,11 @@ color: var(--color-text);
 /* Пустое состояние */
 .dashboard-empty {
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--surface-border);
   border-radius: var(--radius-md);
   padding: var(--space-xl);
   text-align: center;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-card);
 }
 
 .dashboard-empty-title {
@@ -2297,12 +2297,12 @@ color: var(--color-text);
 
 .dashboard-counter {
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--surface-border);
   border-radius: var(--radius-md);
   padding: var(--space-lg);
   cursor: pointer;
   transition: box-shadow 0.15s, border-color 0.15s;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-card);
   text-align: center;
 }
 
@@ -2378,12 +2378,12 @@ color: var(--color-text);
 .dashboard-status-card {
   display: flex;
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--surface-border);
   border-radius: var(--radius-md);
   overflow: hidden;
   cursor: pointer;
   transition: box-shadow 0.15s, border-color 0.15s;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-card);
 }
 
 .dashboard-status-card:hover {
@@ -2427,10 +2427,10 @@ color: var(--color-text);
   display: flex;
   flex-direction: column;
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--surface-border);
   border-radius: var(--radius-md);
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-card);
 }
 
 .dashboard-item {
