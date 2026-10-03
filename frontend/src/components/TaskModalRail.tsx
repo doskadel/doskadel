@@ -6,6 +6,7 @@ interface TaskModalRailProps {
   isEditing: boolean;
   isRecurring: boolean;
   pendingCount: number;
+  isFinal?: boolean;
   onCopyLink: () => void;
   onEdit: () => void;
   onDelete: () => void;
@@ -17,6 +18,7 @@ const TaskModalRail: React.FC<TaskModalRailProps> = ({
   isEditing,
   isRecurring,
   pendingCount,
+  isFinal = false,
   onCopyLink,
   onEdit,
   onDelete,
@@ -38,7 +40,7 @@ const TaskModalRail: React.FC<TaskModalRailProps> = ({
         >
           ⏱
           {pendingCount > 0 && (
-            <span className="modal-rail-badge">{pendingCount}</span>
+            <span className={'modal-rail-badge' + (isFinal ? ' modal-rail-badge--final' : '')}>{pendingCount}</span>
           )}
         </button>
       )}

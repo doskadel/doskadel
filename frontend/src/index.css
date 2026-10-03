@@ -3001,6 +3001,9 @@ color: var(--color-text);
   line-height: 1;
   pointer-events: none;
 }
+.modal-rail-badge--final {
+  background: var(--color-text-muted);
+}
 
 /* Kanban card recurring line */
 .kanban-card-recurring {

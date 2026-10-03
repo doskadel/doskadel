@@ -44,6 +44,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ taskId, statuses, onClose, onUpda
       isEditing={detail.isEditing}
       isRecurring={isRecurring}
       pendingCount={pendingCount}
+      isFinal={!!statuses.find((s) => s._id === detail.task?.statusId)?.isFinal}
       onCopyLink={detail.handleCopyLink}
       onEdit={detail.startEdit}
       onDelete={handleDelete}
