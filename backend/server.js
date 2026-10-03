@@ -10,6 +10,12 @@ const { startAgenda } = require('./src/agenda');
 
 const app = express();
 app.set('trust proxy', 1);
+app.set('etag', false); // API не кэшируем: 304 ломал данные в браузере
+// Запрет кэша для всех ответов API
+app.use((req, res, next) => {
+  res.set('Cache-Control', 'no-store');
+  next();
+});
 const PORT = process.env.PORT || 5000;
 
 app.use(helmet());
