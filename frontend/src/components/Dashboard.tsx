@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { AlertTriangle, Calendar } from 'lucide-react';
+import { AlertTriangle, Calendar, Settings } from 'lucide-react';
+import Modal from './Modal';
 import PullToRefresh from './PullToRefresh';
 import LoadingOverlay from './LoadingOverlay';
 import { useNavigate } from 'react-router-dom';
@@ -58,6 +59,10 @@ const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [byStatusOrder, setByStatusOrder] = useState<string[] | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [upcomingDays, setUpcomingDays] = useState<number>(3);
+  const [allStatuses, setAllStatuses] = useState<Array<{ _id: string; name: string; key?: string | null }>>([]);
+  const [savingSettings, setSavingSettings] = useState(false);
 
   useEffect(() => {
     fetchDashboard();
@@ -65,8 +70,12 @@ const Dashboard: React.FC = () => {
       .then((r) => {
         const b = (r.data?.settings?.blocks || []).find((x: any) => x.id === 'byStatus');
         setByStatusOrder(b ? b.statusIds : []);
+        if (r.data?.settings?.upcomingDays) setUpcomingDays(r.data.settings.upcomingDays);
       })
       .catch(() => setByStatusOrder([]));
+    api.get('/api/statuses')
+      .then((r) => setAllStatuses(r.data?.statuses || []))
+      .catch(() => {});
   }, []);
 
   const fetchDashboard = async () => {
@@ -141,6 +150,15 @@ const Dashboard: React.FC = () => {
             onClick={() => navigate('/knowledge?new=1')}
           >
             + Добавить статью
+          </button>
+          <button
+            type="button"
+            className="icon-button settings-btn"
+            onClick={() => setSettingsOpen(true)}
+            title="Настройки дашборда"
+            aria-label="Настройки дашборда"
+          >
+            <Settings size={20} />
           </button>
         </div>
       </div>
@@ -326,6 +344,66 @@ const Dashboard: React.FC = () => {
             </div>
           )}
         </>
+      )}
+
+      {settingsOpen && (
+        <Modal open onClose={() => setSettingsOpen(false)} title="Настройки дашборда">
+          <div className="fb-field">
+            <span className="fb-field-label">Показывать статусы</span>
+            {allStatuses.map((s) => {
+              const checked = (byStatusOrder || []).includes(s._id);
+              return (
+                <label key={s._id} className="dash-set-row">
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={() => {
+                      const cur = byStatusOrder || [];
+                      setByStatusOrder(checked ? cur.filter((x) => x !== s._id) : [...cur, s._id]);
+                    }}
+                  />
+                  <span>{s.name}</span>
+                </label>
+              );
+            })}
+          </div>
+          <div className="fb-field" style={{ marginTop: 12 }}>
+            <span className="fb-field-label">«Ближайшие сроки» — за сколько дней</span>
+            <input
+              type="number"
+              min={1}
+              max={30}
+              value={upcomingDays}
+              onChange={(e) => setUpcomingDays(Math.min(30, Math.max(1, parseInt(e.target.value, 10) || 1)))}
+              className="input"
+            />
+          </div>
+          <div style={{ marginTop: 16, textAlign: 'right' }}>
+            <button
+              type="button"
+              className="button"
+              disabled={savingSettings}
+              onClick={async () => {
+                setSavingSettings(true);
+                try {
+                  const cur = await api.get('/api/settings/dashboard');
+                  const blocks = (cur.data?.settings?.blocks || []).map((b: any) =>
+                    b.id === 'byStatus' ? { ...b, statusIds: byStatusOrder || [] } : b
+                  );
+                  await api.put('/api/settings/dashboard', { upcomingDays, blocks });
+                  setSettingsOpen(false);
+                  fetchDashboard();
+                } catch (e) {
+                  console.error('save dashboard settings', e);
+                } finally {
+                  setSavingSettings(false);
+                }
+              }}
+            >
+              Сохранить
+            </button>
+          </div>
+        </Modal>
       )}
     </div>
     </PullToRefresh>
