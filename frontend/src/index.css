@@ -122,6 +122,7 @@ textarea.input {
 display: inline-flex;
 align-items: center;
 justify-content: center;
+min-height: 44px;
 padding: 10px 20px;
 background-color: var(--color-primary);
 color: white;
@@ -300,8 +301,8 @@ z-index: 10;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
   font-size: 20px;
   color: var(--color-text-muted);
   border-radius: var(--radius-sm);
@@ -679,7 +680,7 @@ z-index: 10;
 .fb-spacer { flex: 1; }
 .fb-pop-wrap { position: relative; display: inline-flex; }
 .fb-icon-btn {
-  position: relative; display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px;
+  position: relative; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px;
   border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-surface);
   color: var(--color-text-muted); cursor: pointer; outline: none; transition: all 0.15s;
 }
@@ -725,7 +726,7 @@ z-index: 10;
 }
 .fb-search-clear:hover { color: var(--color-text); }
 .fb-search-btn {
-  position: relative; width: 40px; height: 40px; flex-shrink: 0; border: 0;
+  position: relative; width: 44px; height: 44px; flex-shrink: 0; border: 0;
   border-left: 1px solid var(--color-border); background: transparent;
   color: var(--color-text-muted); cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
 }
@@ -877,12 +878,12 @@ z-index: 10;
   border: 6px solid transparent; border-bottom-color: var(--color-text);
 }
 .tasks-actions-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-md); margin-bottom: var(--space-lg); }
-.settings-btn {
+.icon-button.settings-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   flex-shrink: 0;
   background: var(--color-surface);
@@ -3495,8 +3496,8 @@ color: var(--color-text);
 
 /* ==================== LAYOUT AVATAR (кружок в шапке) ==================== */
 .layout-avatar {
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background: var(--color-primary);
   color: var(--color-on-accent);
@@ -3527,9 +3528,7 @@ color: var(--color-text);
 
 @media (max-width: 640px) {
   .layout-avatar {
-    width: 30px;
-    height: 30px;
-    font-size: 14px;
+    font-size: 16px;
     margin-left: var(--space-xs);
   }
 }
