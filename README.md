@@ -9,7 +9,7 @@ MVP полностью работает: аутентификация, CRUD за
 ## Что уже реализовано
 
 ### Аутентификация
-Регистрация с валидацией (username 3-30, email, password min 6). Логин по email + пароль (bcrypt). JWT-сессии (24 часа). Защищённые маршруты (ProtectedRoute).
+Регистрация с валидацией (username 3-30, email, password min 6). Логин по email + пароль (bcrypt). Access-токен 15 мин (в памяти), refresh-токен 30 дней в httpOnly cookie с ротацией и reuse-detection. Защищённые маршруты (ProtectedRoute).
 
 ### Задачи
 Создание с названием, описанием, приоритетом (1-3), сроком (дата + время). Канбан-доска с drag-n-drop между статусами. Список с сортировкой (по дате, приоритету, алфавиту). Фильтры: поиск, статусы, приоритеты, диапазон дат, тип задачи (разовая / повторяющаяся), просрочено, ближайшие сроки. Управление статусами (создание, редактирование, цвета, порядок, финальный статус). Детальный экран /tasks/:id. Просроченные сроки подсвечиваются красным.
@@ -90,8 +90,14 @@ PROJECT_PLAN.md
 Все эндпоинты возвращают { success: true, ... } или { success: false, message }.
 
 ### Auth
-POST /api/auth/register — регистрация, возвращает JWT + user
-POST /api/auth/login — вход, возвращает JWT + user
+POST /api/auth/register — регистрация, возвращает access-токен + user (refresh в httpOnly cookie)
+POST /api/auth/login — вход, возвращает access-токен + user (refresh в httpOnly cookie)
+POST /api/auth/refresh — новый access по refresh-cookie (ротация)
+POST /api/auth/logout — отзыв refresh-семьи
+
+### Settings
+GET/PUT /api/settings/dashboard — настройки дашборда (блоки, лимиты, upcomingDays)
+POST /api/settings/dashboard/reset — сброс к дефолту
 
 ### Statuses (требуют JWT)
 GET /api/statuses — список статусов
@@ -185,7 +191,6 @@ MongoDB: localhost:27017 (порт открыт для Compass/mongosh)
 ### backend/.env
 MONGODB_URI=mongodb://mongo:27017/doskadel
 JWT_SECRET=change_me_in_production
-JWT_EXPIRES_IN=24h
 PORT=5000
 NODE_ENV=development
 RATE_LIMIT_WINDOW=15
