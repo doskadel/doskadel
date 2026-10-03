@@ -4,7 +4,50 @@
 
 const Task = require('../models/Task');
 const Occurrence = require('../models/Occurrence');
-const { SINGLE } = require('./taskKinds');
+const { SINGLE, RECURRING } = require('./taskKinds');
+const { getNextOccurrences } = require('./recurrence');
+
+/**
+ * Вычислить вхождения повторяющихся задач на лету в окне [gte, lt).
+ * Накладывает исключения: если на дату правила есть Occurrence (done/skipped/moved) — пропускаем.
+ * @param {{gte: Date, lt: Date}} window
+ * @param {object} ctx { activeStatusIds }
+ */
+async function computeOccurrences(window, ctx = {}) {
+  if (!ctx.activeStatusIds) ctx.activeStatusIds = await getActiveStatusIds();
+  const tasks = await Task.find({
+    ...RECURRING,
+    statusId: { $in: ctx.activeStatusIds },
+  }).lean();
+
+  const out = [];
+  for (const t of tasks) {
+    if (t.notifications && t.notifications.enabled === false) continue;
+    // считаем вхождения чуть раньше окна (чтобы захватить начало)
+    const from = new Date(window.gte.getTime() - 24 * 60 * 60 * 1000);
+    const dates = getNextOccurrences(t.recurrence, from, 60).filter(
+      (d) => d >= window.gte && d < window.lt
+    );
+    if (dates.length === 0) continue;
+    // исключения: существующие Occurrence по originalDate
+    const origs = await Occurrence.find({ taskId: t._id, originalDate: { $in: dates } })
+      .select('originalDate status dueAt')
+      .lean();
+    const origMap = new Map(origs.map((o) => [o.originalDate.getTime(), o]));
+    for (const d of dates) {
+      const ex = origMap.get(d.getTime());
+      if (ex) {
+        // если вхождение перенесено (dueAt != originalDate) и попало в окно — отдадим по dueAt
+        if (ex.status === 'pending' && ex.dueAt && ex.dueAt.getTime() !== d.getTime() && ex.dueAt >= window.gte && ex.dueAt < window.lt) {
+          out.push({ task: t, dueAt: ex.dueAt, originalDate: d, occurrenceId: ex._id });
+        }
+        continue; // done/skipped или уже обработано — не отдаём как обычное
+      }
+      out.push({ task: t, dueAt: d, originalDate: d, occurrenceId: null });
+    }
+  }
+  return out;
+}
 
 // Кэш активных (не финальных) статусов на один прогон job.
 const getActiveStatusIds = async () => {
