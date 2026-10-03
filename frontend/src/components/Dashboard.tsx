@@ -67,7 +67,11 @@ const Dashboard: React.FC = () => {
   const openSettings = () => {
     setSettingsSnap({ blocks, byStatusOrder, upcomingDays });
     const ns: Record<string, string> = { upcomingDays: String(upcomingDays) };
-    blocks.forEach((b) => { if (b.config && b.config.limit) ns['limit:' + b.id] = String(b.config.limit); });
+    blocks.forEach((b) => {
+      if (b.id === 'recentTasks' || b.id === 'recentArticles' || b.id === 'overdue' || b.id === 'upcoming') {
+        ns['limit:' + b.id] = String((b.config && b.config.limit) || 5);
+      }
+    });
     setNumStr(ns);
     setSettingsErr('');
     setSettingsOpen(true);
