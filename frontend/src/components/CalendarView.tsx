@@ -68,6 +68,10 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, onOpenTask }) => {
         {cells.map((day, i) => {
           if (!day) return <div key={'e' + i} className="calendar-cell calendar-cell--empty" />;
           const dayTasks = tasksByDay(day);
+          const overdueCount = dayTasks.filter((t) => {
+            const d = taskDate(t);
+            return d && startOfDay(d) < today;
+          }).length;
           const isToday = sameDay(day, today);
           const isSelected = sameDay(day, selected);
           return (
@@ -78,9 +82,9 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, onOpenTask }) => {
               onClick={() => setSelected(day)}
             >
               <span className="calendar-daynum">{day.getDate()}</span>
-              {dayTasks.length > 0 && (
+              {overdueCount > 0 && (
                 <span className="calendar-dots">
-                  {dayTasks.slice(0, 3).map((t, k) => <span key={k} className="calendar-dot" />)}
+                  {Array.from({ length: Math.min(overdueCount, 3) }).map((_, k) => <span key={k} className="calendar-dot calendar-dot--overdue" />)}
                 </span>
               )}
             </button>
