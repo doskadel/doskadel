@@ -112,6 +112,53 @@ box-shadow: 0 1px 2px rgba(9, 105, 218, 0.3);
 
 .button--sm { padding: 9px 16px; font-size: 14px; }
 
+/* Опасное действие: красная рамка и текст, мягкая красная подложка при наведении */
+.button--danger-outline {
+  background-color: var(--color-surface);
+  color: var(--color-danger);
+  border: 1px solid var(--color-danger);
+  box-shadow: none;
+}
+.button.button--danger-outline:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--color-danger) 10%, var(--color-surface));
+  border-color: var(--color-danger-hover);
+  color: var(--color-danger-hover);
+  box-shadow: none;
+}
+.button.button--danger-outline:active:not(:disabled) {
+  background-color: color-mix(in srgb, var(--color-danger) 16%, var(--color-surface));
+  box-shadow: none;
+}
+
+/* Опасное подтверждение (кнопка в диалоге): заливка красным с наведением и нажатием */
+.button.button--danger {
+  background-color: var(--color-danger);
+  color: #fff;
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--color-danger) 35%, transparent);
+}
+.button.button--danger:hover:not(:disabled) {
+  background-color: var(--color-danger-hover);
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--color-danger) 40%, transparent);
+}
+.button.button--danger:active:not(:disabled) {
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--color-danger) 35%, transparent);
+}
+.confirm-dialog-icon--danger { color: var(--color-danger); display: inline-flex; }
+
+/* Сброс в настройках дашборда: слева, ширина по тексту, не растягивается */
+.button.button--danger-outline.dashboard-reset-btn {
+  flex: 0 1 auto;
+  width: fit-content;
+  min-width: 0;
+  max-width: 9rem;
+  align-self: center;
+  margin-right: auto;
+  padding: 8px 14px;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.25;
+}
+
 .button--white {
   background-color: var(--color-surface);
   color: var(--color-primary);
@@ -658,6 +705,18 @@ z-index: 10;
   color: var(--color-text-muted); cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
 }
 .fb-search--open .fb-search-btn { background: var(--color-primary); color: #fff; border-left-color: var(--color-primary); }
+
+/* Закрыто: обычная кнопка с лупой (как фильтр и сортировка). Открыто: поле на всё место между ними. */
+.fb-search:not(.fb-search--open) { flex: 0 0 auto; border: 0; overflow: visible; background: transparent; }
+.fb-search:not(.fb-search--open) .fb-search-btn {
+  border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-surface);
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.fb-search:not(.fb-search--open) .fb-search-btn:hover { background: var(--color-bg); color: var(--color-text); }
+.fb-search--has:not(.fb-search--open) .fb-search-btn { border-color: var(--color-primary); color: var(--color-primary); }
+.fb-search--open { transform-origin: right center; animation: fb-search-in 0.15s ease-out; }
+@keyframes fb-search-in { from { opacity: 0; transform: scaleX(0.92); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .fb-search--open { animation: none; } }
 .fb-clear { align-self: flex-start; background: none; border: none; color: var(--color-primary); cursor: pointer; font-size: 13px; padding: 0; }
 .fb-chip {
   display: inline-flex; align-items: center; gap: 8px; padding: 8px 10px;
@@ -2103,6 +2162,18 @@ color: var(--color-text);
   height: 46px;
 }
 
+/* ПК: кнопки по ширине текста, не растягиваются на всю строку */
+@media (min-width: 1024px) {
+  .dashboard > .tasks-actions-row .dashboard-actions {
+    flex: 0 1 auto;
+  }
+  .dashboard > .tasks-actions-row .button--sm {
+    flex: 0 0 auto;
+    padding: 0 20px;
+    font-size: 15px;
+  }
+}
+
 .dashboard-item-extra {
   color: var(--color-text-muted);
   font-weight: 400;
@@ -2873,9 +2944,19 @@ color: var(--color-text);
 }
 
 .task-pending-badge--sm {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: 20px;
+  height: 20px;
   margin-top: 0;
-  padding: 1px 6px;
+  padding: 0 6px;
   font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  border-radius: 999px;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Rail badge on ⏱ button */

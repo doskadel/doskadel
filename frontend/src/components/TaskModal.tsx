@@ -21,8 +21,8 @@ const TaskModal: React.FC<TaskModalProps> = ({ taskId, statuses, onClose, onUpda
   const occurrences = useOccurrences(taskId);
   const [occurrencesOpen, setOccurrencesOpen] = useState(false);
 
-  const handleClose = () => {
-    detail.cancelEdit();
+  const handleClose = async () => {
+    if (detail.isEditing && !(await detail.requestCancelEdit())) return;
     onClose();
   };
 
@@ -74,7 +74,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ taskId, statuses, onClose, onUpda
           setEditDueDate={detail.setEditDueDate}
           setEditRecurrence={detail.setEditRecurrence}
           onSave={detail.saveEdit}
-          onCancel={detail.cancelEdit}
+          onCancel={detail.requestCancelEdit}
           onQuickChangeStatus={detail.quickChangeStatus}
           pendingCount={pendingCount}
         />

@@ -69,18 +69,13 @@ const ArticleFilterBar: React.FC<ArticleFilterBarProps> = ({
         {!searchOpen && <div className="fb-spacer" />}
 
         <div className={'fb-search' + (searchOpen ? ' fb-search--open' : '') + (isSearchActive && !searchOpen ? ' fb-search--has' : '')}>
-          {!searchOpen && (
-            <button type="button" className="fb-search-hint" onClick={() => setSearchOpen(true)}>
-              {isSearchActive ? q : 'Поиск...'}
-            </button>
-          )}
           {searchOpen && (
             <>
               <input
                 ref={searchInputRef}
                 type="text"
                 className="fb-search-input"
-                placeholder="Поиск по статьям..."
+                placeholder="Поиск..."
                 value={q}
                 onChange={(e) => onQChange(e.target.value)}
               />

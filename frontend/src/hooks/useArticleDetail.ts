@@ -25,6 +25,8 @@ export interface UseArticleDetailResult {
 
   startEdit: () => void;
   cancelEdit: () => void;
+  isDirty: boolean;
+  requestCancelEdit: () => Promise<boolean>;
   saveEdit: () => Promise<void>;
   handleDelete: () => Promise<boolean>;
   handleCopyLink: () => Promise<void>;
@@ -86,6 +88,28 @@ export const useArticleDetail = (
 
   const cancelEdit = () => {
     setIsEditing(false);
+  };
+
+  // Несохранённые правки: снимок полей на момент входа в редактирование
+  const editSig = JSON.stringify([editTitle, editContent]);
+  const [editSnap, setEditSnap] = useState('');
+  useEffect(() => {
+    setEditSnap(isEditing ? editSig : '');
+  }, [isEditing]);
+  const isDirty = isEditing && editSnap !== '' && editSig !== editSnap;
+
+  const requestCancelEdit = async (): Promise<boolean> => {
+    if (isDirty && onConfirm) {
+      const ok = await onConfirm({
+        title: 'Есть несохранённые данные',
+        message: 'Изменения не будут сохранены. Выйти без сохранения?',
+        confirmLabel: 'Выйти без сохранения',
+        danger: true,
+      });
+      if (!ok) return false;
+    }
+    cancelEdit();
+    return true;
   };
 
   const saveEdit = async () => {
@@ -152,6 +176,8 @@ export const useArticleDetail = (
     setEditContent,
     startEdit,
     cancelEdit,
+    isDirty,
+    requestCancelEdit,
     saveEdit,
     handleDelete,
     handleCopyLink,

@@ -4,6 +4,7 @@ import { useTheme } from '../hooks/useTheme';
 import Modal from './Modal';
 import api from '../utils/api';
 import { clearToken } from '../utils/token';
+import { useConfirm } from './ConfirmProvider';
 import {
   isPushSupported,
   isSubscribed,
@@ -50,6 +51,7 @@ const DEFAULT_SETTINGS: NotificationSettings = {
 
 const ProfileModal: React.FC<ProfileModalProps> = ({ open, onClose }) => {
   const { theme, toggle: toggleTheme } = useTheme();
+  const confirm = useConfirm();
   const [view, setView] = useState<View>('profile');
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -111,6 +113,13 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ open, onClose }) => {
   }, [open, fetchUser, fetchPushState]);
 
   const handleLogout = async () => {
+    const ok = await confirm({
+      title: 'Выйти из аккаунта?',
+      message: 'Вам нужно будет снова войти по логину и паролю.',
+      confirmLabel: 'Выйти',
+      danger: true,
+    });
+    if (!ok) return;
     try {
       await api.post('/api/auth/logout', {});
     } catch {

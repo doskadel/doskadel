@@ -15,8 +15,8 @@ const ArticleModal: React.FC<ArticleModalProps> = ({ articleId, onClose, onUpdat
   const confirm = useConfirm();
   const detail = useArticleDetail(articleId, onUpdate, confirm);
 
-  const handleClose = () => {
-    detail.cancelEdit();
+  const handleClose = async () => {
+    if (detail.isEditing && !(await detail.requestCancelEdit())) return;
     onClose();
   };
 
@@ -52,7 +52,7 @@ const ArticleModal: React.FC<ArticleModalProps> = ({ articleId, onClose, onUpdat
         setEditTitle={detail.setEditTitle}
         setEditContent={detail.setEditContent}
         onSave={detail.saveEdit}
-        onCancel={detail.cancelEdit}
+        onCancel={detail.requestCancelEdit}
       />
     </Modal>
   );

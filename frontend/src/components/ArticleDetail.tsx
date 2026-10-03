@@ -150,9 +150,9 @@ const ArticleDetail: React.FC = () => {
               </button>
               <button
                 type="button"
-                className="button"
+                className="button button--danger-outline"
                 onClick={handleDelete}
-                style={{ padding: '6px 12px', fontSize: '13px', backgroundColor: 'var(--color-danger)' }}
+                style={{ padding: '6px 12px', fontSize: '13px' }}
               >
                 Удалить
               </button>

@@ -63,6 +63,30 @@ const Dashboard: React.FC = () => {
   const [error, setError] = useState('');
   const [byStatusOrder, setByStatusOrder] = useState<string[] | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsSnap, setSettingsSnap] = useState<{ blocks: any; byStatusOrder: any; upcomingDays: number } | null>(null);
+  const openSettings = () => {
+    setSettingsSnap({ blocks, byStatusOrder, upcomingDays });
+    setSettingsOpen(true);
+  };
+  const closeSettings = async () => {
+    const changed =
+      !!settingsSnap &&
+      JSON.stringify([blocks, byStatusOrder, upcomingDays]) !==
+        JSON.stringify([settingsSnap.blocks, settingsSnap.byStatusOrder, settingsSnap.upcomingDays]);
+    if (changed && settingsSnap) {
+      const ok = await confirm({
+        title: 'Есть несохранённые данные',
+        message: 'Изменения не будут сохранены. Выйти без сохранения?',
+        confirmLabel: 'Выйти без сохранения',
+        danger: true,
+      });
+      if (!ok) return;
+      setBlocks(settingsSnap.blocks);
+      setByStatusOrder(settingsSnap.byStatusOrder);
+      setUpcomingDays(settingsSnap.upcomingDays);
+    }
+    setSettingsOpen(false);
+  };
   const [upcomingDays, setUpcomingDays] = useState<number>(3);
   const [allStatuses, setAllStatuses] = useState<Array<{ _id: string; name: string; key?: string | null }>>([]);
   const [savingSettings, setSavingSettings] = useState(false);
@@ -178,7 +202,7 @@ const Dashboard: React.FC = () => {
         <button
             type="button"
             className="icon-button settings-btn"
-            onClick={() => setSettingsOpen(true)}
+            onClick={openSettings}
             title="Настройки дашборда"
             aria-label="Настройки дашборда"
           >
@@ -373,7 +397,7 @@ const Dashboard: React.FC = () => {
       )}
 
       {settingsOpen && (
-        <Modal open onClose={() => setSettingsOpen(false)} title="Настройки дашборда">
+        <Modal open onClose={closeSettings} title="Настройки дашборда">
           <div className="fb-field">
             <span className="fb-field-label">Блоки и порядок</span>
             <SortableSettings
@@ -438,7 +462,7 @@ const Dashboard: React.FC = () => {
           <div style={{ marginTop: 16, display: 'flex', justifyContent: 'space-between', gap: 12 }}>
             <button
               type="button"
-              className="button button--white"
+              className="button button--danger-outline dashboard-reset-btn"
               disabled={savingSettings}
               onClick={async () => {
                 const ok = await confirm({
