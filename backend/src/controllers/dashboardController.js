@@ -15,12 +15,12 @@ const endOfDayPlus = (n) => {
 
 const getDashboard = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const workspaceId = req.workspaceId; const userId = req.user._id;
 
-    const statuses = await Status.find({ userId }).sort({ order: 1 }).lean();
+    const statuses = await Status.find({ workspaceId }).sort({ order: 1 }).lean();
     const statusCounts = await Promise.all(
       statuses.map(async (s) => {
-        const count = await Task.countDocuments({ userId, statusId: s._id });
+        const count = await Task.countDocuments({ workspaceId, statusId: s._id });
         return { statusId: s._id, name: s.name, color: s.color, count, key: s.key || null };
       })
     );
@@ -39,19 +39,19 @@ const getDashboard = async (req, res) => {
     // ==== ПРОСРОЧЕНО ====
     // 1) Разовые задачи с dueDate < now
     const overdueSimpleTasks = await Task.find({
-      userId,
+      workspaceId,
       statusId: { $in: activeStatusIds },
       dueDate: { $ne: null, $lt: now },
       ...SINGLE
     }).select('_id title statusId priority dueDate').lean();
 
     // 2) Повторяющиеся: единая агрегация (R1) — дата + count за один проход.
-    const overdueSummary = await aggregateOccurrenceSummary(userId, { $lt: now }, 'max');
+    const overdueSummary = await aggregateOccurrenceSummary(workspaceId, { $lt: now }, 'max');
 
     const overdueRecurringTaskIds = Array.from(overdueSummary.keys());
     const overdueRecurringTasks = await Task.find({
       _id: { $in: overdueRecurringTaskIds },
-      userId,
+      workspaceId,
       statusId: { $in: activeStatusIds }
     }).select('_id title statusId priority').lean();
 
@@ -97,19 +97,19 @@ const getDashboard = async (req, res) => {
     // ==== БЛИЖАЙШИЕ ====
     // 1) Разовые задачи
     const upcomingSimpleTasks = await Task.find({
-      userId,
+      workspaceId,
       statusId: { $in: activeStatusIds },
       dueDate: { $gte: now, $lte: upcomingLimit },
       ...SINGLE
     }).select('_id title statusId priority dueDate').lean();
 
     // 2) Повторяющиеся: единая агрегация (R1) — дата + count за один проход.
-    const upcomingSummary = await aggregateOccurrenceSummary(userId, { $gte: now, $lte: upcomingLimit }, 'min');
+    const upcomingSummary = await aggregateOccurrenceSummary(workspaceId, { $gte: now, $lte: upcomingLimit }, 'min');
 
     const upcomingRecurringTaskIds = Array.from(upcomingSummary.keys());
     const upcomingRecurringTasks = await Task.find({
       _id: { $in: upcomingRecurringTaskIds },
-      userId,
+      workspaceId,
       statusId: { $in: activeStatusIds }
     }).select('_id title statusId priority').lean();
 
@@ -149,15 +149,15 @@ const getDashboard = async (req, res) => {
     const upcomingTasks = allUpcoming.slice(0, limitOf('upcoming', 5));
 
     // Общие счётчики
-    const totalTasks = await Task.countDocuments({ userId });
-    const totalArticles = await Article.countDocuments({ userId });
+    const totalTasks = await Task.countDocuments({ workspaceId });
+    const totalArticles = await Article.countDocuments({ workspaceId });
 
-    const recentTasks = await Task.find({ userId })
+    const recentTasks = await Task.find({ workspaceId })
       .sort({ updatedAt: -1 })
       .limit(5)
       .select('_id title statusId priority updatedAt');
 
-    const recentArticles = await Article.find({ userId })
+    const recentArticles = await Article.find({ workspaceId })
       .sort({ createdAt: -1 })
       .limit(5)
       .select('_id title createdAt');
