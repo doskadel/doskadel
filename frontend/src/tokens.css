@@ -39,8 +39,8 @@
   --color-surface-alt: #f0f3f6;
   --color-border: #c0c7ce;
   /* Мягкая рамка поверхностей (блоки/карточки); --color-border остаётся для полей и разделителей */
-  --surface-border: #d5dae0;
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --surface-border: rgba(15, 23, 42, 0.08);
+  --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.06);
   --color-text: #1f2328;
   --color-text-muted: #656d76;
   --color-primary: #0969da;
@@ -72,14 +72,14 @@
 [data-theme="dark"] {
   color-scheme: dark;
 
-  --color-bg: #14171a;
-  --color-surface: #1e2226;
-  --color-surface-alt: #262b30;
+  --color-bg: #111417;
+  --color-surface: #1f242a;
+  --color-surface-alt: #292f36;
   --color-border: #363c42;
-  --surface-border: #2d3338;
-  --shadow-card: none;
+  --surface-border: rgba(255, 255, 255, 0.10);
+  --shadow-card: inset 0 1px 0 rgba(255, 255, 255, 0.05);
   --color-text: #e6e9ec;
-  --color-text-muted: #9aa4ad;
+  --color-text-muted: #9aa3ad;
   --color-primary: #4c9aff;
   --color-primary-hover: #6bb0ff;
   --color-danger: #ff6b6b;

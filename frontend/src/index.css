@@ -24,7 +24,7 @@ input:focus:not(:focus-visible) {
   background: var(--color-surface);
   text-align: center;
 }
-.dashboard-sections { display: flex; flex-direction: column; gap: var(--space-xl); }
+.dashboard-sections { display: flex; flex-direction: column; gap: var(--space-lg); }
 .dash-set-row { display: flex; align-items: center; gap: 10px; padding: 8px 4px; cursor: pointer; font-size: 15px; }
 .dash-block-row { display: flex; align-items: center; gap: 8px; padding: 6px 4px; font-size: 15px; }
 .dash-block-name { flex: 1; }
@@ -2330,7 +2330,11 @@ color: var(--color-text);
 .dashboard-section {
   display: flex;
   flex-direction: column;
-  gap: var(--space-sm);
+  background: var(--color-surface);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
 }
 
 .dashboard-section-header {
@@ -2338,9 +2342,15 @@ color: var(--color-text);
   align-items: center;
   justify-content: space-between;
   gap: var(--space-md);
-  min-height: 32px;
-  padding: 0;
+  min-height: 44px;
+  padding: 12px 16px;
   margin: 0;
+  background: var(--color-surface-alt);
+  border-bottom: 1px solid var(--surface-border);
+}
+/* Акцент: секция с просрочкой — полоса слева */
+.dashboard-section:has(.dashboard-section-title--danger) {
+  border-left: 3px solid var(--color-danger);
 }
 
 .dashboard-section-title {
@@ -2426,11 +2436,6 @@ color: var(--color-text);
 .dashboard-list {
   display: flex;
   flex-direction: column;
-  background: var(--color-surface);
-  border: 1px solid var(--surface-border);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  box-shadow: var(--shadow-card);
 }
 
 .dashboard-item {
@@ -2448,7 +2453,7 @@ color: var(--color-text);
 }
 
 .dashboard-item:hover {
-  background: var(--color-bg);
+  background: var(--color-surface-alt);
 }
 
 .dashboard-item-priority {
