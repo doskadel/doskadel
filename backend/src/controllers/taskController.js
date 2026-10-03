@@ -234,20 +234,43 @@ const getTasks = async (req, res) => {
 
     let tasks = await query;
 
-    // Для overdue/dueSoon — добавляем nextOccurrenceDueAt для повторяющихся
-    // и сортируем по дате (самое срочное сверху)
-    if (wantsOverdue || wantsDueSoon) {
-      tasks = tasks.map((t) => {
-        const obj = t.toObject();
-        if (obj.recurrence && obj.recurrence.type) {
-          const occDate = occurrenceDateByTaskId.get(String(obj._id));
-          obj.nextOccurrenceDueAt = occDate || null;
-        } else {
-          obj.nextOccurrenceDueAt = obj.dueDate || null;
-        }
-        return obj;
+    // Всегда: для повторяющихся считаем число неподтверждённых ПРОСРОЧЕННЫХ
+    // итераций (pendingOccurrenceCount) и ближайшую итерацию (nextOccurrenceDueAt).
+    const recurringIds = tasks
+      .filter((t) => t.recurrence && t.recurrence.type)
+      .map((t) => t._id);
+    const pendingMap = new Map();
+    if (recurringIds.length > 0) {
+      const pendingAgg = await Occurrence.aggregate([
+        { $match: { userId: req.user._id, taskId: { $in: recurringIds }, status: 'pending', dueAt: { $lt: new Date() } } },
+        { $group: { _id: '$taskId', count: { $sum: 1 }, lastAt: { $max: '$dueAt' } } },
+      ]);
+      pendingAgg.forEach((o) => pendingMap.set(String(o._id), o));
+      // Ближайшая будущая неподтверждённая итерация (для зелёных повторяющихся)
+      const nextAgg = await Occurrence.aggregate([
+        { $match: { userId: req.user._id, taskId: { $in: recurringIds }, status: 'pending', dueAt: { $gte: new Date() } } },
+        { $group: { _id: '$taskId', nextAt: { $min: '$dueAt' } } },
+      ]);
+      nextAgg.forEach((o) => {
+        const cur = pendingMap.get(String(o._id)) || { count: 0 };
+        cur.nextAt = o.nextAt;
+        pendingMap.set(String(o._id), cur);
       });
+    }
+    tasks = tasks.map((t) => {
+      const obj = t.toObject();
+      if (obj.recurrence && obj.recurrence.type) {
+        const info = pendingMap.get(String(obj._id));
+        obj.pendingOccurrenceCount = info ? info.count : 0;
+        obj.nextOccurrenceDueAt = info && info.nextAt ? info.nextAt : (info && info.lastAt ? info.lastAt : null);
+      } else {
+        obj.nextOccurrenceDueAt = obj.dueDate || null;
+      }
+      return obj;
+    });
 
+    // Для overdue/dueSoon — сортируем по дате (самое срочное сверху)
+    if (wantsOverdue || wantsDueSoon) {
       tasks.sort((a, b) => {
         const aDate = a.nextOccurrenceDueAt ? new Date(a.nextOccurrenceDueAt).getTime() : 0;
         const bDate = b.nextOccurrenceDueAt ? new Date(b.nextOccurrenceDueAt).getTime() : 0;

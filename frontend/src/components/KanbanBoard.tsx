@@ -66,7 +66,7 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, statusColor, onOpen
   const isRecurring = !!task.recurrence;
   const pendingCount = task.pendingOccurrenceCount || 0;
   const dl = isRecurring
-    ? (pendingCount > 0 ? 'overdue' : deadlineLevel(task.dueDate))
+    ? (pendingCount > 0 ? 'overdue' : 'far')
     : deadlineLevel(task.dueDate);
 
   return (

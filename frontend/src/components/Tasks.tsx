@@ -632,7 +632,7 @@ const Tasks: React.FC = () => {
                 tabIndex={0}
                 onKeyDown={(e) => { if (e.key === 'Enter') openTask(task._id); }}
               >
-                <div className={'task-card-rail' + (deadlineLevel(task.nextOccurrenceDueAt || task.dueDate) ? ' task-card-rail--' + deadlineLevel(task.nextOccurrenceDueAt || task.dueDate) : '')} />
+                <div className={'task-card-rail' + (task.recurrence ? ((task.pendingOccurrenceCount || 0) > 0 ? ' task-card-rail--overdue' : ' task-card-rail--far') : (deadlineLevel(task.dueDate) ? ' task-card-rail--' + deadlineLevel(task.dueDate) : ''))} />
                 <div className="task-card-content">
                   <h3 className="task-card-title">{task.title}</h3>
                   {task.description && (
