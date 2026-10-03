@@ -824,8 +824,8 @@ z-index: 10;
 .calendar-week-day--selected { background: var(--color-surface); border-color: var(--color-primary); border-width: 2px; }
 .calendar-week-dayname { font-size: 11px; color: var(--color-text-muted); font-weight: 500; }
 .calendar-week-daynum { font-size: 15px; font-weight: 600; line-height: 1; }
-.calendar-header { display: flex; align-items: center; gap: var(--space-sm); }
-.calendar-title { font-size: 18px; font-weight: 600; flex: 1; }
+.calendar-header { display: flex; align-items: center; gap: 6px; }
+.calendar-title { font-size: 16px; font-weight: 600; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .calendar-nav {
   width: 36px; height: 36px; border-radius: var(--radius-sm); border: 1px solid var(--color-border);
   background: var(--color-surface); font-size: 20px; cursor: pointer; color: var(--color-text);

@@ -135,7 +135,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
               <span className="calendar-daynum">{day.getDate()}</span>
               {overdueCount > 0 && (
                 <span className="calendar-dots">
-                  {Array.from({ length: Math.min(overdueCount, 3) }).map((_, k) => <span key={k} className="calendar-dot calendar-dot--overdue" />)}
+                  <span className="calendar-dot calendar-dot--overdue" />
                 </span>
               )}
             </button>
@@ -166,9 +166,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
               <span className="calendar-week-daynum">{day.getDate()}</span>
               {overdueCount > 0 && (
                 <span className="calendar-dots">
-                  {Array.from({ length: Math.min(overdueCount, 3) }).map((_, k) => (
-                    <span key={k} className="calendar-dot calendar-dot--overdue" />
-                  ))}
+                  <span className="calendar-dot calendar-dot--overdue" />
                 </span>
               )}
             </button>
