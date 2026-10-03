@@ -194,25 +194,9 @@ const Tasks: React.FC = () => {
       if (dueSoonParam === '1') params.set('dueSoon', 'true');
 
       const url = '/api/tasks' + (params.toString() ? '?' + params.toString() : '');
-      const [tasksRes, pendingRes] = await Promise.all([
-        api.get(url),
-        api.get('/api/occurrences/pending'),
-      ]);
-
-      const now = Date.now();
-      const counts: Record<string, number> = {};
-      (pendingRes.data.occurrences || []).forEach((o: any) => {
-        if (new Date(o.dueAt).getTime() <= now) {
-          counts[o.taskId] = (counts[o.taskId] || 0) + 1;
-        }
-      });
-
-      const enriched = (tasksRes.data.tasks || []).map((t: Task) => ({
-        ...t,
-        pendingOccurrenceCount: counts[t._id] || 0,
-      }));
-
-      setTasks(enriched);
+      // Бэк (getTasks → enrichTaskDue) уже отдаёт pendingOccurrenceCount/nextOccurrenceDueAt.
+      const tasksRes = await api.get(url);
+      setTasks(tasksRes.data.tasks || []);
       setLoading(false);
     } catch (err) {
       console.error('Error fetching tasks:', err);
