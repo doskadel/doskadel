@@ -662,6 +662,11 @@ margin-bottom: var(--space-md);
     display: none;
   }
 
+  /* На мобильных кнопка бота — в нижнем баре, верхнюю скрываем */
+  .layout-bot-btn {
+    display: none;
+  }
+
   .layout-main {
     padding-bottom: 80px;
   }

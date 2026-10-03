@@ -157,7 +157,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <button
           type="button"
           className="bottom-nav-bot"
-          onClick={() => setSearchOpen(true)}
+          onClick={() => setBotOpen(true)}
           title="Помощник"
           aria-label="Помощник"
         >
