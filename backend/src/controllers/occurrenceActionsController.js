@@ -1,0 +1,96 @@
+// F1c этап 3: действия над вхождением повторяющейся задачи.
+// done / skip / undo / move. Идемпотентно по {taskId, originalDate}, can(), workspace из контекста.
+const mongoose = require('mongoose');
+const Task = require('../models/Task');
+const Occurrence = require('../models/Occurrence');
+const { canByMembership } = require('../utils/can');
+
+const isValidId = (v) => mongoose.Types.ObjectId.isValid(v);
+
+/** Найти задачу в workspace. */
+async function findTask(taskId, workspaceId) {
+  return Task.findOne({ _id: taskId, workspaceId });
+}
+
+/** upsert вхождения по ключу {taskId, originalDate}. */
+async function upsertOccurrence(task, originalDate, set = {}) {
+  // $setOnInsert — только поля, которых НЕТ в $set (иначе конфликт "Updating the path...").
+  // status/completedAt всегда идут через $set (при insert дефолт 'pending' через setDefaultsOnInsert).
+  const setOnInsert = {
+    taskId: task._id,
+    originalDate,
+    workspaceId: task.workspaceId,
+    userId: task.userId,
+    createdBy: task.createdBy || task.userId,
+  };
+  if (set.dueAt === undefined) setOnInsert.dueAt = originalDate;
+  return Occurrence.findOneAndUpdate(
+    { taskId: task._id, originalDate },
+    {
+      $setOnInsert: setOnInsert,
+      $set: { status: 'pending', ...set },
+    },
+    { new: true, upsert: true, setDefaultsOnInsert: true }
+  );
+}
+
+/** POST /api/occurrences/action  { taskId, originalDate, action: done|skip|undo, dueAt? } */
+const action = async (req, res) => {
+  try {
+    if (!canByMembership(req.membership, 'update')) return res.status(403).json({ success: false, message: 'Forbidden' });
+    const { taskId, originalDate, action: act, dueAt } = req.body;
+    if (!isValidId(taskId) || !originalDate) return res.status(400).json({ success: false, message: 'taskId and originalDate required' });
+    const orig = new Date(originalDate);
+    if (isNaN(orig.getTime())) return res.status(400).json({ success: false, message: 'Invalid originalDate' });
+
+    const task = await findTask(taskId, req.workspaceId);
+    if (!task) return res.status(404).json({ success: false, message: 'Task not found' });
+
+    let occ;
+    if (act === 'done') {
+      occ = await upsertOccurrence(task, orig, { status: 'done', completedAt: new Date(), completedBy: req.user._id });
+    } else if (act === 'skip') {
+      occ = await upsertOccurrence(task, orig, { status: 'skipped', completedAt: new Date(), completedBy: req.user._id });
+    } else if (act === 'undo') {
+      occ = await upsertOccurrence(task, orig, { status: 'pending', completedAt: null, completedBy: null });
+    } else if (act === 'move') {
+      if (!dueAt) return res.status(400).json({ success: false, message: 'dueAt required for move' });
+      const nd = new Date(dueAt);
+      if (isNaN(nd.getTime())) return res.status(400).json({ success: false, message: 'Invalid dueAt' });
+      occ = await upsertOccurrence(task, orig, { dueAt: nd, status: 'pending', notificationsSent: { dayBefore: null, beforeDue: null, atDue: null, overdue: null } });
+    } else {
+      return res.status(400).json({ success: false, message: 'Unknown action' });
+    }
+
+    // Завершение серии по count/until: если все вхождения закрыты и правило конечное
+    await maybeCompleteSeries(task);
+
+    res.json({ success: true, occurrence: occ });
+  } catch (e) {
+    console.error('occurrence action error:', e);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+/** Если правило конечное (count/until) и все вхождения закрыты — завершить задачу. */
+async function maybeCompleteSeries(task) {
+  const rec = task.recurrence;
+  if (!rec || !rec.freq) return;
+  if (!rec.until && !rec.count) return; // бессрочная — вручную
+  // все ли возможные вхождения закрыты?
+  const { getNextOccurrences } = require('../utils/recurrence');
+  const all = getNextOccurrences(rec, new Date(0), 1000);
+  const origs = all.map((d) => d.getTime());
+  const done = await Occurrence.find({ taskId: task._id, status: { $in: ['done', 'skipped'] }, originalDate: { $in: all } }).select('originalDate').lean();
+  if (done.length >= origs.length && origs.length > 0) {
+    // ставим финальный статус (первый финальный статус workspace)
+    const Status = require('../models/Status');
+    const finalStatus = await Status.findOne({ workspaceId: task.workspaceId, isFinal: true }).sort({ order: 1 });
+    if (finalStatus) {
+      task.statusId = finalStatus._id;
+      await task.save();
+    }
+  }
+}
+
+module.exports = { action };
