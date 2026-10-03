@@ -57,9 +57,16 @@ const Dashboard: React.FC = () => {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [byStatusOrder, setByStatusOrder] = useState<string[] | null>(null);
 
   useEffect(() => {
     fetchDashboard();
+    api.get('/api/settings/dashboard')
+      .then((r) => {
+        const b = (r.data?.settings?.blocks || []).find((x: any) => x.id === 'byStatus');
+        setByStatusOrder(b ? b.statusIds : []);
+      })
+      .catch(() => setByStatusOrder([]));
   }, []);
 
   const fetchDashboard = async () => {
@@ -98,6 +105,16 @@ const Dashboard: React.FC = () => {
   if (!data) return null;
 
   const isEmpty = data.totalTasks === 0 && data.totalArticles === 0;
+
+  // Статусы для блока: только выбранные в настройках, в их порядке, пустые скрыты.
+  const visibleStatuses = (() => {
+    const counts = data.statusCounts.filter((s) => s.count > 0);
+    if (byStatusOrder === null) return counts; // настройки ещё грузятся
+    const orderMap = new Map(byStatusOrder.map((id, i) => [id, i]));
+    return counts
+      .filter((s) => orderMap.has(s.statusId))
+      .sort((a, b) => (orderMap.get(a.statusId)! - orderMap.get(b.statusId)!));
+  })();
 
   // Сколько ещё вхождений, кроме той, что показываем
   const extraOccurrences = (t: DueTask): number => {
@@ -220,11 +237,11 @@ const Dashboard: React.FC = () => {
           )}
 
           {/* --- ЗАДАЧИ ПО СТАТУСАМ --- */}
-          {data.statusCounts.length > 0 && (
+          {visibleStatuses.length > 0 && (
             <div className="dashboard-section">
               <h3 className="dashboard-section-title">Задачи по статусам</h3>
               <div className="dashboard-status-grid">
-                {data.statusCounts.map((s) => (
+                {visibleStatuses.map((s) => (
                   <div
                     key={s.statusId}
                     className="dashboard-status-card"
