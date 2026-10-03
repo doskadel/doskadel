@@ -165,14 +165,14 @@ const Dashboard: React.FC = () => {
             className="button button--white button--sm"
             onClick={() => navigate('/tasks?new=1')}
           >
-            + Задачу
+            + Добавить задачу
           </button>
           <button
             type="button"
             className="button button--sm"
             onClick={() => navigate('/knowledge?new=1')}
           >
-            + Статью
+            + Добавить статью
           </button>
         </div>
         <button
