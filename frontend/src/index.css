@@ -862,6 +862,7 @@ z-index: 10;
 .calendar-task-grip { cursor: grab; color: var(--color-text-muted); touch-action: none; user-select: none; font-size: 14px; line-height: 1; padding: 0 2px; flex-shrink: 0; }
 .calendar-task-grip:active { cursor: grabbing; }
 .calendar-task-grip--locked { cursor: not-allowed; }
+.calendar-task-lock { font-size: 12px; line-height: 1; flex-shrink: 0; opacity: 0.7; }
 .calendar-task-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .calendar-task-time { margin-left: auto; color: var(--color-text-muted); font-size: 13px; white-space: nowrap; flex-shrink: 0; }
 .calendar-day-panel { margin-top: var(--space-md); }

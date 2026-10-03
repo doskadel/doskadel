@@ -107,8 +107,7 @@ const DayCell: React.FC<{
 };
 
 // ==== Draggable карточка задачи ====
-const formatTime = (t: CalendarTask): string | null => {
-  const d = taskDate(t);
+const formatTime = (d: Date | null): string | null => {
   if (!d) return null;
   // полночь считаем «без времени» (all-day)
   if (d.getHours() === 0 && d.getMinutes() === 0) return null;
@@ -117,8 +116,10 @@ const formatTime = (t: CalendarTask): string | null => {
 
 const DraggableTask: React.FC<{
   task: CalendarTask;
+  day: Date;
+  getDayDate: (t: CalendarTask, day: Date) => Date | null;
   onOpen: () => void;
-}> = ({ task, onOpen }) => {
+}> = ({ task, day, getDayDate, onOpen }) => {
   const recurring = isRecurring(task);
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, isDragging } = useDraggable({
     id: `task-${task._id}`,
@@ -126,7 +127,7 @@ const DraggableTask: React.FC<{
     disabled: recurring,
   });
 
-  const time = formatTime(task);
+  const time = formatTime(getDayDate(task, day));
 
   return (
     <div
@@ -148,7 +149,7 @@ const DraggableTask: React.FC<{
           {...attributes}
         >⠿</span>
       )}
-      {recurring && <span className="calendar-task-grip calendar-task-grip--locked">🔄</span>}
+      {recurring && <span className="calendar-task-lock" title="Повторяющаяся: перенос недоступен">🔄</span>}
       <span className={'calendar-task-priority calendar-task-priority--' + (task.priority || 1)} />
       <span className="calendar-task-title">{task.title}</span>
       {time && <span className="calendar-task-time">{time}</span>}
@@ -157,7 +158,7 @@ const DraggableTask: React.FC<{
 };
 
 const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [], onOpenTask, onTaskMoved }) => {
-  const finalSet = new Set(finalStatusIds);
+  const finalSet = new Set(finalStatusIds.map((x) => String(x)));
   const today = startOfDay(new Date());
   const [view, setView] = useState<ViewMode>('month');
   const [cursor, setCursor] = useState<Date>(new Date(today.getFullYear(), today.getMonth(), 1));
@@ -169,17 +170,20 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
     useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } })
   );
 
-  const tasksByDay = (day: Date) => tasks.filter((t) => {
+  // Дата/время, по которым задача показана в конкретном дне (для сортировки и подписи времени)
+  const dateForDay = (t: CalendarTask, day: Date): Date | null => {
     if (t.recurrence && t.lastOverdueAt) {
       const od = new Date(t.lastOverdueAt);
-      return !isNaN(od.getTime()) && sameDay(od, day);
+      if (!isNaN(od.getTime()) && sameDay(od, day)) return od;
     }
     const td = taskDate(t);
-    return td && sameDay(td, day);
-  });
+    return td && sameDay(td, day) ? td : null;
+  };
+
+  const tasksByDay = (day: Date) => tasks.filter((t) => dateForDay(t, day) !== null);
 
   const isOverdueForDay = (t: CalendarTask, day: Date) => {
-    if (t.statusId && finalSet.has(t.statusId)) return false;
+    if (t.statusId && finalSet.has(String(t.statusId))) return false;
     if (t.recurrence && t.lastOverdueAt) {
       const d = new Date(t.lastOverdueAt);
       return !isNaN(d.getTime()) && sameDay(d, day);
@@ -315,7 +319,12 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
   };
 
   // ==== панель выбранного дня ====
-  const selectedTasks = tasksByDay(selected);
+  const selectedTasks = [...tasksByDay(selected)].sort((a, b) => {
+    const da = dateForDay(a, selected); const db = dateForDay(b, selected);
+    const ta = da ? da.getTime() : Infinity;
+    const tb = db ? db.getTime() : Infinity;
+    return ta - tb;
+  });
   const renderDayPanel = () => (
     <div className="calendar-day-panel">
       <div className="calendar-day-title">
@@ -327,7 +336,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
         <div className="calendar-empty">На этот день задач нет</div>
       ) : (
         selectedTasks.map((t) => (
-          <DraggableTask key={t._id} task={t} onOpen={() => onOpenTask(t._id)} />
+          <DraggableTask key={t._id} task={t} day={selected} getDayDate={dateForDay} onOpen={() => onOpenTask(t._id)} />
         ))
       )}
     </div>
