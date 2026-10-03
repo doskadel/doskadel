@@ -16,12 +16,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [profileOpen, setProfileOpen] = useState(false);
 
 
-  const isRoot = location.pathname === '/';
+  const segments = location.pathname.split('/').filter(Boolean);
+  // Кнопка «Назад» только на вложенных экранах (задача/статья), не на корневых разделах.
+  const isNested = segments.length > 1;
 
   const getParentPath = (path: string): string => {
-    const segments = path.split('/').filter(Boolean);
-    if (segments.length <= 1) return '/';
-    return '/' + segments.slice(0, -1).join('/');
+    const segs = path.split('/').filter(Boolean);
+    if (segs.length <= 1) return '/';
+    return '/' + segs.slice(0, -1).join('/');
   };
 
   const parentPath = getParentPath(location.pathname);
@@ -69,7 +71,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     <div className="layout">
       <header className="layout-header">
         <div className="layout-header-left">
-          {!isRoot && (
+          {isNested && (
             <button onClick={handleBack} className="layout-back" title="Назад">←</button>
           )}
           <Link to="/" className="layout-logo">DoskaDel</Link>
