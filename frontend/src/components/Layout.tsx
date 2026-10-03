@@ -6,6 +6,7 @@ import ProfileModal from './ProfileModal';
 import api from '../utils/api';
 import { useGlobalHotkey } from '../hooks/useGlobalHotkey';
 import BotStub from './BotStub';
+import MoreDropdown from './MoreDropdown';
 
 const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
 
@@ -99,6 +100,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   <span>{item.label}</span>
                 </Link>
               ))}
+              <MoreDropdown />
             </nav>
           </div>
 
