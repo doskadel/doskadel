@@ -1375,7 +1375,7 @@ color: var(--color-text);
   transition: box-shadow 0.15s, border-color 0.15s;
   cursor: grab;
   user-select: none;
-  touch-action: pan-y;
+  touch-action: pan-x pan-y;
   overflow: hidden;
   display: flex;
   min-height: 60px;
@@ -1390,6 +1390,7 @@ color: var(--color-text);
   cursor: grabbing;
 }
 
+.kanban-card:has(.kanban-card-grip) .kanban-card-content { padding-right: 42px; }
 .kanban-card-grip {
   position: absolute;
   top: 6px;
@@ -1478,8 +1479,13 @@ color: var(--color-text);
 
   .kanban-column {
     flex: 0 0 240px;
-    min-height: 320px;
-    max-height: calc(100vh - 200px);
+    min-height: 0;
+    max-height: 100%;
+    scroll-snap-align: start;
+  }
+
+  .kanban-board {
+    scroll-snap-type: x mandatory;
   }
 
   .kanban-column-title {
