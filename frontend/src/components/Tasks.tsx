@@ -629,7 +629,16 @@ const Tasks: React.FC = () => {
                       </span>
                     )}
                     {task.recurrence && (
-                      <span className="task-card-meta-item" style={{ whiteSpace: 'nowrap' }}>
+                      <span
+                        className="task-card-meta-item"
+                        style={{ whiteSpace: 'nowrap', cursor: 'pointer' }}
+                        title="Действия над вхождением"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const d = task.nextOccurrenceDueAt || task.dueDate;
+                          if (d && handleOccurrenceAction) handleOccurrenceAction(task._id, new Date(d).toISOString());
+                        }}
+                      >
                         🔄 {formatRecurrenceShort(task.recurrence)}
                         {(task.pendingOccurrenceCount || 0) > 0 && (
                           <span className={'task-pending-badge task-pending-badge--sm' + (isFinal ? ' task-pending-badge--final' : '')} style={{ marginLeft: 6 }}>
