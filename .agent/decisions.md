@@ -2,6 +2,17 @@
 
 Новые — сверху. Формат: контекст, решение, следствия.
 
+## 2026-10-04 — F1c: повторяемость как параметр задачи (итоговый ADR)
+
+**Решение:** одна сущность Task, recurrence = необязательное правило (freq/interval/byWeekday/byMonthDay/time/until/count/tz); нет recurrence = разовая. Occurrence = исключения и история (originalDate ключ, unique {taskId,originalDate}; status pending|done|skipped|missed; dueAt при переносе; completedAt/By). Будущие вхождения считаются на лету (computeOccurrences, горизонт 12 мес); запись Occurrence — при действии (done/skip/move) или материализации под пуш.
+**Разделение серии (scope following):** старая Task.until = перед orig + closedReason=split; новая Task (копия, seriesId, prevTaskId, пересчёт count); исключения >= orig переносятся (защита unique, не теряем факт); компенсация при сбое.
+**tz:** recurrence.tz = IANA, обязателен (валидация), из клиента; расчёты в зоне пользователя (X-Timezone); DEFAULT_TZ только в миграции.
+**Пуши at-most-once:** флаг ставится до отправки (compare-and-set), при ошибке снимается (unmarkNotified), лимит попыток 3 (notificationsSent.*Attempts).
+**Авто-missed:** старые просроченные pending -> missed (utils/autoMissed, dry-run), последнее оставляем.
+**Убрано:** confirm/unconfirm API, confirmedAt, OccurrenceConfirmModal (заменено /action + историей).
+**Отложено (F1e):** подпись 'Повторять'+сводка, 'Начало', статус вхождения в карточке, aria-label, автотест отказа confirm.
+**Merge:** 0a199c5 (--no-ff).
+
 ## 2026-10-04 — ADR: пуш at-most-once (F1c этап 2)
 
 **Решение:** пуш не слать дважды (параллельные job). Флаг ставится ДО отправки (compare-and-set, markNotified). При ошибке отправки или sent=0 флаг снимается (unmarkNotified) для повтора. Ограничение попыток: 3 (notificationsSent.<type>Attempts), при превышении — флаг остаётся, ошибка логируется (пуш потерян, не спамим). Итог: at-most-once с ретраями до 3.
