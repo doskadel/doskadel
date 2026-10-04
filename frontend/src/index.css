@@ -1375,7 +1375,7 @@ color: var(--color-text);
   transition: box-shadow 0.15s, border-color 0.15s;
   cursor: grab;
   user-select: none;
-  touch-action: none;
+  touch-action: pan-y;
   overflow: hidden;
   display: flex;
   min-height: 60px;
