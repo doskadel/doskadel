@@ -260,7 +260,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
       <div className="calendar-grid">
         {cells.map((day, i) => {
           if (!day) return <div key={'e' + i} className="calendar-cell calendar-cell--empty" />;
-          const hasTasks = tasksByDay(day).length > 0;
+          const hasTasks = tasksByDay(day).some((t) => !(t.statusId && finalSet.has(String(t.statusId))));
           return (
             <DayCell
               key={day.toISOString()}
@@ -286,7 +286,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
     return (
       <div className="calendar-week">
         {days.map((day) => {
-          const hasTasks = tasksByDay(day).length > 0;
+          const hasTasks = tasksByDay(day).some((t) => !(t.statusId && finalSet.has(String(t.statusId))));
           return (
             <DayCell
               key={day.toISOString()}
