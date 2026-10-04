@@ -1296,6 +1296,18 @@ color: var(--color-text);
 }
 
 /* ==================== KANBAN ==================== */
+.layout-main:has(.tasks-page--board) { overflow: hidden; }
+.layout-main:has(.tasks-page--board) .layout-container { height: 100%; display: flex; flex-direction: column; min-height: 0; }
+.tasks-page--board {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.tasks-page--board .kanban-board {
+  flex: 1;
+  min-height: 0;
+}
 .kanban-board {
   display: flex;
   gap: var(--space-md);
@@ -1304,7 +1316,6 @@ color: var(--color-text);
   padding-bottom: var(--space-sm);
   margin-top: var(--space-md);
   align-items: stretch;
-  height: calc(100dvh - 240px);
   min-height: 280px;
   overscroll-behavior-x: contain;
 }

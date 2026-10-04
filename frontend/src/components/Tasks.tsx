@@ -391,7 +391,7 @@ const Tasks: React.FC = () => {
 
   return (
     <PullToRefresh onRefresh={handleRefresh} disabled={view === 'board'}>
-    <div>
+    <div className={'tasks-page' + (view === 'board' ? ' tasks-page--board' : '')}>
       <h2 className="page-title" style={{ margin: 0, marginBottom: 'var(--space-md)', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
         Мои задачи
         {viewTabs.length === 1 && (
