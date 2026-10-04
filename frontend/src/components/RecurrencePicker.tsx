@@ -39,24 +39,23 @@ const RecurrencePicker: React.FC<RecurrencePickerProps> = ({ value, onChange }) 
   return (
     <div className="recurrence-picker">
       <div>
-        <label className="input-label">Период</label>
-        <select className="input" value={freq} onChange={(e) => handleFreqChange(e.target.value as RecurrenceFreq)}>
-          {RECURRENCE_FREQ_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
-          ))}
-        </select>
-      </div>
-
-      <div>
-        <label className="input-label">Каждые N {freq === 'daily' ? 'дней' : freq === 'weekly' ? 'недель' : 'месяцев'}</label>
-        <input
-          type="number"
-          className="input"
-          min={1}
-          max={30}
-          value={value.interval || 1}
-          onChange={(e) => handleIntervalChange(parseInt(e.target.value, 10) || 1)}
-        />
+        <label className="input-label">Повтор</label>
+        <div className="recur-row">
+          <span className="recur-word">Каждые</span>
+          <input
+            type="number"
+            className="input recur-num"
+            min={1}
+            max={30}
+            value={value.interval || 1}
+            onChange={(e) => handleIntervalChange(parseInt(e.target.value, 10) || 1)}
+          />
+          <select className="input recur-unit" value={freq} onChange={(e) => handleFreqChange(e.target.value as RecurrenceFreq)}>
+            <option value="daily">{value.interval === 1 ? 'день' : 'дней'}</option>
+            <option value="weekly">{value.interval === 1 ? 'неделю' : 'недель'}</option>
+            <option value="monthly">{value.interval === 1 ? 'месяц' : 'месяцев'}</option>
+          </select>
+        </div>
       </div>
 
       {freq === 'weekly' && (
@@ -95,8 +94,45 @@ const RecurrencePicker: React.FC<RecurrencePickerProps> = ({ value, onChange }) 
       )}
 
       <div>
-        <label className="input-label">Время (ваше локальное)</label>
+        <label className="input-label">Время</label>
         <input type="time" className="input" value={value.time || '09:00'} onChange={(e) => handleTimeChange(e.target.value)} />
+      </div>
+
+      <div>
+        <label className="input-label">Окончание</label>
+        <select
+          className="input"
+          value={value.until ? 'until' : value.count ? 'count' : 'never'}
+          onChange={(e) => {
+            const v = e.target.value;
+            if (v === 'never') onChange({ ...value, until: null, count: null });
+            else if (v === 'until') onChange({ ...value, until: new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10), count: null });
+            else onChange({ ...value, count: 10, until: null });
+          }}
+        >
+          <option value="never">Никогда</option>
+          <option value="until">До даты</option>
+          <option value="count">После N раз</option>
+        </select>
+        {value.until && (
+          <input
+            type="date"
+            className="input"
+            style={{ marginTop: 8 }}
+            value={value.until.slice(0, 10)}
+            onChange={(e) => onChange({ ...value, until: new Date(e.target.value + 'T23:59:59Z').toISOString() })}
+          />
+        )}
+        {value.count && (
+          <input
+            type="number"
+            className="input"
+            style={{ marginTop: 8 }}
+            min={1}
+            value={value.count}
+            onChange={(e) => onChange({ ...value, count: Math.max(1, parseInt(e.target.value, 10) || 1) })}
+          />
+        )}
       </div>
 
       <p className="recurrence-tz-hint">Часовой пояс: {value.tz || getBrowserTz()}</p>

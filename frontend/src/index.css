@@ -568,6 +568,11 @@ margin-bottom: var(--space-md);
 .occ-move-actions { display: flex; gap: 8px; margin-top: 4px; }
 .occ-move-actions .occ-action-btn { justify-content: center; }
 .occ-scope-hint { margin: 4px 0 0; font-size: 13px; color: var(--color-text-muted); }
+.recur-row { display: flex; align-items: center; gap: 8px; }
+.recur-word { font-size: 14px; color: var(--color-text-muted); white-space: nowrap; }
+.recur-num { width: 64px; }
+.recur-unit { flex: 1; }
+.recurrence-tz-hint { font-size: 12px; color: var(--color-text-muted); margin: 4px 0 0; }
 .occ-btn-primary { flex: 1; min-height: 44px; border: none; border-radius: var(--radius-md); background: var(--color-primary); color: var(--color-on-accent); font: inherit; font-size: 15px; font-weight: 500; cursor: pointer; }
 .occ-btn-primary:disabled { opacity: 0.5; cursor: default; }
 .occ-btn-secondary { flex: 1; min-height: 44px; border: 1px solid var(--surface-border); border-radius: var(--radius-md); background: transparent; color: var(--color-text); font: inherit; font-size: 15px; cursor: pointer; }
