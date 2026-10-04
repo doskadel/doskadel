@@ -124,17 +124,13 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, statusColor, status
           <div className="kanban-card-recurring">
             <span className="kanban-card-recurring-label">
               <Repeat size={14} className="recur-icon" /> {formatRecurrenceShort(task.recurrence)}
+              {task.nextOccurrenceDueAt && <> · {formatDueDate(task.nextOccurrenceDueAt)}</>}
             </span>
             {pendingCount > 0 && (
               <span className={'task-pending-badge task-pending-badge--sm' + (isFinal ? ' task-pending-badge--final' : '')}>
                 {pendingCount}
               </span>
             )}
-          </div>
-        )}
-        {isRecurring && task.nextOccurrenceDueAt && (
-          <div className={'kanban-card-due' + (pendingCount > 0 ? ' kanban-card-due--overdue' : '')}>
-            Ближайшее: {formatDueDate(task.nextOccurrenceDueAt)}
           </div>
         )}
 
