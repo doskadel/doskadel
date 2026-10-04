@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar } from 'lucide-react';
+import { Calendar, Repeat } from 'lucide-react';
 import { Task } from '../hooks/useTaskDetail';
 import { PRIORITY_OPTIONS, getPriorityLabel } from '../utils/priority';
 import { Status } from '../utils/status';
@@ -195,12 +195,20 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
         {isRecurring ? (
           <div>
             <p style={{ fontSize: '12px', textTransform: 'uppercase', color: 'var(--color-text-muted)', marginBottom: '4px' }}>Повторение</p>
-            <p style={{ color: 'var(--color-text)', fontSize: '15px', margin: 0 }}>
-              🔄 {formatRecurrence(task.recurrence)}
+            <p style={{ color: 'var(--color-text)', fontSize: '15px', margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Repeat size={15} className="recur-icon" /> {formatRecurrence(task.recurrence)}
             </p>
+            {task.recurrence?.tz && (
+              <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', margin: '2px 0 0' }}>{task.recurrence.tz}</p>
+            )}
+            {task.nextOccurrenceDueAt && (
+              <p style={{ color: pendingCount > 0 ? 'var(--color-danger)' : 'var(--color-text)', fontSize: '15px', margin: '8px 0 0' }}>
+                Ближайшее: {formatDueDate(task.nextOccurrenceDueAt)}
+              </p>
+            )}
             {pendingCount > 0 && (
               <p className={'task-pending-badge' + (taskFinal ? ' task-pending-badge--final' : '')}>
-                ⚠️ {pendingCount} не подтверждено
+                {pendingCount} не подтверждено
               </p>
             )}
           </div>

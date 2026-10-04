@@ -12,6 +12,10 @@ export interface Task {
   dueDate?: string | null;
   recurrence?: Recurrence | null;
   notifications?: { enabled: boolean };
+  pendingOccurrenceCount?: number;
+  nextOccurrenceDueAt?: string | null;
+  occurrenceStatus?: 'pending' | 'overdue';
+  closedReason?: string | null;
   createdAt: string;
   updatedAt: string;
 }
