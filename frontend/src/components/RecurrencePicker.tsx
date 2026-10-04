@@ -1,14 +1,12 @@
 import React from 'react';
 import {
   Recurrence,
-  RecurrenceType,
-  RECURRENCE_TYPE_OPTIONS,
+  RecurrenceFreq,
+  RECURRENCE_FREQ_OPTIONS,
   WEEKDAYS_RU,
   getDefaultRecurrence,
-  localTimeToUtc,
-  utcTimeToLocal,
+  getBrowserTz,
 } from '../utils/recurrence';
-import ClearableField from './ClearableField';
 
 interface RecurrencePickerProps {
   value: Recurrence | null;
@@ -16,113 +14,92 @@ interface RecurrencePickerProps {
 }
 
 const RecurrencePicker: React.FC<RecurrencePickerProps> = ({ value, onChange }) => {
-  const currentType: RecurrenceType = value?.type || 'daily';
-
-  // В UI показываем ЛОКАЛЬНОЕ время (конвертируем из UTC, где оно хранится)
-  const localTime = value ? utcTimeToLocal(value.time) : '';
-
-  const handleTypeChange = (type: RecurrenceType) => {
-    if (value?.type === type) return;
-    onChange(getDefaultRecurrence(type));
-  };
-
-  // Пользователь меняет локальное — конвертируем в UTC для хранения
-  const handleTimeChange = (newLocalTime: string) => {
-    if (!value) return;
-    onChange({ ...value, time: localTimeToUtc(newLocalTime) });
-  };
-
-  const handleDayOfWeekChange = (dayOfWeek: number) => {
-    if (!value) return;
-    onChange({ ...value, dayOfWeek });
-  };
-
-  const handleDayOfMonthChange = (dayOfMonth: number) => {
-    if (!value) return;
-    onChange({ ...value, dayOfMonth });
-  };
-
-  const clearDayOfMonth = () => {
-    if (!value) return;
-    onChange({ ...value, dayOfMonth: 1 });
-  };
-
-  const clearTime = () => {
-    if (!value) return;
-    // Возвращаем дефолтное "09:00" локальное → в UTC
-    onChange({ ...value, time: localTimeToUtc('09:00') });
-  };
-
   if (!value) return null;
+  const freq = value.freq || 'daily';
+
+  const handleFreqChange = (f: RecurrenceFreq) => {
+    if (value.freq === f) return;
+    onChange(getDefaultRecurrence(f));
+  };
+
+  const handleTimeChange = (time: string) => {
+    onChange({ ...value, time, tz: value.tz || getBrowserTz() });
+  };
+
+  const toggleWeekday = (day: number) => {
+    const cur = value.byWeekday || [];
+    const next = cur.includes(day) ? cur.filter((d) => d !== day) : [...cur, day].sort();
+    onChange({ ...value, byWeekday: next });
+  };
+
+  const handleIntervalChange = (interval: number) => {
+    onChange({ ...value, interval: Math.max(1, interval) });
+  };
 
   return (
     <div className="recurrence-picker">
       <div>
         <label className="input-label">Период</label>
-        <select
-          className="input"
-          value={currentType}
-          onChange={(e) => handleTypeChange(e.target.value as RecurrenceType)}
-        >
-          {RECURRENCE_TYPE_OPTIONS.map((opt) => (
+        <select className="input" value={freq} onChange={(e) => handleFreqChange(e.target.value as RecurrenceFreq)}>
+          {RECURRENCE_FREQ_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
         </select>
       </div>
 
-      {currentType === 'weekly' && (
+      <div>
+        <label className="input-label">Каждые N {freq === 'daily' ? 'дней' : freq === 'weekly' ? 'недель' : 'месяцев'}</label>
+        <input
+          type="number"
+          className="input"
+          min={1}
+          max={30}
+          value={value.interval || 1}
+          onChange={(e) => handleIntervalChange(parseInt(e.target.value, 10) || 1)}
+        />
+      </div>
+
+      {freq === 'weekly' && (
         <div>
-          <label className="input-label">День недели</label>
-          <select
-            className="input"
-            value={value.dayOfWeek ?? 1}
-            onChange={(e) => handleDayOfWeekChange(parseInt(e.target.value, 10))}
-          >
+          <label className="input-label">Дни недели</label>
+          <div className="weekday-toggles">
             {WEEKDAYS_RU.map((d) => (
-              <option key={d.value} value={d.value}>{d.label}</option>
+              <button
+                key={d.value}
+                type="button"
+                className={'weekday-toggle' + ((value.byWeekday || []).includes(d.value) ? ' weekday-toggle--on' : '')}
+                onClick={() => toggleWeekday(d.value)}
+              >
+                {d.short}
+              </button>
             ))}
-          </select>
+          </div>
         </div>
       )}
 
-      {currentType === 'monthly' && (
+      {freq === 'monthly' && (
         <div>
           <label className="input-label">
             День месяца{' '}
-            <span
-              className="recurrence-hint-icon"
-              title="Если в месяце нет такого дня, задача будет назначена на последний день месяца"
-            >
-              ⓘ
-            </span>
+            <span className="recurrence-hint-icon" title="Если в месяце нет такого дня, задача будет на последний день месяца">ⓘ</span>
           </label>
-          <ClearableField onClear={clearDayOfMonth} showClear={value.dayOfMonth !== undefined}>
-            <input
-              type="number"
-              className="input"
-              min={1}
-              max={31}
-              value={value.dayOfMonth ?? ''}
-              onChange={(e) => {
-                const n = parseInt(e.target.value, 10);
-                if (!isNaN(n)) handleDayOfMonthChange(Math.min(31, Math.max(1, n)));
-              }}
-            />
-          </ClearableField>
+          <input
+            type="number"
+            className="input"
+            min={1}
+            max={31}
+            value={value.byMonthDay ?? 1}
+            onChange={(e) => onChange({ ...value, byMonthDay: Math.min(31, Math.max(1, parseInt(e.target.value, 10) || 1)) })}
+          />
         </div>
       )}
 
       <div>
         <label className="input-label">Время (ваше локальное)</label>
-        <ClearableField onClear={clearTime} showClear={!!localTime}>
-          <input
-            type="time"
-            className="input"
-            value={localTime}
-            onChange={(e) => handleTimeChange(e.target.value)}
-          />
-        </ClearableField>
+        <input type="time" className="input" value={value.time || '09:00'} onChange={(e) => handleTimeChange(e.target.value)} />
       </div>
+
+      <p className="recurrence-tz-hint">Часовой пояс: {value.tz || getBrowserTz()}</p>
     </div>
   );
 };
