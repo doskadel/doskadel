@@ -1,25 +1,24 @@
-// Чистка осиротевших данных (workspace/status/membership от тестов) + dry-run.
-// Запуск: node scripts/cleanup-orphans.js [--dry-run]
+// Чистка осиротевших данных: workspace без существующего createdBy + их дочерние.
+// Dry-run по умолчанию; удаление с --apply.
 const mongoose = require('mongoose');
-// По умолчанию dry-run; удаление — только с флагом --apply
-const DRY = !process.argv.includes('--apply');
+const APPLY = process.argv.includes('--apply');
 (async () => {
   await mongoose.connect(process.env.MONGODB_URI || 'mongodb://mongo:27017/doskadel');
   const db = mongoose.connection.db;
-  const wsIds = (await db.collection('workspaces').find({}, { projection: { _id: 1 } }).toArray()).map((w) => String(w._id));
-  // Осиротевшие документы: workspaceId, которого нет в workspaces
-  const collections = ['tasks', 'occurrences', 'articles', 'status', 'memberships'];
-  let totalOrphan = 0;
-  for (const coll of collections) {
-    const all = await db.collection(coll).distinct('workspaceId');
-    const orphan = all.filter((w) => w && !wsIds.includes(String(w)));
-    if (orphan.length === 0) continue;
-    const n = await db.collection(coll).countDocuments({ workspaceId: { $in: orphan } });
-    totalOrphan += n;
-    console.log(coll, 'осиротевших документов:', n, '(workspaceId:', orphan.length, ')');
-    if (!DRY) await db.collection(coll).deleteMany({ workspaceId: { $in: orphan } });
+  const users = await db.collection('users').find({}, { projection: { _id: 1 } }).toArray();
+  const userIds = users.map(function (u) { return String(u._id); });
+  const ws = await db.collection('workspaces').find({}).toArray();
+  const orphanIds = ws.filter(function (w) { return !userIds.includes(String(w.createdBy)); }).map(function (w) { return w._id; });
+  console.log('осиротевших workspace:', orphanIds.length);
+  let total = 0;
+  const cols = ['tasks', 'occurrences', 'articles', 'status', 'memberships'];
+  for (const c of cols) {
+    const n = await db.collection(c).countDocuments({ workspaceId: { $in: orphanIds } });
+    total += n;
+    if (APPLY && n > 0) await db.collection(c).deleteMany({ workspaceId: { $in: orphanIds } });
   }
-  console.log('ИТОГО осиротевших:', totalOrphan);
-  console.log(DRY ? 'DRY-RUN (без записи)' : 'готово');
+  console.log('дочерних документов:', total);
+  if (APPLY && orphanIds.length > 0) await db.collection('workspaces').deleteMany({ _id: { $in: orphanIds } });
+  console.log(APPLY ? 'готово' : 'DRY-RUN (--apply для удаления)');
   await mongoose.disconnect();
-})().catch((e) => { console.error(e); process.exit(1); });
+})().catch(function (e) { console.error(e); process.exit(1); });
