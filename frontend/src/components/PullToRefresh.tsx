@@ -11,11 +11,11 @@ interface PullToRefreshProps {
 // Есть ли между целью касания и корнем прокрученный вложенный скролл-контейнер.
 // Библиотека проверяет только window.scrollY и на любом движении пальца вниз вызывает
 // preventDefault, из-за чего внутренние списки не скроллятся вверх.
-const insideScrolledContainer = (target: EventTarget | null, root: HTMLElement): boolean => {
+const insideScrolledContainer = (target: EventTarget | null): boolean => {
   let el = target instanceof HTMLElement ? target : null;
-  while (el && el !== root) {
+  while (el && el !== document.body) {
     const oy = window.getComputedStyle(el).overflowY;
-    if ((oy === 'auto' || oy === 'scroll') && el.scrollHeight > el.clientHeight && el.scrollTop > 0) {
+    if ((oy === 'auto' || oy === 'scroll') && el.scrollHeight > el.clientHeight) {
       return true;
     }
     el = el.parentElement;
@@ -32,7 +32,7 @@ const PullToRefresh: React.FC<PullToRefreshProps> = ({ onRefresh, children, disa
     const root = guardRef.current;
     if (!root) return;
     const onStart = (e: TouchEvent) => {
-      setBlocked(insideScrolledContainer(e.target, root));
+      setBlocked(insideScrolledContainer(e.target));
     };
     const onEnd = () => setBlocked(false);
     root.addEventListener('touchstart', onStart, { capture: true, passive: true });
