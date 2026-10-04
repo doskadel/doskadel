@@ -326,6 +326,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ tasks, statuses, onReorder, o
   return (
     <DndContext
       sensors={sensors}
+      autoScroll={{ acceleration: 4, interval: 10, threshold: { x: 0.15, y: 0.15 }, layoutShiftCompensation: false }}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
