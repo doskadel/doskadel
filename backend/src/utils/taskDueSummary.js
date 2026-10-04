@@ -29,7 +29,7 @@ async function summarizeOccurrences(workspaceId, recurringTasks) {
     const doneOrSkipped = new Set();
     const movedByOrig = new Map();
     for (const e of excl) {
-      if (e.status === 'done' || e.status === 'skipped') doneOrSkipped.add(e.originalDate.getTime());
+      if (e.status === 'done' || e.status === 'skipped' || e.status === 'missed') doneOrSkipped.add(e.originalDate.getTime());
       if (e.dueAt && e.originalDate && e.dueAt.getTime() !== e.originalDate.getTime()) {
         movedByOrig.set(e.originalDate.getTime(), e.dueAt);
       }
