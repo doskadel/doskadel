@@ -17,7 +17,7 @@ import RecurrencePicker from './RecurrencePicker';
 import ClearableField from './ClearableField';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { PRIORITY_OPTIONS, getPriorityLabel } from '../utils/priority';
-import { deadlineLevel } from '../utils/date';
+import { deadlineLevel, formatOccurrenceLabel } from '../utils/date';
 import { useUpcomingDays } from '../hooks/useUpcomingDays';
 import { Status } from '../utils/status';
 import { formatDueDate, isOverdue } from '../utils/date';
@@ -623,7 +623,7 @@ const Tasks: React.FC = () => {
                         className="task-card-meta-item"
                         style={!isFinal && isOverdue(displayDate) ? { color: 'var(--color-danger)', fontWeight: 500 } : undefined}
                       >
-                        Срок до {formatDueDate(displayDate)}
+                        {task.recurrence ? `Ближайшее: ${formatOccurrenceLabel(displayDate)}` : `Срок до ${formatDueDate(displayDate)}`}
                       </span>
                     )}
                     {task.recurrence && (
