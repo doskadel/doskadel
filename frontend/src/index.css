@@ -289,9 +289,10 @@ margin-bottom: var(--space-md);
 
 /* ==================== LAYOUT ==================== */
 .layout {
-  min-height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .layout-header {
@@ -436,6 +437,8 @@ margin-bottom: var(--space-md);
 
 .layout-main {
   flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   padding: var(--space-xl) var(--space-lg);
 }
 
@@ -1285,23 +1288,28 @@ color: var(--color-text);
   display: flex;
   gap: var(--space-md);
   overflow-x: auto;
+  overflow-y: hidden;
   padding-bottom: var(--space-sm);
   margin-top: var(--space-md);
   align-items: stretch;
+  height: calc(100dvh - 240px);
+  min-height: 280px;
+  scroll-snap-type: x proximity;
 }
 
 .kanban-column {
   flex: 1 1 0;
   min-width: 240px;
-  min-height: 420px;
+  min-height: 0;
+  max-height: 100%;
   background: var(--color-surface-alt);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   display: flex;
   flex-direction: column;
-  max-height: calc(100vh - 220px);
   transition: background-color 0.15s, border-color 0.15s;
   overflow: hidden;
+  scroll-snap-align: start;
 }
 
 .kanban-column--over {
@@ -1341,7 +1349,9 @@ color: var(--color-text);
 
 .kanban-column-body {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding: var(--space-sm);
   display: flex;
   flex-direction: column;
