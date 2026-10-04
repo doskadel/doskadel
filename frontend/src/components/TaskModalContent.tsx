@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, Repeat } from 'lucide-react';
+import { Calendar, Repeat, Check, SkipForward } from 'lucide-react';
 import { Task } from '../hooks/useTaskDetail';
 import { PRIORITY_OPTIONS, getPriorityLabel } from '../utils/priority';
 import { Status } from '../utils/status';
@@ -33,6 +33,7 @@ interface TaskModalContentProps {
   onSave: () => void;
   onCancel: () => void;
   onQuickChangeStatus: (statusId: string) => void;
+  onQuickAction?: (action: 'done' | 'skip', originalDate: string) => void;
   pendingCount?: number;
 }
 
@@ -58,6 +59,7 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
   onSave,
   onCancel,
   onQuickChangeStatus,
+  onQuickAction,
   pendingCount = 0,
 }) => {
   if (loading) return <p>Загрузка...</p>;
@@ -210,6 +212,28 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
               <p className={'task-pending-badge' + (taskFinal ? ' task-pending-badge--final' : '')}>
                 {pendingCount} не подтверждено
               </p>
+            )}
+            {!isEditing && task.nextOccurrenceDueAt && (
+              <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+                <button
+                  type="button"
+                  className="occ-icon-btn"
+                  title="Выполнено"
+                  aria-label="Выполнено"
+                  onClick={() => onQuickAction?.('done', task.nextOccurrenceDueAt!)}
+                >
+                  <Check size={16} />
+                </button>
+                <button
+                  type="button"
+                  className="occ-icon-btn"
+                  title="Пропустить"
+                  aria-label="Пропустить"
+                  onClick={() => onQuickAction?.('skip', task.nextOccurrenceDueAt!)}
+                >
+                  <SkipForward size={16} />
+                </button>
+              </div>
             )}
           </div>
         ) : (

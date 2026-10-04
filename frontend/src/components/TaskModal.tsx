@@ -7,6 +7,7 @@ import { useTaskDetail } from '../hooks/useTaskDetail';
 import { useOccurrences } from '../hooks/useOccurrences';
 import { useConfirm } from './ConfirmProvider';
 import { Status } from '../utils/status';
+import api from '../utils/api';
 
 interface TaskModalProps {
   taskId: string | null;
@@ -77,6 +78,11 @@ const TaskModal: React.FC<TaskModalProps> = ({ taskId, statuses, onClose, onUpda
           onSave={detail.saveEdit}
           onCancel={detail.requestCancelEdit}
           onQuickChangeStatus={detail.quickChangeStatus}
+          onQuickAction={async (action, originalDate) => {
+            if (!detail.task) return;
+            await api.post('/api/occurrences/action', { taskId: detail.task._id, originalDate, action });
+            onUpdate?.();
+          }}
           pendingCount={pendingCount}
         />
       </Modal>
