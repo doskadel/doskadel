@@ -506,24 +506,22 @@ const Tasks: React.FC = () => {
           </select>
 
           <div>
-            <label className="input-label">Тип задачи</label>
-            <select
-              className="input"
-              value={isRecurring ? 'recurring' : 'single'}
-              onChange={(e) => {
-                const recurring = e.target.value === 'recurring';
+            <label className="input-label">Повторять</label>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={isRecurring}
+              className={'toggle' + (isRecurring ? ' toggle--on' : '')}
+              onClick={() => {
+                const recurring = !isRecurring;
                 setIsRecurring(recurring);
-                if (recurring && !recurrence) {
-                  setRecurrence(getDefaultRecurrence('daily'));
-                }
-                if (!recurring) {
-                  setRecurrence(null);
-                }
+                if (recurring && !recurrence) setRecurrence(getDefaultRecurrence('daily'));
+                if (!recurring) setRecurrence(null);
               }}
             >
-              <option value="single">Разовое</option>
-              <option value="recurring">Повторяющееся</option>
-            </select>
+              <span className="toggle-knob" />
+              <span className="toggle-text">{isRecurring ? 'Повторяющаяся задача' : 'Разовая задача'}</span>
+            </button>
           </div>
 
           {isRecurring ? (
