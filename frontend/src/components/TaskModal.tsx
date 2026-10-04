@@ -81,6 +81,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ taskId, statuses, onClose, onUpda
           onQuickAction={async (action, originalDate) => {
             if (!detail.task) return;
             await api.post('/api/occurrences/action', { taskId: detail.task._id, originalDate, action });
+            detail.refresh();
             onUpdate?.();
           }}
           pendingCount={pendingCount}

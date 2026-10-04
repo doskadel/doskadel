@@ -50,6 +50,7 @@ export interface UseTaskDetailResult {
   quickChangeStatus: (statusId: string) => Promise<void>;
   handleDelete: () => Promise<boolean>;
   handleCopyLink: () => Promise<void>;
+  refresh: () => void;
 }
 
 export const useTaskDetail = (
@@ -248,5 +249,6 @@ export const useTaskDetail = (
     quickChangeStatus,
     handleDelete,
     handleCopyLink,
+    refresh: () => { if (taskId) fetchTask(taskId); },
   };
 };
