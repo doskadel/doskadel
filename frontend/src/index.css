@@ -530,6 +530,21 @@ margin-bottom: var(--space-md);
 .more-dd-ext { margin-left: auto; color: var(--color-text-muted); }
 .more-page-ext { margin-left: auto; color: var(--color-text-muted); }
 
+/* ==================== TOGGLE (Повторять) ==================== */
+.toggle {
+  display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 4px;
+  background: transparent; border: none; font: inherit; color: var(--color-text); cursor: pointer;
+}
+.toggle-knob {
+  width: 40px; height: 24px; border-radius: 999px; background: var(--color-border); position: relative; transition: background 0.15s; flex-shrink: 0;
+}
+.toggle-knob::after {
+  content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: transform 0.15s;
+}
+.toggle--on .toggle-knob { background: var(--color-primary); }
+.toggle--on .toggle-knob::after { transform: translateX(16px); }
+.toggle-text { font-size: 14px; }
+
 /* ==================== OCCURRENCE ACTIONS ==================== */
 .occ-actions { display: flex; flex-direction: column; gap: 8px; }
 .occ-action-btn {

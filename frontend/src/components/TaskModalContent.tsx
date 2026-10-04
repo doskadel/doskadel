@@ -102,21 +102,17 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
         </select>
 
         <div>
-          <label className="input-label">Тип задачи</label>
-          <select
-            className="input"
-            value={editRecurrence ? 'recurring' : 'single'}
-            onChange={(e) => {
-              if (e.target.value === 'single') {
-                setEditRecurrence(null);
-              } else {
-                setEditRecurrence(getDefaultRecurrence('daily'));
-              }
-            }}
+          <label className="input-label">Повторять</label>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={!!editRecurrence}
+            className={'toggle' + (editRecurrence ? ' toggle--on' : '')}
+            onClick={() => setEditRecurrence(editRecurrence ? null : getDefaultRecurrence('daily'))}
           >
-            <option value="single">Разовое</option>
-            <option value="recurring">Повторяющееся</option>
-          </select>
+            <span className="toggle-knob" />
+            <span className="toggle-text">{editRecurrence ? 'Повторяющаяся задача' : 'Разовая задача'}</span>
+          </button>
         </div>
 
         {editRecurrence ? (
