@@ -45,9 +45,14 @@
 - tz: user.timezone, recurrence.tz обязателен (IANA), расчёты в зоне пользователя (X-Timezone). Фикс валидации (middleware validate).
 - Тесты (81): actions 19, recurrence 16, can 18, isolation 13, regression 6, split-fail 3, tz 6.
 
-**Фронт — начат, НЕ завершён:**
-- Готов: OccurrenceActionDialog (диалог действий+scope), useOccurrences под новый API.
-- ОСТАЛОСЬ: utils/recurrence.ts на старом формате (type/dayOfWeek) — НЕсовместим, перевести; форма «Повторять»; этап 4 UI (доска/список/календарь/история); подключить диалог; снять запрет DnD повторяющихся (F1b); убрать старые confirm/unconfirm.
+**Фронт — ГОТОВ (этап 4 + ревью Клода):**
+- utils/recurrence.ts (freq/tz), RecurrencePicker (одна строка периода, окончание, tz).
+- OccurrenceActionDialog (действия+scope, заголовок с контекстом), подключён к календарю/списку/карточке. DnD повторяющихся разрешён.
+- Список: 'Ближайшее:', статус вхождения. Доска: ближайшая дата. Карточка: блок вхождения + кнопки.
+- История: Предстоящие + История по seriesId, 'Выполнено X из Y'. API /occurrences/history.
+- Toggle 'Повторять' (обе формы). Маркеры календаря (F1d): один синий.
+- Убрана старая логика (confirm/unconfirm, confirmedAt, occurrenceStatus).
+- ОСТАЛОСЬ: скриншоты ревью (оператор), финальный отчёт арбитру.
 
 **Todo:** W3 (UI tz-настройки), W4 (аудит консистентности split).
 
