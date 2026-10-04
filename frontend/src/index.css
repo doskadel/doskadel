@@ -1391,6 +1391,7 @@ color: var(--color-text);
   overflow: hidden;
   display: flex;
   min-height: 60px;
+  flex-shrink: 0;
 }
 
 @media (hover: hover) {
