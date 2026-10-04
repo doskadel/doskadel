@@ -9,6 +9,18 @@ a:focus:not(:focus-visible),
 input:focus:not(:focus-visible) {
   outline: none;
 }
+/* Тач: без синей подсветки тапа и рамки у карточек/списков (клавиатура не затронута) */
+* { -webkit-tap-highlight-color: transparent; }
+@media (pointer: coarse) {
+  [role="button"]:focus,
+  [role="button"]:focus-visible,
+  [tabindex]:focus,
+  [tabindex]:focus-visible,
+  .kanban-card:focus,
+  .kanban-card:focus-visible {
+    outline: none;
+  }
+}
 .input--error {
   border-color: var(--color-danger) !important;
   box-shadow: 0 0 0 3px rgba(207, 34, 46, 0.15) !important;

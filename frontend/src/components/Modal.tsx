@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 
 interface ModalProps {
   open: boolean;
@@ -45,7 +46,7 @@ const Modal: React.FC<ModalProps> = ({ open, onClose, title, wide, rightRail, on
     mouseDownOnBackdropRef.current = false;
   };
 
-  return (
+  return createPortal(
     <div
       ref={backdropRef}
       className="modal-backdrop"
@@ -72,7 +73,8 @@ const Modal: React.FC<ModalProps> = ({ open, onClose, title, wide, rightRail, on
           {rightRail && <div className="modal-rail-right">{rightRail}</div>}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

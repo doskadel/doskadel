@@ -390,7 +390,7 @@ const Tasks: React.FC = () => {
   if (loading) return <LoadingOverlay active text="Загрузка..." />;
 
   return (
-    <PullToRefresh onRefresh={handleRefresh}>
+    <PullToRefresh onRefresh={handleRefresh} disabled={view === 'board'}>
     <div>
       <h2 className="page-title" style={{ margin: 0, marginBottom: 'var(--space-md)', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
         Мои задачи

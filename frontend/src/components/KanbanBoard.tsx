@@ -392,6 +392,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ tasks, statuses, onReorder, o
     <DndContext
       sensors={sensors}
       autoScroll={false}
+      accessibility={{ restoreFocus: false }}
       onDragCancel={() => setActiveId(null)}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
