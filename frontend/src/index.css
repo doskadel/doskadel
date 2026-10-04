@@ -16,6 +16,10 @@ input:focus:not(:focus-visible) {
   [role="button"]:focus-visible,
   [tabindex]:focus,
   [tabindex]:focus-visible,
+  .task-card:focus,
+  .task-card:focus-visible,
+  .article-card:focus,
+  .article-card:focus-visible,
   .kanban-card:focus,
   .kanban-card:focus-visible {
     outline: none;
