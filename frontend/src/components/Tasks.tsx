@@ -542,15 +542,10 @@ const Tasks: React.FC = () => {
           )}
 
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: 'var(--space-sm)' }}>
-            <button
-              type="button"
-              className="button"
-              onClick={handleCloseCreate}
-              style={{ backgroundColor: 'var(--color-text-muted)' }}
-            >
+            <button type="button" className="occ-btn-secondary" style={{ flex: '0 0 auto', padding: '0 20px' }} onClick={handleCloseCreate}>
               Отмена
             </button>
-            <button type="submit" className="button" disabled={priority === ''}>
+            <button type="submit" className="button" disabled={priority === '' || !title.trim()}>
               Создать
             </button>
           </div>
