@@ -2141,6 +2141,9 @@ color: var(--color-text);
   cursor: pointer;
   overflow: hidden;
   transition: box-shadow 0.15s, border-color 0.15s;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
 .task-card:hover {
@@ -2223,6 +2226,9 @@ color: var(--color-text);
   transition: box-shadow 0.15s, border-color 0.15s;
   display: flex;
   flex-direction: column;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
   height: 100%;
 }
 
