@@ -4,7 +4,7 @@ import LoadingOverlay from './LoadingOverlay';
 import CalendarView from './CalendarView';
 import OccurrenceActionDialog from './OccurrenceActionDialog';
 import SortableSettings from './shared/SortableSettings';
-import { GripVertical, X, Plus, Settings, CalendarDays, Columns, List, Info, LayoutList } from 'lucide-react';
+import { GripVertical, X, Plus, Settings, CalendarDays, Columns, List, Info, LayoutList, Repeat } from 'lucide-react';
 
 import { useSearchParams } from 'react-router-dom';
 import api from '../utils/api';
@@ -637,7 +637,7 @@ const Tasks: React.FC = () => {
                           if (d && handleOccurrenceAction) handleOccurrenceAction(task._id, new Date(d).toISOString());
                         }}
                       >
-                        🔄 {formatRecurrenceShort(task.recurrence)}
+                        <Repeat size={14} className="recur-icon" /> {formatRecurrenceShort(task.recurrence)}
                         {(task.pendingOccurrenceCount || 0) > 0 && (
                           <span className={'task-pending-badge task-pending-badge--sm' + (isFinal ? ' task-pending-badge--final' : '')} style={{ marginLeft: 6 }}>
                             {task.pendingOccurrenceCount}

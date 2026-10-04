@@ -20,6 +20,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { Status } from '../utils/status';
 import { formatDueDate, isOverdue, deadlineLevel } from '../utils/date';
 import { useUpcomingDays } from '../hooks/useUpcomingDays';
+import { Repeat } from 'lucide-react';
 import { Recurrence, formatRecurrenceShort } from '../utils/recurrence';
 
 export interface KanbanTask {
@@ -108,7 +109,7 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, statusColor, status
         {isRecurring && (
           <div className="kanban-card-recurring">
             <span className="kanban-card-recurring-label">
-              🔄 {formatRecurrenceShort(task.recurrence)}
+              <Repeat size={14} className="recur-icon" /> {formatRecurrenceShort(task.recurrence)}
             </span>
             {pendingCount > 0 && (
               <span className={'task-pending-badge task-pending-badge--sm' + (isFinal ? ' task-pending-badge--final' : '')}>
@@ -333,7 +334,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ tasks, statuses, onReorder, o
               {activeTask.recurrence && (
                 <div className="kanban-card-recurring">
                   <span className="kanban-card-recurring-label">
-                    🔄 {formatRecurrenceShort(activeTask.recurrence)}
+                    <Repeat size={14} className="recur-icon" /> {formatRecurrenceShort(activeTask.recurrence)}
                   </span>
                 </div>
               )}

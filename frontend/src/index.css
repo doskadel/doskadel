@@ -530,6 +530,9 @@ margin-bottom: var(--space-md);
 .more-dd-ext { margin-left: auto; color: var(--color-text-muted); }
 .more-page-ext { margin-left: auto; color: var(--color-text-muted); }
 
+/* Иконка повторения (lucide Repeat) — вместо эмодзи */
+.recur-icon { vertical-align: -2px; color: var(--color-text-muted); }
+
 /* ==================== TOGGLE (Повторять) ==================== */
 .rec-toggle {
   display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 0;

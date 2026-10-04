@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Repeat } from 'lucide-react';
 import { deadlineLevel } from '../utils/date';
 import {
   DndContext,
@@ -157,7 +158,7 @@ const DraggableTask: React.FC<{
         {...attributes}
       >⠿</span>
       <span className={'calendar-task-rail calendar-task-rail--' + lvl} />
-      {recurring && <span className="calendar-task-lock" title="Повторяющаяся">🔄</span>}
+      {recurring && <span className="calendar-task-lock" title="Повторяющаяся"><Repeat size={14} className="recur-icon" /></span>}
       <span className="calendar-task-title">{task.title}</span>
       {time && <span className="calendar-task-time">{time}</span>}
     </div>
