@@ -55,7 +55,7 @@ const taskDate = (t: CalendarTask): Date | null => {
   const raw = t.nextOccurrenceDueAt || t.dueDate;
   return raw ? new Date(raw) : null;
 };
-const isRecurring = (t: CalendarTask) => !!(t.recurrence && t.recurrence.type);
+const isRecurring = (t: CalendarTask) => !!(t.recurrence && t.recurrence.freq);
 
 // Собрать новую дату: берём день из дропа, время — из старого dueDate (или 00:00, если было без времени)
 function buildNewDue(task: CalendarTask, dropDay: Date): string {
