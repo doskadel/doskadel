@@ -1351,7 +1351,7 @@ color: var(--color-text);
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  overscroll-behavior: contain;
+  overscroll-behavior-y: contain;
   padding: var(--space-sm);
   display: flex;
   flex-direction: column;
@@ -1485,7 +1485,6 @@ color: var(--color-text);
   }
 
   .kanban-board {
-    scroll-snap-type: x proximity;
     -webkit-overflow-scrolling: touch;
   }
 
