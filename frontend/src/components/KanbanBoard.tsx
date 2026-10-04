@@ -33,6 +33,8 @@ export interface KanbanTask {
   dueDate?: string | null;
   recurrence?: Recurrence | null;
   pendingOccurrenceCount?: number;
+  nextOccurrenceDueAt?: string | null;
+  occurrenceStatus?: 'pending' | 'overdue';
   createdAt: string;
 }
 
@@ -116,6 +118,11 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, statusColor, status
                 {pendingCount}
               </span>
             )}
+          </div>
+        )}
+        {isRecurring && task.nextOccurrenceDueAt && (
+          <div className={'kanban-card-due' + (pendingCount > 0 ? ' kanban-card-due--overdue' : '')}>
+            Ближайшее: {formatDueDate(task.nextOccurrenceDueAt)}
           </div>
         )}
 
