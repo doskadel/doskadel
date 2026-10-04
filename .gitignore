@@ -8,4 +8,5 @@ dump.txt
 dump.bat
 backups/
 *.archive
+.agent/.cache/
 /scripts/
