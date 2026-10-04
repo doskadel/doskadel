@@ -1481,7 +1481,6 @@ color: var(--color-text);
     flex: 0 0 240px;
     min-height: 0;
     max-height: 100%;
-    scroll-snap-align: start;
   }
 
   .kanban-board {
