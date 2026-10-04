@@ -103,6 +103,13 @@ const rnd = () => Math.random().toString(36).slice(2, 8);
   check('история seriesId: >= 2 части', seriesTasks.length >= 2);
   check('все части с одним seriesId', seriesTasks.every((x) => String(x.seriesId) === String(t._id)));
 
+  // Завершить повторение (бессрочная серия -> финальный статус)
+  const t6 = JSON.parse((await req('POST', '/api/tasks', tok, { title: 'endless', priority: 2, recurrence: { freq: 'daily', time: '09:00', tz: 'Europe/Moscow' } })).body).task;
+  const comp = await req('POST', '/api/occurrences/complete-series', tok, { taskId: t6._id });
+  check('complete-series -> 200', comp.code === 200);
+  const t6after = await Task.findById(t6._id).lean();
+  check('complete-series: closedReason=manual', t6after && t6after.closedReason === 'manual');
+
   // уборка
   const db = mongoose.connection.db;
   const wsIds = (await db.collection('workspaces').find({ createdBy: uid }).toArray()).map((w) => w._id);
