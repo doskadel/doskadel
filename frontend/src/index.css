@@ -532,18 +532,18 @@ margin-bottom: var(--space-md);
 
 /* ==================== TOGGLE (Повторять) ==================== */
 .toggle {
-  display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 4px;
-  background: transparent; border: none; font: inherit; color: var(--color-text); cursor: pointer;
+  display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 0;
+  background: transparent; border: 0; appearance: none; font: inherit; color: var(--color-text); cursor: pointer;
 }
 .toggle-knob {
-  width: 40px; height: 24px; border-radius: 999px; background: var(--color-border); position: relative; transition: background 0.15s; flex-shrink: 0;
+  width: 40px; height: 24px; border-radius: 999px; background: var(--color-surface-alt); border: 1px solid var(--surface-border); position: relative; transition: background 0.15s; flex-shrink: 0; box-sizing: border-box;
 }
 .toggle-knob::after {
-  content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: transform 0.15s;
+  content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: transform 0.15s; box-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
-.toggle--on .toggle-knob { background: var(--color-primary); }
+.toggle--on .toggle-knob { background: var(--color-primary); border-color: var(--color-primary); }
 .toggle--on .toggle-knob::after { transform: translateX(16px); }
-.toggle-text { font-size: 14px; }
+.toggle-text { font-size: 14px; white-space: nowrap; }
 
 /* ==================== OCCURRENCE ACTIONS ==================== */
 .occ-actions { display: flex; flex-direction: column; gap: 8px; }
