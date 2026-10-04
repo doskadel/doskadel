@@ -1294,7 +1294,7 @@ color: var(--color-text);
   align-items: stretch;
   height: calc(100dvh - 240px);
   min-height: 280px;
-  scroll-snap-type: x proximity;
+  overscroll-behavior-x: contain;
 }
 
 .kanban-column {
@@ -1309,7 +1309,6 @@ color: var(--color-text);
   flex-direction: column;
   transition: background-color 0.15s, border-color 0.15s;
   overflow: hidden;
-  scroll-snap-align: start;
 }
 
 .kanban-column--over {
@@ -1375,7 +1374,8 @@ color: var(--color-text);
   transition: box-shadow 0.15s, border-color 0.15s;
   cursor: grab;
   user-select: none;
-  touch-action: pan-y;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
   overflow: hidden;
   display: flex;
   min-height: 60px;
@@ -1393,13 +1393,13 @@ color: var(--color-text);
 .kanban-card:has(.kanban-card-grip) .kanban-card-content { padding-right: 42px; }
 .kanban-card-grip {
   position: absolute;
-  top: 6px;
-  right: 6px;
+  top: 4px;
+  right: 4px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   color: var(--color-text-muted);
   font-size: 18px;
   line-height: 1;

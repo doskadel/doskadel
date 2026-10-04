@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   DndContext,
   DragEndEvent,
@@ -207,6 +207,69 @@ const Column: React.FC<ColumnProps> = ({ status, tasks, onOpenTask }) => {
   );
 };
 
+// Плавный автоскролл при drag. Кривая квадратичная: у границы зоны медленно,
+// к краю нарастает постепенно. Заменяет autoScroll dnd-kit (там нет кривой).
+const EDGE_ZONE = 72; // px от края, где включается скролл
+const MAX_SPEED = 700; // px/с на самом краю
+
+const easeSpeed = (distToEdge: number, zone: number): number => {
+  const r = Math.min(1, Math.max(0, (zone - distToEdge) / zone));
+  return MAX_SPEED * r * r;
+};
+
+function useEdgeAutoScroll(active: boolean, boardRef: React.RefObject<HTMLDivElement>) {
+  useEffect(() => {
+    if (!active) return;
+    const pos = { x: -1, y: -1 };
+    const onPointer = (e: PointerEvent) => { pos.x = e.clientX; pos.y = e.clientY; };
+    const onTouch = (e: TouchEvent) => {
+      const t = e.touches[0];
+      if (t) { pos.x = t.clientX; pos.y = t.clientY; }
+    };
+    window.addEventListener('pointermove', onPointer);
+    window.addEventListener('touchmove', onTouch, { passive: true });
+
+    let raf = 0;
+    let last = performance.now();
+    let accX = 0;
+    let accY = 0;
+    const tick = (now: number) => {
+      const dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+      const board = boardRef.current;
+      if (board && pos.x >= 0) {
+        const br = board.getBoundingClientRect();
+        const zx = Math.min(EDGE_ZONE, br.width / 4);
+        if (pos.y >= br.top && pos.y <= br.bottom) {
+          if (pos.x < br.left + zx) accX -= easeSpeed(Math.max(0, pos.x - br.left), zx) * dt;
+          else if (pos.x > br.right - zx) accX += easeSpeed(Math.max(0, br.right - pos.x), zx) * dt;
+        }
+        const stepX = Math.trunc(accX);
+        if (stepX !== 0) { board.scrollLeft += stepX; accX -= stepX; }
+
+        const bodies = board.querySelectorAll<HTMLElement>('.kanban-column-body');
+        for (const body of Array.from(bodies)) {
+          const r = body.getBoundingClientRect();
+          if (pos.x < r.left || pos.x > r.right) continue;
+          const zy = Math.min(EDGE_ZONE, r.height / 4);
+          if (pos.y < r.top + zy) accY -= easeSpeed(Math.max(0, pos.y - r.top), zy) * dt;
+          else if (pos.y > r.bottom - zy) accY += easeSpeed(Math.max(0, r.bottom - pos.y), zy) * dt;
+          const stepY = Math.trunc(accY);
+          if (stepY !== 0) { body.scrollTop += stepY; accY -= stepY; }
+          break;
+        }
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('pointermove', onPointer);
+      window.removeEventListener('touchmove', onTouch);
+    };
+  }, [active, boardRef]);
+}
+
 interface KanbanBoardProps {
   tasks: KanbanTask[];
   statuses: Status[];
@@ -216,6 +279,8 @@ interface KanbanBoardProps {
 
 const KanbanBoard: React.FC<KanbanBoardProps> = ({ tasks, statuses, onReorder, onOpenTask }) => {
   const [activeId, setActiveId] = useState<string | null>(null);
+  const boardRef = useRef<HTMLDivElement>(null);
+  useEdgeAutoScroll(!!activeId, boardRef);
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
@@ -326,11 +391,12 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ tasks, statuses, onReorder, o
   return (
     <DndContext
       sensors={sensors}
-      autoScroll={{ acceleration: 4, interval: 10, threshold: { x: 0.15, y: 0.15 }, layoutShiftCompensation: false }}
+      autoScroll={false}
+      onDragCancel={() => setActiveId(null)}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="kanban-board">
+      <div className="kanban-board" ref={boardRef}>
         {statuses.map((status) => (
           <Column
             key={status._id}
