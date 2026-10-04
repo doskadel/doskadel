@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import PullToRefresh from './PullToRefresh';
 import LoadingOverlay from './LoadingOverlay';
 import CalendarView from './CalendarView';
+import OccurrenceActionDialog from './OccurrenceActionDialog';
 import SortableSettings from './shared/SortableSettings';
 import { GripVertical, X, Plus, Settings, CalendarDays, Columns, List, Info, LayoutList } from 'lucide-react';
 
@@ -310,6 +311,16 @@ const Tasks: React.FC = () => {
   };
 
   // F1b: перенос дедлайна разовой задачи из календаря (DnD)
+  // F1c: диалог действий над вхождением повторяющейся
+  const [occDialog, setOccDialog] = useState<{ taskId: string; originalDate: string; newDue?: string } | null>(null);
+
+  const handleOccurrenceAction = (taskId: string, originalDate: string) => {
+    setOccDialog({ taskId, originalDate });
+  };
+  const handleOccurrenceMove = (taskId: string, originalDate: string, newDue: string) => {
+    setOccDialog({ taskId, originalDate, newDue });
+  };
+
   const handleTaskMoved = async (id: string, newDueDate: string): Promise<boolean> => {
     const prev = tasks.find((t) => t._id === id);
     if (!prev) return false;
@@ -636,7 +647,39 @@ const Tasks: React.FC = () => {
       )}
 
       {view === 'calendar' && (
-        <CalendarView tasks={tasks as any} finalStatusIds={statuses.filter((s) => s.isFinal).map((s) => s._id)} onOpenTask={openTask} onTaskMoved={handleTaskMoved} />
+        <CalendarView
+          tasks={tasks as any}
+          finalStatusIds={statuses.filter((s) => s.isFinal).map((s) => s._id)}
+          onOpenTask={openTask}
+          onTaskMoved={handleTaskMoved}
+          onOccurrenceAction={handleOccurrenceAction}
+          onOccurrenceMove={handleOccurrenceMove}
+        />
+      )}
+
+      {occDialog && (
+        <OccurrenceActionDialog
+          open
+          onClose={() => setOccDialog(null)}
+          taskId={occDialog.taskId}
+          originalDate={occDialog.originalDate}
+          onAct={async ({ action, dueAt, scope }) => {
+            await api.post('/api/occurrences/action', {
+              taskId: occDialog.taskId,
+              originalDate: occDialog.originalDate,
+              action,
+              dueAt: dueAt || occDialog.newDue,
+              scope,
+            });
+            setOccDialog(null);
+            fetchTasks();
+          }}
+          onCompleteSeries={async () => {
+            await api.post('/api/occurrences/complete-series', { taskId: occDialog.taskId });
+            setOccDialog(null);
+            fetchTasks();
+          }}
+        />
       )}
 
       {viewsEditOpen && settingsView === 'main' && (
