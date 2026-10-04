@@ -47,6 +47,24 @@ export const isOverdue = (iso: string | null | undefined): boolean => {
   return d.getTime() < Date.now();
 };
 
+/** 'Ближайшее: завтра, 09:00' — относительный день + время. */
+export const formatOccurrenceLabel = (iso: string | null | undefined): string => {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '';
+  const now = new Date();
+  const startOfDay = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate());
+  const diffDays = Math.round((startOfDay(d).getTime() - startOfDay(now).getTime()) / 86400000);
+  const time = d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+  let day: string;
+  if (diffDays === 0) day = 'сегодня';
+  else if (diffDays === 1) day = 'завтра';
+  else if (diffDays === -1) day = 'вчера';
+  else if (diffDays > 1 && diffDays <= 6) day = d.toLocaleDateString('ru-RU', { weekday: 'long' });
+  else day = d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  return `${day}, ${time}`;
+};
+
 export type DeadlineLevel = 'overdue' | 'soon' | 'far';
 
 /**

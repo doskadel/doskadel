@@ -31,6 +31,12 @@ const occurrenceSchema = new mongoose.Schema({
     type: Date,
     default: null
   },
+  // Ключ вхождения: исходная дата по правилу (в локальной зоне задачи). Не меняется при переносе.
+  originalDate: {
+    type: Date,
+    required: true,
+    index: true
+  },
   dueAt: {
     type: Date,
     required: true,
@@ -38,11 +44,11 @@ const occurrenceSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'done'],
+    enum: ['pending', 'done', 'skipped', 'missed'],
     default: 'pending',
     required: true
   },
-  confirmedAt: {
+  completedAt: {
     type: Date,
     default: null
   },
@@ -51,7 +57,11 @@ const occurrenceSchema = new mongoose.Schema({
     dayBefore: { type: Date, default: null },
     beforeDue: { type: Date, default: null },
     atDue: { type: Date, default: null },
-    overdue: { type: Date, default: null }
+    overdue: { type: Date, default: null },
+    dayBeforeAttempts: { type: Number, default: 0 },
+    beforeDueAttempts: { type: Number, default: 0 },
+    atDueAttempts: { type: Number, default: 0 },
+    overdueAttempts: { type: Number, default: 0 }
   }
 }, {
   timestamps: true
@@ -60,5 +70,7 @@ const occurrenceSchema = new mongoose.Schema({
 occurrenceSchema.index({ workspaceId: 1, status: 1, dueAt: 1 });
 occurrenceSchema.index({ taskId: 1, dueAt: -1 });
 occurrenceSchema.index({ taskId: 1, status: 1 });
+// Ключ вхождения: одно вхождение на дату правила
+occurrenceSchema.index({ taskId: 1, originalDate: 1 }, { unique: true });
 
 module.exports = mongoose.model('Occurrence', occurrenceSchema);

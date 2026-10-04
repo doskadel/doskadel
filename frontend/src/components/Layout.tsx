@@ -56,8 +56,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       if (!occurrenceId) return;
 
       try {
-        await api.put('/api/occurrences/confirm', { ids: [occurrenceId] });
-        window.dispatchEvent(new CustomEvent('doskadel:occurrence-updated'));
+        // F1c: подтверждение из пуша — через новый action (done по taskId+originalDate)
+        const occ = await api.get(`/api/occurrences/${occurrenceId}`);
+        const { taskId, originalDate } = occ.data.occurrence || {};
+        if (taskId && originalDate) {
+          await api.post('/api/occurrences/action', { taskId, originalDate, action: 'done' });
+          window.dispatchEvent(new CustomEvent('doskadel:occurrence-updated'));
+        }
       } catch (err) {
         console.error('[SW-MSG] Failed to confirm occurrence:', err);
       }

@@ -30,25 +30,16 @@ const taskSchema = new mongoose.Schema({
   dueDate: {
     type: Date
   },
+  // Правило повторяемости (F1c). Нет recurrence.freq = разовая задача.
   recurrence: {
-    type: {
-      type: String,
-      enum: ['daily', 'weekly', 'monthly']
-    },
-    time: {
-      type: String,
-      match: /^([01]\d|2[0-3]):[0-5]\d$/
-    },
-    dayOfWeek: {
-      type: Number,
-      min: 0,
-      max: 6
-    },
-    dayOfMonth: {
-      type: Number,
-      min: 1,
-      max: 31
-    }
+    freq: { type: String, enum: ['daily', 'weekly', 'monthly'] },
+    interval: { type: Number, min: 1, default: 1 },
+    byWeekday: { type: [Number] },
+    byMonthDay: { type: Number, min: 1, max: 31 },
+    time: { type: String, match: /^([01]\d|2[0-3]):[0-5]\d$/ },
+    until: { type: Date, default: null },
+    count: { type: Number, default: null },
+    tz: { type: String, default: null }
   },
   notifications: {
     enabled: {
@@ -62,12 +53,32 @@ const taskSchema = new mongoose.Schema({
     dayBefore: { type: Date, default: null },
     beforeDue: { type: Date, default: null },
     atDue: { type: Date, default: null },
-    overdue: { type: Date, default: null }
+    overdue: { type: Date, default: null },
+    dayBeforeAttempts: { type: Number, default: 0 },
+    beforeDueAttempts: { type: Number, default: 0 },
+    atDueAttempts: { type: Number, default: 0 },
+    overdueAttempts: { type: Number, default: 0 }
   },
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
+  },
+  // F1c split: общий id серии (у первой задачи = её _id) и ссылка на предыдущую часть
+  seriesId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Task',
+    index: true
+  },
+  prevTaskId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Task',
+    default: null
+  },
+  // Причина завершения (например, 'split') — чтобы отличать от выполненной
+  closedReason: {
+    type: String,
+    default: null
   },
   // Фундамент workspace: добавляется миграцией; после бэкфилла — required+index
   workspaceId: {
@@ -95,7 +106,7 @@ const taskSchema = new mongoose.Schema({
 });
 
 taskSchema.index({ workspaceId: 1, statusId: 1, order: 1 });
-taskSchema.index({ workspaceId: 1, 'recurrence.type': 1 });
+taskSchema.index({ workspaceId: 1, 'recurrence.freq': 1 });
 taskSchema.index({ workspaceId: 1, dueDate: 1 }); // для выборки разовых с близким dueDate
 
 module.exports = mongoose.model('Task', taskSchema);

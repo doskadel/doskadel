@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Repeat } from 'lucide-react';
 import { deadlineLevel } from '../utils/date';
 import {
   DndContext,
@@ -32,6 +33,10 @@ interface CalendarViewProps {
   onOpenTask: (id: string) => void;
   /** F1b: перенос дедлайна разовой задачи. Возвращает true при успехе. */
   onTaskMoved?: (id: string, newDueDate: string) => Promise<boolean>;
+  /** F1c: действие над вхождением повторяющейся (открыть диалог). */
+  onOccurrenceAction?: (taskId: string, originalDate: string) => void;
+  /** F1c: перенос вхождения повторяющейся на дату (открыть диалог move со scope). */
+  onOccurrenceMove?: (taskId: string, originalDate: string, newDue: string) => void;
 }
 
 type ViewMode = 'month' | 'week' | 'day';
@@ -51,7 +56,7 @@ const taskDate = (t: CalendarTask): Date | null => {
   const raw = t.nextOccurrenceDueAt || t.dueDate;
   return raw ? new Date(raw) : null;
 };
-const isRecurring = (t: CalendarTask) => !!(t.recurrence && t.recurrence.type);
+const isRecurring = (t: CalendarTask) => !!(t.recurrence && t.recurrence.freq);
 
 // Собрать новую дату: берём день из дропа, время — из старого dueDate (или 00:00, если было без времени)
 function buildNewDue(task: CalendarTask, dropDay: Date): string {
@@ -120,12 +125,12 @@ const DraggableTask: React.FC<{
   day: Date;
   getDayDate: (t: CalendarTask, day: Date) => Date | null;
   onOpen: () => void;
-}> = ({ task, day, getDayDate, onOpen }) => {
+  onAction?: () => void;
+}> = ({ task, day, getDayDate, onOpen, onAction }) => {
   const recurring = isRecurring(task);
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, isDragging } = useDraggable({
     id: `task-${task._id}`,
     data: { taskId: task._id },
-    disabled: recurring,
   });
 
   const dayDate = getDayDate(task, day);
@@ -138,31 +143,29 @@ const DraggableTask: React.FC<{
     <div
       ref={setNodeRef}
       className={'calendar-task' + (isDragging ? ' calendar-task--dragging' : '') + (recurring ? ' calendar-task--locked' : '')}
-      onClick={onOpen}
+      onClick={() => (recurring && onAction ? onAction() : onOpen())}
       role="button"
       tabIndex={0}
-      title={recurring ? 'Повторяющаяся задача: перенос пока недоступен' : undefined}
-      onKeyDown={(e) => { if (e.key === 'Enter') onOpen(); }}
+      title={recurring ? 'Действия над вхождением' : undefined}
+      onKeyDown={(e) => { if (e.key === 'Enter') (recurring && onAction ? onAction() : onOpen()); }}
     >
-      {!recurring && (
-        <span
-          ref={setActivatorNodeRef}
-          className="calendar-task-grip"
-          title="Перетащить на другой день"
-          onClick={(e) => e.stopPropagation()}
-          {...listeners}
-          {...attributes}
-        >⠿</span>
-      )}
+      <span
+        ref={setActivatorNodeRef}
+        className="calendar-task-grip"
+        title="Перетащить на другой день"
+        onClick={(e) => e.stopPropagation()}
+        {...listeners}
+        {...attributes}
+      >⠿</span>
       <span className={'calendar-task-rail calendar-task-rail--' + lvl} />
-      {recurring && <span className="calendar-task-lock" title="Повторяющаяся: перенос недоступен">🔄</span>}
+      {recurring && <span className="calendar-task-lock" title="Повторяющаяся"><Repeat size={14} className="recur-icon" /></span>}
       <span className="calendar-task-title">{task.title}</span>
       {time && <span className="calendar-task-time">{time}</span>}
     </div>
   );
 };
 
-const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [], onOpenTask, onTaskMoved }) => {
+const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [], onOpenTask, onTaskMoved, onOccurrenceAction, onOccurrenceMove }) => {
   const finalSet = new Set(finalStatusIds.map((x) => String(x)));
   const today = startOfDay(new Date());
   const [view, setView] = useState<ViewMode>('month');
@@ -240,13 +243,25 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
     if (!over || !onTaskMoved) return;
     const taskId = String(active.id).replace('task-', '');
     const task = tasks.find((t) => t._id === taskId);
-    if (!task || isRecurring(task)) return;
+    if (!task) return;
 
     const overId = String(over.id);
     if (!overId.startsWith('day-')) return;
     const [, y, m, d] = overId.split('-').map((x) => parseInt(x, 10));
     const dropDay = new Date(y, m, d);
 
+    // Повторяющаяся: открыть диалог move со scope (F1c), не переносить сразу
+    if (isRecurring(task)) {
+      if (!onOccurrenceMove) return;
+      const orig = taskDate(task);
+      if (!orig) return;
+      if (sameDay(orig, dropDay)) return;
+      const iso = buildNewDue(task, dropDay);
+      onOccurrenceMove(task._id, orig.toISOString(), iso);
+      return;
+    }
+
+    if (!onTaskMoved) return;
     // Дроп на тот же день — ничего
     const oldDate = task.dueDate ? new Date(task.dueDate) : null;
     if (oldDate && sameDay(oldDate, dropDay)) return;
@@ -339,7 +354,17 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
         <div className="calendar-empty">На этот день задач нет</div>
       ) : (
         selectedTasks.map((t) => (
-          <DraggableTask key={t._id} task={t} day={selected} getDayDate={dateForDay} onOpen={() => onOpenTask(t._id)} />
+          <DraggableTask
+            key={t._id}
+            task={t}
+            day={selected}
+            getDayDate={dateForDay}
+            onOpen={() => onOpenTask(t._id)}
+            onAction={onOccurrenceAction && isRecurring(t) ? () => {
+              const dd = dateForDay(t, selected);
+              if (dd) onOccurrenceAction(t._id, dd.toISOString());
+            } : undefined}
+          />
         ))
       )}
     </div>

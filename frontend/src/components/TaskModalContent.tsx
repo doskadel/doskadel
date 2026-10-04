@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar } from 'lucide-react';
+import { Calendar, Repeat, Check, SkipForward } from 'lucide-react';
 import { Task } from '../hooks/useTaskDetail';
 import { PRIORITY_OPTIONS, getPriorityLabel } from '../utils/priority';
 import { Status } from '../utils/status';
@@ -33,6 +33,7 @@ interface TaskModalContentProps {
   onSave: () => void;
   onCancel: () => void;
   onQuickChangeStatus: (statusId: string) => void;
+  onQuickAction?: (action: 'done' | 'skip', originalDate: string) => void;
   pendingCount?: number;
 }
 
@@ -58,6 +59,7 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
   onSave,
   onCancel,
   onQuickChangeStatus,
+  onQuickAction,
   pendingCount = 0,
 }) => {
   if (loading) return <p>Загрузка...</p>;
@@ -102,21 +104,17 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
         </select>
 
         <div>
-          <label className="input-label">Тип задачи</label>
-          <select
-            className="input"
-            value={editRecurrence ? 'recurring' : 'single'}
-            onChange={(e) => {
-              if (e.target.value === 'single') {
-                setEditRecurrence(null);
-              } else {
-                setEditRecurrence(getDefaultRecurrence('daily'));
-              }
-            }}
+          <label className="input-label">Повторять</label>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={!!editRecurrence}
+            className={'rec-toggle' + (editRecurrence ? ' rec-toggle--on' : '')}
+            onClick={() => setEditRecurrence(editRecurrence ? null : getDefaultRecurrence('daily'))}
           >
-            <option value="single">Разовое</option>
-            <option value="recurring">Повторяющееся</option>
-          </select>
+            <span className="rec-toggle-knob" />
+            <span className="rec-toggle-text">{editRecurrence ? 'Повторяющаяся задача' : 'Разовая задача'}</span>
+          </button>
         </div>
 
         {editRecurrence ? (
@@ -199,13 +197,43 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
         {isRecurring ? (
           <div>
             <p style={{ fontSize: '12px', textTransform: 'uppercase', color: 'var(--color-text-muted)', marginBottom: '4px' }}>Повторение</p>
-            <p style={{ color: 'var(--color-text)', fontSize: '15px', margin: 0 }}>
-              🔄 {formatRecurrence(task.recurrence)}
+            <p style={{ color: 'var(--color-text)', fontSize: '15px', margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Repeat size={15} className="recur-icon" /> {formatRecurrence(task.recurrence)}
             </p>
+            {task.recurrence?.tz && (
+              <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', margin: '2px 0 0' }}>{task.recurrence.tz}</p>
+            )}
+            {task.nextOccurrenceDueAt && (
+              <p style={{ color: pendingCount > 0 ? 'var(--color-danger)' : 'var(--color-text)', fontSize: '15px', margin: '8px 0 0' }}>
+                Ближайшее: {formatDueDate(task.nextOccurrenceDueAt)}
+              </p>
+            )}
             {pendingCount > 0 && (
               <p className={'task-pending-badge' + (taskFinal ? ' task-pending-badge--final' : '')}>
-                ⚠️ {pendingCount} не подтверждено
+                {pendingCount} не подтверждено
               </p>
+            )}
+            {!isEditing && task.nextOccurrenceDueAt && (
+              <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+                <button
+                  type="button"
+                  className="occ-icon-btn"
+                  title="Выполнено"
+                  aria-label="Выполнено"
+                  onClick={() => onQuickAction?.('done', task.nextOccurrenceDueAt!)}
+                >
+                  <Check size={16} />
+                </button>
+                <button
+                  type="button"
+                  className="occ-icon-btn"
+                  title="Пропустить"
+                  aria-label="Пропустить"
+                  onClick={() => onQuickAction?.('skip', task.nextOccurrenceDueAt!)}
+                >
+                  <SkipForward size={16} />
+                </button>
+              </div>
             )}
           </div>
         ) : (

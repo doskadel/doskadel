@@ -10,7 +10,7 @@ const { summarizeOccurrences, enrichTaskDue } = require('../utils/taskDueSummary
 const OCCURRENCE_HORIZON_DAYS = 7;
 
 const generateOccurrencesForTask = async (task) => {
-  if (!task.recurrence || !task.recurrence.type) return;
+  if (!task.recurrence || !task.recurrence.freq) return;
   const now = new Date();
   const dates = getNextOccurrences(task.recurrence, now, OCCURRENCE_HORIZON_DAYS);
   if (dates.length === 0) return;
@@ -29,6 +29,7 @@ const generateOccurrencesForTask = async (task) => {
         userId: task.userId,
         workspaceId: task.workspaceId,
         createdBy: task.createdBy || task.userId,
+        originalDate: d,
         dueAt: d,
         status: 'pending',
         notificationsSent: {
@@ -78,7 +79,7 @@ const createTask = async (req, res) => {
     });
 
     await task.save();
-    await generateOccurrencesForTask(task);
+    // F1c: вхождения считаются на лету, заранее не создаём
 
     res.status(201).json({ success: true, task });
   } catch (error) {
@@ -95,6 +96,8 @@ const getTasks = async (req, res) => {
     } = req.query;
 
     const filter = { workspaceId: req.workspaceId };
+    // closedReason != null (split/manual) — не активная, скрыта из списков/доски
+    if (req.query.includeClosed !== 'true') filter.closedReason = null;
 
     if (q && q.trim()) {
       const regex = new RegExp(escapeRegex(q.trim()), 'i');
@@ -246,11 +249,9 @@ const getTasks = async (req, res) => {
 
     let tasks = await query;
 
-    // Сроковая сводка по задаче — единая функция (R1).
-    const recurringIds = tasks
-      .filter((t) => t.recurrence && t.recurrence.type)
-      .map((t) => t._id);
-    const summary = await summarizeOccurrences(req.workspaceId, recurringIds);
+    // Сроковая сводка по задаче — на лету (F1c этап 2).
+    const recurringTasks = tasks.filter((t) => t.recurrence && t.recurrence.freq).map((t) => t.toObject());
+    const summary = await summarizeOccurrences(req.workspaceId, recurringTasks);
     tasks = tasks.map((t) => enrichTaskDue(t.toObject(), summary));
 
     // Для overdue/dueSoon — сортируем по дате (самое срочное сверху)
@@ -278,7 +279,15 @@ const getTaskById = async (req, res) => {
   try {
     const task = await Task.findOne({ _id: req.params.id, workspaceId: req.workspaceId });
     if (!task) return res.status(404).json({ success: false, message: 'Task not found' });
-    res.json({ success: true, task });
+    // F1c: обогащаем сроковой сводкой (nextOccurrenceDueAt, pendingOccurrenceCount, occurrenceStatus)
+    const obj = task.toObject();
+    if (obj.recurrence && obj.recurrence.freq) {
+      const summary = await summarizeOccurrences(req.workspaceId, [obj]);
+      enrichTaskDue(obj, summary);
+    } else {
+      enrichTaskDue(obj, new Map());
+    }
+    res.json({ success: true, task: obj });
   } catch (error) {
     console.error('Get task error:', error);
     res.status(500).json({ success: false, message: 'Server error' });
@@ -306,9 +315,9 @@ const updateTask = async (req, res) => {
 
     // F1b: запрет смены дедлайна у повторяющейся задачи (DnD только разовых).
     // Если повторение убирают в этом же запросе — смена dueDate допустима.
-    const wasRecurring = !!(oldTask.recurrence && oldTask.recurrence.type);
+    const wasRecurring = !!(oldTask.recurrence && oldTask.recurrence.freq);
     const staysRecurring = req.body.recurrence !== undefined
-      ? !!(req.body.recurrence && req.body.recurrence.type)
+      ? !!(req.body.recurrence && req.body.recurrence.freq)
       : wasRecurring;
     if (dueChanged && wasRecurring && staysRecurring) {
       return res.status(400).json({ success: false, message: 'Нельзя менять дедлайн повторяющейся задачи' });
@@ -332,9 +341,18 @@ const updateTask = async (req, res) => {
       { new: true, runValidators: true }
     );
 
+    // F1c: при смене правила вхождения считаются на лету.
+    // Удаляем только будущие чистые pending (без действий/отправок), факт (done/skipped/moved) сохраняем.
     if (recurrenceChanged) {
-      await Occurrence.deleteMany({ taskId: task._id, status: 'pending' });
-      await generateOccurrencesForTask(task);
+      await Occurrence.deleteMany({
+        taskId: task._id,
+        status: 'pending',
+        dueAt: { $gte: new Date() },
+        'notificationsSent.dayBefore': null,
+        'notificationsSent.beforeDue': null,
+        'notificationsSent.atDue': null,
+        'notificationsSent.overdue': null,
+      });
     }
 
     res.json({ success: true, task });

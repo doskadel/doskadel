@@ -4,13 +4,13 @@ const Article = require('../models/Article');
 const User = require('../models/User');
 const { SINGLE } = require('../utils/taskKinds');
 const { aggregateOccurrenceSummary } = require('../utils/taskDueSummary');
+const { resolveTz, endOfDayUtc } = require('../utils/tz');
+const { DateTime } = require('luxon');
 
-// Конец дня (23:59:59.999) через N календарных дней от сегодня (локальное время сервера).
-const endOfDayPlus = (n) => {
-  const d = new Date();
-  d.setDate(d.getDate() + n);
-  d.setHours(23, 59, 59, 999);
-  return d;
+// Конец дня через N календарных дней ОТ СЕГОДНЯ В ЗОНЕ ПОЛЬЗОВАТЕЛЯ (в UTC).
+const endOfDayPlusTz = (n, tz) => {
+  const target = DateTime.now().setZone(tz).plus({ days: n });
+  return target.endOf('day').toUTC().toJSDate();
 };
 
 const getDashboard = async (req, res) => {
@@ -20,21 +20,22 @@ const getDashboard = async (req, res) => {
     const statuses = await Status.find({ workspaceId }).sort({ order: 1 }).lean();
     const statusCounts = await Promise.all(
       statuses.map(async (s) => {
-        const count = await Task.countDocuments({ workspaceId, statusId: s._id });
+        const count = await Task.countDocuments({ workspaceId, statusId: s._id, closedReason: null });
         return { statusId: s._id, name: s.name, color: s.color, count, key: s.key || null };
       })
     );
 
     const activeStatusIds = statuses.filter((s) => !s.isFinal).map((s) => s._id);
     const now = new Date();
-    const user = await User.findById(userId).select('dashboardSettings');
+    const user = await User.findById(userId).select('dashboardSettings timezone');
     const upcomingDays = (user && user.dashboardSettings && user.dashboardSettings.upcomingDays) || 3;
     const blocksCfg = (user && user.dashboardSettings && user.dashboardSettings.blocks) || [];
     const limitOf = (id, def) => {
       const b = blocksCfg.find((x) => x.id === id);
       return b && b.config && b.config.limit ? b.config.limit : def;
     };
-    const upcomingLimit = endOfDayPlus(upcomingDays);
+    const tz = resolveTz(user, req.get('X-Timezone'));
+    const upcomingLimit = endOfDayPlusTz(upcomingDays, tz);
 
     // ==== ПРОСРОЧЕНО ====
     // 1) Разовые задачи с dueDate < now
@@ -149,10 +150,10 @@ const getDashboard = async (req, res) => {
     const upcomingTasks = allUpcoming.slice(0, limitOf('upcoming', 5));
 
     // Общие счётчики
-    const totalTasks = await Task.countDocuments({ workspaceId });
+    const totalTasks = await Task.countDocuments({ workspaceId, closedReason: null });
     const totalArticles = await Article.countDocuments({ workspaceId });
 
-    const recentTasks = await Task.find({ workspaceId })
+    const recentTasks = await Task.find({ workspaceId, closedReason: null })
       .sort({ updatedAt: -1 })
       .limit(5)
       .select('_id title statusId priority updatedAt');

@@ -4,7 +4,52 @@
 
 const Task = require('../models/Task');
 const Occurrence = require('../models/Occurrence');
-const { SINGLE } = require('./taskKinds');
+const { SINGLE, RECURRING } = require('./taskKinds');
+const { getNextOccurrences } = require('./recurrence');
+
+/**
+ * Вычислить вхождения повторяющихся задач на лету в окне [gte, lt).
+ * Накладывает исключения: если на дату правила есть Occurrence (done/skipped/moved) — пропускаем.
+ * @param {{gte: Date, lt: Date}} window
+ * @param {object} ctx { activeStatusIds }
+ */
+async function computeOccurrences(window, ctx = {}) {
+  if (!ctx.activeStatusIds) ctx.activeStatusIds = await getActiveStatusIds();
+  const tasks = await Task.find({
+    ...RECURRING,
+    statusId: { $in: ctx.activeStatusIds },
+  }).lean();
+
+  const out = [];
+  for (const t of tasks) {
+    if (t.notifications && t.notifications.enabled === false) continue;
+    // считаем вхождения чуть раньше окна; floor — параметр (дефолт 90 дней для job)
+    const floorDays = ctx.floorDays != null ? ctx.floorDays : 90;
+    const floor = floorDays > 0 ? new Date(Date.now() - floorDays * 24 * 60 * 60 * 1000) : new Date(0);
+    const from = new Date(Math.max(window.gte.getTime() - 24 * 60 * 60 * 1000, floor.getTime()));
+    const dates = getNextOccurrences(t.recurrence, from, 60).filter(
+      (d) => d >= window.gte && d < window.lt
+    );
+    if (dates.length === 0) continue;
+    // исключения: существующие Occurrence по originalDate
+    const origs = await Occurrence.find({ taskId: t._id, originalDate: { $in: dates } })
+      .select('originalDate status dueAt')
+      .lean();
+    const origMap = new Map(origs.map((o) => [o.originalDate.getTime(), o]));
+    for (const d of dates) {
+      const ex = origMap.get(d.getTime());
+      if (ex) {
+        // если вхождение перенесено (dueAt != originalDate) и попало в окно — отдадим по dueAt
+        if (ex.status === 'pending' && ex.dueAt && ex.dueAt.getTime() !== d.getTime() && ex.dueAt >= window.gte && ex.dueAt < window.lt) {
+          out.push({ task: t, dueAt: ex.dueAt, originalDate: d, occurrenceId: ex._id });
+        }
+        continue; // done/skipped или уже обработано — не отдаём как обычное
+      }
+      out.push({ task: t, dueAt: d, originalDate: d, occurrenceId: null });
+    }
+  }
+  return out;
+}
 
 // Кэш активных (не финальных) статусов на один прогон job.
 const getActiveStatusIds = async () => {
@@ -25,26 +70,42 @@ async function getDueItems(kind, field, window, ctx = {}) {
   const notifKey = `notificationsSent.${field}`;
 
   if (kind === 'occurrence') {
-    const rows = await Occurrence.find({
-      status: 'pending',
-      dueAt: { $gte: window.gte, $lt: window.lt },
-      [notifKey]: null
-    })
-      .populate('taskId', 'title notifications userId')
-      .lean();
-
-    return rows
-      .filter((o) => o.taskId && !(o.taskId.notifications && o.taskId.notifications.enabled === false))
-      .map((o) => ({
+    // Вхождения на лету + материализация под уведомление (upsert по {taskId, originalDate}).
+    const computed = await computeOccurrences(window, ctx);
+    const out = [];
+    for (const c of computed) {
+      const t = c.task;
+      // upsert записи (идемпотентно через unique {taskId, originalDate})
+      const res = await Occurrence.findOneAndUpdate(
+        { taskId: t._id, originalDate: c.originalDate },
+        {
+          $setOnInsert: {
+            taskId: t._id,
+            originalDate: c.originalDate,
+            dueAt: c.dueAt,
+            status: 'pending',
+            workspaceId: t.workspaceId,
+            userId: t.userId,
+            createdBy: t.createdBy || t.userId,
+          }
+        },
+        { new: true, upsert: true, setDefaultsOnInsert: true }
+      ).lean();
+      // если запись уже была отправлена по этому полю — пропускаем
+      if (res.notificationsSent && res.notificationsSent[field]) continue;
+      if (res.status !== 'pending') continue; // done/skipped/missed — не шлём
+      out.push({
         source: 'occurrence',
-        id: o._id,
-        taskId: o.taskId._id,
-        userId: o.userId,
-        title: o.taskId.title,
-        dueAt: o.dueAt,
-        occurrenceId: String(o._id),
-        requiresConfirm: true
-      }));
+        id: res._id,
+        taskId: t._id,
+        userId: t.userId,
+        title: t.title,
+        dueAt: res.dueAt,
+        occurrenceId: String(res._id),
+        requiresConfirm: true,
+      });
+    }
+    return out;
   }
 
   if (!ctx.activeStatusIds) ctx.activeStatusIds = await getActiveStatusIds();
@@ -70,13 +131,32 @@ async function getDueItems(kind, field, window, ctx = {}) {
     }));
 }
 
-/** Пометить отправку в исходном документе. */
+/**
+ * Пометить отправку атомарно (compare-and-set): ставим флаг только если он ещё не установлен.
+ * Возвращает true, если пометка удалась (значит пуш можно считать отправленным нами).
+ */
+const MAX_SEND_ATTEMPTS = 3;
+
 async function markNotified(item, field) {
   const Model = item.source === 'occurrence' ? Occurrence : Task;
-  await Model.updateOne(
-    { _id: item.id },
-    { $set: { [`notificationsSent.${field}`]: new Date() } }
+  const res = await Model.findOneAndUpdate(
+    { _id: item.id, [`notificationsSent.${field}`]: null },
+    { $set: { [`notificationsSent.${field}`]: new Date() }, $inc: { [`notificationsSent.${field}Attempts`]: 1 } },
+    { new: true }
   );
+  return !!res;
+}
+
+/** Снять флаг отправки (при ошибке), чтобы можно было повторить (до MAX_SEND_ATTEMPTS). */
+async function unmarkNotified(item, field) {
+  const Model = item.source === 'occurrence' ? Occurrence : Task;
+  const cur = await Model.findById(item.id).select(`notificationsSent.${field}Attempts`).lean();
+  const attempts = (cur && cur.notificationsSent && cur.notificationsSent[`${field}Attempts`]) || 0;
+  if (attempts >= MAX_SEND_ATTEMPTS) {
+    console.error(`[push] ${field}: превышено попыток (${attempts}), пуш потерян для ${item.id}`);
+    return; // оставляем флаг (не спамим), логируем
+  }
+  await Model.updateOne({ _id: item.id }, { $set: { [`notificationsSent.${field}`]: null } });
 }
 
 // Кэш настроек пользователя на прогон (в одном job юзер может встретиться многократно).
@@ -117,13 +197,20 @@ async function sendDuePushes(kind, field, window, buildPush, deps) {
     if (!userWantsPush(user, field)) continue;
     if (isInQuietHours(user, now)) continue;
 
-    const payload = buildPush(item);
-    const result = await sendToUser(item.userId, { icon: '/logo192.png', ...payload });
+    // compare-and-set: атомарно занимаем флаг; если уже занят — другой job/прогон отправил
+    const claimed = await markNotified(item, field);
+    if (!claimed) continue;
 
-    if (result && result.sent > 0) {
-      await markNotified(item, field);
+    const payload = buildPush(item);
+    try {
+      const result = await sendToUser(item.userId, { icon: '/logo192.png', ...payload });
+      // если никому не ушло (нет подписок) — снимаем флаг, чтобы не считать отправленным
+      if (result && result.sent === 0) await unmarkNotified(item, field);
+    } catch (e) {
+      console.error('[push] ошибка отправки:', e.message);
+      await unmarkNotified(item, field);
     }
   }
 }
 
-module.exports = { getDueItems, markNotified, getActiveStatusIds, sendDuePushes, clearUserCache };
+module.exports = { getDueItems, markNotified, unmarkNotified, getActiveStatusIds, sendDuePushes, clearUserCache };

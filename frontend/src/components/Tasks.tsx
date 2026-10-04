@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import PullToRefresh from './PullToRefresh';
 import LoadingOverlay from './LoadingOverlay';
 import CalendarView from './CalendarView';
+import OccurrenceActionDialog from './OccurrenceActionDialog';
 import SortableSettings from './shared/SortableSettings';
-import { GripVertical, X, Plus, Settings, CalendarDays, Columns, List, Info, LayoutList } from 'lucide-react';
+import { GripVertical, X, Plus, Settings, CalendarDays, Columns, List, Info, LayoutList, Repeat } from 'lucide-react';
 
 import { useSearchParams } from 'react-router-dom';
 import api from '../utils/api';
@@ -16,7 +17,7 @@ import RecurrencePicker from './RecurrencePicker';
 import ClearableField from './ClearableField';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { PRIORITY_OPTIONS, getPriorityLabel } from '../utils/priority';
-import { deadlineLevel } from '../utils/date';
+import { deadlineLevel, formatOccurrenceLabel } from '../utils/date';
 import { useUpcomingDays } from '../hooks/useUpcomingDays';
 import { Status } from '../utils/status';
 import { formatDueDate, isOverdue } from '../utils/date';
@@ -32,6 +33,7 @@ interface Task {
   order: number;
   dueDate?: string | null;
   recurrence?: Recurrence | null;
+  occurrenceStatus?: 'pending' | 'overdue';
   pendingOccurrenceCount?: number;
   nextOccurrenceDueAt?: string | null;
   createdAt: string;
@@ -310,6 +312,16 @@ const Tasks: React.FC = () => {
   };
 
   // F1b: перенос дедлайна разовой задачи из календаря (DnD)
+  // F1c: диалог действий над вхождением повторяющейся
+  const [occDialog, setOccDialog] = useState<{ taskId: string; originalDate: string; newDue?: string } | null>(null);
+
+  const handleOccurrenceAction = (taskId: string, originalDate: string) => {
+    setOccDialog({ taskId, originalDate });
+  };
+  const handleOccurrenceMove = (taskId: string, originalDate: string, newDue: string) => {
+    setOccDialog({ taskId, originalDate, newDue });
+  };
+
   const handleTaskMoved = async (id: string, newDueDate: string): Promise<boolean> => {
     const prev = tasks.find((t) => t._id === id);
     if (!prev) return false;
@@ -495,24 +507,22 @@ const Tasks: React.FC = () => {
           </select>
 
           <div>
-            <label className="input-label">Тип задачи</label>
-            <select
-              className="input"
-              value={isRecurring ? 'recurring' : 'single'}
-              onChange={(e) => {
-                const recurring = e.target.value === 'recurring';
+            <label className="input-label">Повторять</label>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={isRecurring}
+              className={'rec-toggle' + (isRecurring ? ' rec-toggle--on' : '')}
+              onClick={() => {
+                const recurring = !isRecurring;
                 setIsRecurring(recurring);
-                if (recurring && !recurrence) {
-                  setRecurrence(getDefaultRecurrence('daily'));
-                }
-                if (!recurring) {
-                  setRecurrence(null);
-                }
+                if (recurring && !recurrence) setRecurrence(getDefaultRecurrence('daily'));
+                if (!recurring) setRecurrence(null);
               }}
             >
-              <option value="single">Разовое</option>
-              <option value="recurring">Повторяющееся</option>
-            </select>
+              <span className="rec-toggle-knob" />
+              <span className="rec-toggle-text">{isRecurring ? 'Повторяющаяся задача' : 'Разовая задача'}</span>
+            </button>
           </div>
 
           {isRecurring ? (
@@ -532,15 +542,10 @@ const Tasks: React.FC = () => {
           )}
 
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: 'var(--space-sm)' }}>
-            <button
-              type="button"
-              className="button"
-              onClick={handleCloseCreate}
-              style={{ backgroundColor: 'var(--color-text-muted)' }}
-            >
+            <button type="button" className="occ-btn-secondary" style={{ flex: '0 0 auto', padding: '0 20px' }} onClick={handleCloseCreate}>
               Отмена
             </button>
-            <button type="submit" className="button" disabled={priority === ''}>
+            <button type="submit" className="button" disabled={priority === '' || !title.trim()}>
               Создать
             </button>
           </div>
@@ -606,7 +611,7 @@ const Tasks: React.FC = () => {
                       Приоритет: {getPriorityLabel(task.priority)}
                     </span>
                     <span className="task-card-meta-item">
-                      Статус: {getStatusName(task.statusId)}
+                      Статус: {task.recurrence ? (task.occurrenceStatus === 'overdue' ? 'Просрочено' : 'Ожидает') : getStatusName(task.statusId)}
                     </span>
 
                     {displayDate && (
@@ -614,12 +619,21 @@ const Tasks: React.FC = () => {
                         className="task-card-meta-item"
                         style={!isFinal && isOverdue(displayDate) ? { color: 'var(--color-danger)', fontWeight: 500 } : undefined}
                       >
-                        Срок до {formatDueDate(displayDate)}
+                        {task.recurrence ? `Ближайшее: ${formatOccurrenceLabel(displayDate)}` : `Срок до ${formatDueDate(displayDate)}`}
                       </span>
                     )}
                     {task.recurrence && (
-                      <span className="task-card-meta-item" style={{ whiteSpace: 'nowrap' }}>
-                        🔄 {formatRecurrenceShort(task.recurrence)}
+                      <span
+                        className="task-card-meta-item"
+                        style={{ whiteSpace: 'nowrap', cursor: 'pointer' }}
+                        title="Действия над вхождением"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const d = task.nextOccurrenceDueAt || task.dueDate;
+                          if (d && handleOccurrenceAction) handleOccurrenceAction(task._id, new Date(d).toISOString());
+                        }}
+                      >
+                        <Repeat size={14} className="recur-icon" /> {formatRecurrenceShort(task.recurrence)}
                         {(task.pendingOccurrenceCount || 0) > 0 && (
                           <span className={'task-pending-badge task-pending-badge--sm' + (isFinal ? ' task-pending-badge--final' : '')} style={{ marginLeft: 6 }}>
                             {task.pendingOccurrenceCount}
@@ -636,7 +650,41 @@ const Tasks: React.FC = () => {
       )}
 
       {view === 'calendar' && (
-        <CalendarView tasks={tasks as any} finalStatusIds={statuses.filter((s) => s.isFinal).map((s) => s._id)} onOpenTask={openTask} onTaskMoved={handleTaskMoved} />
+        <CalendarView
+          tasks={tasks as any}
+          finalStatusIds={statuses.filter((s) => s.isFinal).map((s) => s._id)}
+          onOpenTask={openTask}
+          onTaskMoved={handleTaskMoved}
+          onOccurrenceAction={handleOccurrenceAction}
+          onOccurrenceMove={handleOccurrenceMove}
+        />
+      )}
+
+      {occDialog && (
+        <OccurrenceActionDialog
+          open
+          onClose={() => setOccDialog(null)}
+          taskId={occDialog.taskId}
+          originalDate={occDialog.originalDate}
+          taskTitle={tasks.find((t) => t._id === occDialog.taskId)?.title}
+          canComplete={(() => { const t = tasks.find((x) => x._id === occDialog.taskId); return !!(t?.recurrence && !t.recurrence.count && !t.recurrence.until); })()}
+          onAct={async ({ action, dueAt, scope }) => {
+            await api.post('/api/occurrences/action', {
+              taskId: occDialog.taskId,
+              originalDate: occDialog.originalDate,
+              action,
+              dueAt: dueAt || occDialog.newDue,
+              scope,
+            });
+            setOccDialog(null);
+            fetchTasks();
+          }}
+          onCompleteSeries={async () => {
+            await api.post('/api/occurrences/complete-series', { taskId: occDialog.taskId });
+            setOccDialog(null);
+            fetchTasks();
+          }}
+        />
       )}
 
       {viewsEditOpen && settingsView === 'main' && (

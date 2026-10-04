@@ -1,98 +1,87 @@
 /**
- * Утилиты для работы с повторяющимися задачами.
- *
- * recurrence = {
- *   type: 'daily' | 'weekly' | 'monthly',
- *   time: 'HH:mm',
- *   dayOfWeek: 0-6,     // только weekly (0 = вс)
- *   dayOfMonth: 1-31    // только monthly
+ * Повторяемость (F1c). recurrence = {
+ *   freq:'daily'|'weekly'|'monthly', interval, byWeekday:[0-6], byMonthDay:1-31,
+ *   time:'HH:mm', until:Date|null, count:number|null, tz:IANA-зона
  * }
+ * Вхождения считаются в зоне tz (учёт летнего времени), хранятся в UTC.
+ * Горизонт ограничен (HORIZON_MONTHS).
  */
+const { DateTime } = require('luxon');
 
-const pad = (n) => String(n).padStart(2, '0');
-
-/**
- * Собирает Date из локальных компонентов и возвращает UTC.
- * time — 'HH:mm' в локальном времени пользователя? Нет: считаем UTC,
- * потому что храним всё в UTC, а показываем локально на фронте.
- */
-const buildUtcDate = (year, month, day, hours, minutes) => {
-  return new Date(Date.UTC(year, month, day, hours, minutes, 0, 0));
-};
+const HORIZON_MONTHS = 12;
+const DEFAULT_TZ = 'Europe/Moscow';
+const WEEKDAYS_RU = ['воскресенье', 'понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота'];
+const WEEKDAYS_RU_SHORT = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
 
 const getTimeParts = (time) => {
-  const [h, m] = time.split(':').map((v) => parseInt(v, 10));
+  const [h, m] = (time || '00:00').split(':').map((v) => parseInt(v, 10));
   return { hours: h, minutes: m };
 };
 
 /**
- * Возвращает массив дат (UTC) следующих вхождений, начиная с fromExclusive,
- * в количестве count штук.
+ * Следующие вхождения от fromExclusive, не более count штук, в пределах горизонта.
+ * @returns {Date[]} даты в UTC
  */
 const getNextOccurrences = (recurrence, fromExclusive, count = 7) => {
-  if (!recurrence || !recurrence.type || !recurrence.time) return [];
-
+  if (!recurrence || !recurrence.freq) return [];
+  const tz = recurrence.tz || DEFAULT_TZ;
   const { hours, minutes } = getTimeParts(recurrence.time);
+  const from = DateTime.fromJSDate(new Date(fromExclusive), { zone: tz });
+  const horizonEnd = from.plus({ months: HORIZON_MONTHS });
+  const interval = Math.max(1, recurrence.interval || 1);
+  const until = recurrence.until ? DateTime.fromJSDate(new Date(recurrence.until), { zone: tz }) : null;
+  const maxCount = recurrence.count || null;
   const result = [];
-  const from = new Date(fromExclusive);
 
-  if (recurrence.type === 'daily') {
-    // Начинаем с сегодняшнего дня, но если время уже прошло — со следующего
-    let cursor = new Date(Date.UTC(
-      from.getUTCFullYear(),
-      from.getUTCMonth(),
-      from.getUTCDate(),
-      hours,
-      minutes,
-      0,
-      0
-    ));
-    if (cursor.getTime() <= from.getTime()) {
-      cursor.setUTCDate(cursor.getUTCDate() + 1);
-    }
-    for (let i = 0; i < count; i++) {
-      result.push(new Date(cursor));
-      cursor.setUTCDate(cursor.getUTCDate() + 1);
-    }
-    return result;
-  }
+  const tryPush = (dt) => {
+    if (!dt.isValid) return false;
+    if (dt <= from) return true;
+    if (until && dt > until) return false;
+    if (dt > horizonEnd) return false;
+    if (maxCount && result.length >= maxCount) return false;
+    result.push(dt.toUTC().toJSDate());
+    return true;
+  };
 
-  if (recurrence.type === 'weekly') {
-    const targetDow = recurrence.dayOfWeek ?? 1; // по умолчанию понедельник
-    let cursor = new Date(Date.UTC(
-      from.getUTCFullYear(),
-      from.getUTCMonth(),
-      from.getUTCDate(),
-      hours,
-      minutes,
-      0,
-      0
-    ));
-    // Сдвигаем до ближайшего targetDow
-    while (cursor.getUTCDay() !== targetDow || cursor.getTime() <= from.getTime()) {
-      cursor.setUTCDate(cursor.getUTCDate() + 1);
-    }
-    for (let i = 0; i < count; i++) {
-      result.push(new Date(cursor));
-      cursor.setUTCDate(cursor.getUTCDate() + 7);
+  if (recurrence.freq === 'daily') {
+    let cursor = from.set({ hour: hours, minute: minutes, second: 0, millisecond: 0 });
+    if (cursor <= from) cursor = cursor.plus({ days: 1 });
+    let guard = 0;
+    while (result.length < count && guard < 400) {
+      guard++;
+      if (!tryPush(cursor)) break;
+      cursor = cursor.plus({ days: interval });
     }
     return result;
   }
 
-  if (recurrence.type === 'monthly') {
-    const targetDom = recurrence.dayOfMonth ?? 1;
-    let year = from.getUTCFullYear();
-    let month = from.getUTCMonth();
-
-    while (result.length < count) {
-      const lastDayOfMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
-      const actualDay = Math.min(targetDom, lastDayOfMonth);
-      const candidate = buildUtcDate(year, month, actualDay, hours, minutes);
-      if (candidate.getTime() > from.getTime()) {
-        result.push(candidate);
+  if (recurrence.freq === 'weekly') {
+    const days = (recurrence.byWeekday && recurrence.byWeekday.length ? recurrence.byWeekday : [1]).slice().sort();
+    // luxon: weekday 1=пн..7=вс; наши byWeekday 0=вс..6=сб -> конвертируем
+    const luxonDays = days.map((d) => (d === 0 ? 7 : d));
+    let cursor = from.startOf('day').set({ hour: hours, minute: minutes });
+    let guard = 0;
+    while (result.length < count && guard < 400 * 7) {
+      guard++;
+      if (luxonDays.includes(cursor.weekday)) {
+        if (cursor > from) { if (!tryPush(cursor)) break; }
       }
-      month += 1;
-      if (month > 11) { month = 0; year += 1; }
+      cursor = cursor.plus({ days: 1 });
+    }
+    return result;
+  }
+
+  if (recurrence.freq === 'monthly') {
+    const dom = recurrence.byMonthDay || 1;
+    let cursor = from.startOf('month').set({ day: Math.min(dom, from.daysInMonth), hour: hours, minute: minutes });
+    if (cursor <= from) cursor = cursor.plus({ months: interval });
+    let guard = 0;
+    while (result.length < count && guard < 240) {
+      guard++;
+      const day = Math.min(dom, cursor.daysInMonth);
+      const candidate = cursor.set({ day, hour: hours, minute: minutes });
+      if (!tryPush(candidate)) break;
+      cursor = cursor.plus({ months: interval });
     }
     return result;
   }
@@ -100,30 +89,16 @@ const getNextOccurrences = (recurrence, fromExclusive, count = 7) => {
   return [];
 };
 
-/**
- * Форматирует правило в читаемый текст: "Каждый день, 14:00"
- */
-const WEEKDAYS_RU = ['воскресенье', 'понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота'];
-const WEEKDAYS_RU_SHORT = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
-
 const formatRecurrence = (recurrence) => {
-  if (!recurrence || !recurrence.type) return '';
+  if (!recurrence || !recurrence.freq) return '';
   const time = recurrence.time || '';
-
-  if (recurrence.type === 'daily') {
-    return `Каждый день, ${time}`;
+  if (recurrence.freq === 'daily') return `Каждый день, ${time}`;
+  if (recurrence.freq === 'weekly') {
+    const d = (recurrence.byWeekday && recurrence.byWeekday[0]) ?? 1;
+    return `Каждый ${WEEKDAYS_RU[d]}, ${time}`;
   }
-  if (recurrence.type === 'weekly') {
-    const dow = WEEKDAYS_RU_SHORT[recurrence.dayOfWeek ?? 1] || '';
-    return `Каждый ${WEEKDAYS_RU[recurrence.dayOfWeek ?? 1]}, ${time}`;
-  }
-  if (recurrence.type === 'monthly') {
-    return `${recurrence.dayOfMonth ?? 1}-го числа, ${time}`;
-  }
+  if (recurrence.freq === 'monthly') return `${recurrence.byMonthDay ?? 1}-го числа, ${time}`;
   return '';
 };
 
-module.exports = {
-  getNextOccurrences,
-  formatRecurrence
-};
+module.exports = { getNextOccurrences, formatRecurrence, DEFAULT_TZ, HORIZON_MONTHS };

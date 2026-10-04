@@ -530,6 +530,65 @@ margin-bottom: var(--space-md);
 .more-dd-ext { margin-left: auto; color: var(--color-text-muted); }
 .more-page-ext { margin-left: auto; color: var(--color-text-muted); }
 
+/* Иконка повторения (lucide Repeat) — вместо эмодзи */
+.recur-icon { vertical-align: -2px; color: var(--color-text-muted); }
+
+/* ==================== TOGGLE (Повторять) ==================== */
+.rec-toggle {
+  display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 0;
+  background: transparent; border: 0; appearance: none; font: inherit; color: var(--color-text); cursor: pointer;
+}
+.rec-toggle-knob {
+  width: 40px; height: 24px; border-radius: 999px; background: var(--color-surface-alt); border: 1px solid var(--surface-border); position: relative; transition: background 0.15s; flex-shrink: 0; box-sizing: border-box;
+}
+.rec-toggle-knob::after {
+  content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: transform 0.15s; box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+.rec-toggle--on .rec-toggle-knob { background: var(--color-primary); border-color: var(--color-primary); }
+.rec-toggle--on .rec-toggle-knob::after { transform: translateX(16px); }
+.rec-toggle-text { font-size: 14px; white-space: nowrap; }
+
+/* ==================== OCCURRENCE ACTIONS ==================== */
+.occ-actions { display: flex; flex-direction: column; gap: 8px; }
+.occ-action-btn {
+  display: inline-flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 0 14px;
+  background: var(--color-surface); border: 1px solid var(--surface-border); border-radius: var(--radius-md);
+  color: var(--color-text); font: inherit; font-size: 15px; cursor: pointer; text-align: left;
+}
+.occ-action-btn:hover:not(:disabled) { border-color: var(--color-primary); }
+.occ-action-btn:disabled { opacity: 0.5; cursor: default; }
+.occ-action-btn--danger { color: var(--color-danger); }
+.occ-action-btn--ghost { background: transparent; justify-content: center; }
+.occ-move { display: flex; flex-direction: column; gap: 8px; }
+.occ-label { font-size: 13px; color: var(--color-text-muted); }
+.occ-input { height: 44px; padding: 0 12px; border: 1px solid var(--color-border); border-radius: var(--radius-md); font: inherit; background: var(--color-surface); color: var(--color-text); }
+.occ-scope { display: flex; gap: 6px; flex-wrap: wrap; }
+.occ-scope-btn { flex: 1; min-height: 40px; padding: 0 10px; border: 1px solid var(--surface-border); border-radius: var(--radius-md); background: var(--color-surface); color: var(--color-text-muted); font: inherit; font-size: 13px; cursor: pointer; }
+.occ-scope-btn--active { border-color: var(--color-primary); color: var(--color-primary); background: var(--color-surface-alt); font-weight: 600; }
+.occ-move-actions { display: flex; gap: 8px; margin-top: 4px; }
+.occ-move-actions .occ-action-btn { justify-content: center; }
+.occ-scope-hint { margin: 4px 0 0; font-size: 13px; color: var(--color-text-muted); }
+.occ-summary { font-size: 13px; color: var(--color-text-muted); margin: 0 0 10px; }
+.occ-row-actions { display: flex; gap: 8px; margin-left: auto; }
+.occ-icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border: 1.5px solid var(--color-border); background: var(--color-surface-alt); border-radius: var(--radius-md); color: var(--color-text); cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+.occ-icon-btn svg { width: 18px; height: 18px; }
+.occ-icon-btn:hover:not(:disabled) { border-color: var(--color-primary); color: var(--color-primary); }
+.occ-icon-btn:hover:not(:disabled) { background: var(--color-surface-alt); color: var(--color-text); }
+.occ-icon-btn:disabled { opacity: 0.5; cursor: default; }
+.occ-badge { font-size: 12px; padding: 2px 8px; border-radius: 999px; margin-left: 8px; }
+.occ-badge--done { background: color-mix(in srgb, var(--color-success) 16%, transparent); color: var(--color-success); }
+.occ-badge--skipped { background: var(--color-surface-alt); color: var(--color-text-muted); }
+.occ-badge--missed { background: color-mix(in srgb, var(--color-danger) 14%, transparent); color: var(--color-danger); }
+.occ-more { display: block; width: 100%; margin-top: 8px; padding: 8px; border: 1px dashed var(--surface-border); border-radius: var(--radius-sm); background: transparent; color: var(--color-text-muted); font: inherit; font-size: 13px; cursor: pointer; }
+.recur-row { display: flex; align-items: center; gap: 8px; }
+.recur-word { font-size: 14px; color: var(--color-text-muted); white-space: nowrap; }
+.recur-num { width: 64px; }
+.recur-unit { flex: 1; }
+.recurrence-tz-hint { font-size: 12px; color: var(--color-text-muted); margin: 4px 0 0; }
+.occ-btn-primary { flex: 1; min-height: 44px; border: none; border-radius: var(--radius-md); background: var(--color-primary); color: var(--color-on-accent); font: inherit; font-size: 15px; font-weight: 500; cursor: pointer; }
+.occ-btn-primary:disabled { opacity: 0.5; cursor: default; }
+.occ-btn-secondary { flex: 1; min-height: 44px; border: 1px solid var(--surface-border); border-radius: var(--radius-md); background: transparent; color: var(--color-text); font: inherit; font-size: 15px; cursor: pointer; }
+
 /* ==================== TOASTS ==================== */
 .toast-stack {
   position: fixed;

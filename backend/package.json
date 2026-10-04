@@ -19,6 +19,7 @@
     "express-validator": "^7.0.1",
     "helmet": "^7.0.0",
     "jsonwebtoken": "^9.0.2",
+    "luxon": "^3.7.2",
     "mongoose": "^7.5.0",
     "web-push": "^3.6.7"
   },
