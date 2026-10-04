@@ -9,21 +9,17 @@ a:focus:not(:focus-visible),
 input:focus:not(:focus-visible) {
   outline: none;
 }
-/* Тач: без синей подсветки тапа и рамки у карточек/списков (клавиатура не затронута) */
+/* Без синей подсветки тапа и рамки фокуса у карточек/списков (оставляем клавиатурный фокус через :focus-visible только на button/a/input) */
 * { -webkit-tap-highlight-color: transparent; }
-@media (pointer: coarse) {
-  [role="button"]:focus,
-  [role="button"]:focus-visible,
-  [tabindex]:focus,
-  [tabindex]:focus-visible,
-  .task-card:focus,
-  .task-card:focus-visible,
-  .article-card:focus,
-  .article-card:focus-visible,
-  .kanban-card:focus,
-  .kanban-card:focus-visible {
-    outline: none;
-  }
+.task-card:focus,
+.task-card:focus-visible,
+.article-card:focus,
+.article-card:focus-visible,
+.kanban-card:focus,
+.kanban-card:focus-visible,
+[role="button"]:focus,
+[role="button"]:focus-visible {
+  outline: none;
 }
 .input--error {
   border-color: var(--color-danger) !important;
