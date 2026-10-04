@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Check, SkipForward, CalendarClock, Square } from 'lucide-react';
 import Modal from './Modal';
 import { useToast } from './Toast';
+import { formatDueDate } from '../utils/date';
 import type { OccurrenceAction, OccurrenceScope } from '../hooks/useOccurrences';
 
 interface Props {
@@ -9,6 +10,8 @@ interface Props {
   onClose: () => void;
   taskId: string;
   originalDate: string;
+  /** название задачи и дата вхождения для заголовка */
+  taskTitle?: string;
   /** выполнить действие; для move нужен dueAt и scope */
   onAct: (p: { action: OccurrenceAction; dueAt?: string; scope?: OccurrenceScope }) => Promise<void>;
   onCompleteSeries: () => Promise<void>;
@@ -16,12 +19,21 @@ interface Props {
   canComplete?: boolean;
 }
 
-const OccurrenceActionDialog: React.FC<Props> = ({ open, onClose, originalDate, onAct, onCompleteSeries, canComplete }) => {
+const SCOPE_HINT: Record<OccurrenceScope, string> = {
+  this: 'Только это: остальные вхождения не меняются',
+  following: 'Это и следующие: серия разделится с этой даты',
+  all: 'Все: изменится время всей серии',
+};
+
+const OccurrenceActionDialog: React.FC<Props> = ({ open, onClose, originalDate, taskTitle, onAct, onCompleteSeries, canComplete }) => {
   const { toast } = useToast();
   const [busy, setBusy] = useState(false);
   const [moveMode, setMoveMode] = useState(false);
   const [newDate, setNewDate] = useState('');
   const [scope, setScope] = useState<OccurrenceScope>('this');
+
+  const dateLabel = originalDate ? formatDueDate(originalDate) : '';
+  const headerTitle = taskTitle ? `${taskTitle}, ${dateLabel}` : dateLabel;
 
   const run = async (fn: () => Promise<void>, okMsg: string) => {
     setBusy(true);
@@ -43,7 +55,7 @@ const OccurrenceActionDialog: React.FC<Props> = ({ open, onClose, originalDate, 
   };
 
   return (
-    <Modal open={open} onClose={onClose} title="Действие">
+    <Modal open={open} onClose={onClose} title={`Действие: ${headerTitle}`}>
       {!moveMode ? (
         <div className="occ-actions">
           <button type="button" className="occ-action-btn" disabled={busy} onClick={() => run(() => onAct({ action: 'done' }), 'Выполнено')}>
@@ -78,9 +90,10 @@ const OccurrenceActionDialog: React.FC<Props> = ({ open, onClose, originalDate, 
               </button>
             ))}
           </div>
+          <p className="occ-scope-hint">{SCOPE_HINT[scope]}</p>
           <div className="occ-move-actions">
-            <button type="button" className="occ-action-btn occ-action-btn--ghost" disabled={busy} onClick={() => setMoveMode(false)}>Назад</button>
-            <button type="button" className="occ-action-btn" disabled={busy || !newDate} onClick={doMove}>Перенести</button>
+            <button type="button" className="occ-btn-secondary" disabled={busy} onClick={() => setMoveMode(false)}>Назад</button>
+            <button type="button" className="occ-btn-primary" disabled={busy || !newDate} onClick={doMove}>Перенести</button>
           </div>
         </div>
       )}

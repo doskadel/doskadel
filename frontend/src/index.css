@@ -567,6 +567,10 @@ margin-bottom: var(--space-md);
 .occ-scope-btn--active { border-color: var(--color-primary); color: var(--color-primary); background: var(--color-surface-alt); font-weight: 600; }
 .occ-move-actions { display: flex; gap: 8px; margin-top: 4px; }
 .occ-move-actions .occ-action-btn { justify-content: center; }
+.occ-scope-hint { margin: 4px 0 0; font-size: 13px; color: var(--color-text-muted); }
+.occ-btn-primary { flex: 1; min-height: 44px; border: none; border-radius: var(--radius-md); background: var(--color-primary); color: var(--color-on-accent); font: inherit; font-size: 15px; font-weight: 500; cursor: pointer; }
+.occ-btn-primary:disabled { opacity: 0.5; cursor: default; }
+.occ-btn-secondary { flex: 1; min-height: 44px; border: 1px solid var(--surface-border); border-radius: var(--radius-md); background: transparent; color: var(--color-text); font: inherit; font-size: 15px; cursor: pointer; }
 
 /* ==================== TOASTS ==================== */
 .toast-stack {
