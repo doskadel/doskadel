@@ -71,10 +71,13 @@ function enrichTaskDue(task, summary) {
     task.pendingOccurrenceCount = info ? info.count : 0;
     task.nextOccurrenceDueAt = (info && info.nextAt) || (info && info.lastAt) || null;
     task.lastOverdueAt = (info && info.lastAt) || null;
+    // Статус текущего вхождения (F1c): просрочено, если есть неподтверждённые прошедшие
+    task.occurrenceStatus = task.pendingOccurrenceCount > 0 ? 'overdue' : 'pending';
   } else {
     task.pendingOccurrenceCount = 0;
     task.nextOccurrenceDueAt = task.dueDate || null;
     task.lastOverdueAt = null;
+    task.occurrenceStatus = task.dueDate && new Date(task.dueDate).getTime() < Date.now() ? 'overdue' : 'pending';
   }
   return task;
 }

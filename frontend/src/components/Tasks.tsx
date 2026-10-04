@@ -33,6 +33,7 @@ interface Task {
   order: number;
   dueDate?: string | null;
   recurrence?: Recurrence | null;
+  occurrenceStatus?: 'pending' | 'overdue';
   pendingOccurrenceCount?: number;
   nextOccurrenceDueAt?: string | null;
   createdAt: string;
@@ -615,7 +616,7 @@ const Tasks: React.FC = () => {
                       Приоритет: {getPriorityLabel(task.priority)}
                     </span>
                     <span className="task-card-meta-item">
-                      Статус: {getStatusName(task.statusId)}
+                      Статус: {task.recurrence ? (task.occurrenceStatus === 'overdue' ? 'Просрочено' : 'Ожидает') : getStatusName(task.statusId)}
                     </span>
 
                     {displayDate && (
