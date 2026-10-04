@@ -64,81 +64,9 @@ const getById = async (req, res) => {
   }
 };
 
-// PUT /api/occurrences/confirm  { ids: [...] }
-const confirmBatch = async (req, res) => {
-  try {
-    if (!canByMembership(req.membership, 'update')) return res.status(403).json({ success: false, message: 'Forbidden' });
-    const { ids } = req.body;
-
-    if (!Array.isArray(ids) || ids.length === 0) {
-      return res.status(400).json({ success: false, message: 'ids must be a non-empty array' });
-    }
-
-    const validIds = ids.filter((id) => mongoose.Types.ObjectId.isValid(id));
-    const invalidCount = ids.length - validIds.length;
-
-    const result = await Occurrence.updateMany(
-      {
-        _id: { $in: validIds },
-        workspaceId: req.workspaceId,
-        status: 'pending'
-      },
-      {
-        $set: { status: 'done', confirmedAt: new Date(), completedBy: req.user._id }
-      }
-    );
-
-    res.json({
-      success: true,
-      updated: result.modifiedCount,
-      failed: invalidCount + (validIds.length - result.modifiedCount),
-      ids: validIds
-    });
-  } catch (error) {
-    console.error('Confirm batch error:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
-  }
-};
-
-// PUT /api/occurrences/unconfirm  { ids: [...] }
-const unconfirmBatch = async (req, res) => {
-  try {
-    if (!canByMembership(req.membership, 'update')) return res.status(403).json({ success: false, message: 'Forbidden' });
-    const { ids } = req.body;
-
-    if (!Array.isArray(ids) || ids.length === 0) {
-      return res.status(400).json({ success: false, message: 'ids must be a non-empty array' });
-    }
-
-    const validIds = ids.filter((id) => mongoose.Types.ObjectId.isValid(id));
-    const invalidCount = ids.length - validIds.length;
-
-    const result = await Occurrence.updateMany(
-      {
-        _id: { $in: validIds },
-        workspaceId: req.workspaceId,
-        status: 'done'
-      },
-      {
-        $set: { status: 'pending', confirmedAt: null }
-      }
-    );
-
-    res.json({
-      success: true,
-      updated: result.modifiedCount,
-      failed: invalidCount + (validIds.length - result.modifiedCount),
-      ids: validIds
-    });
-  } catch (error) {
-    console.error('Unconfirm batch error:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
-  }
-};
+// confirm/unconfirm удалены (F1c): заменены на POST /api/occurrences/action (done/undo).
 
 module.exports = {
   getByTask,
-  getById,
-  confirmBatch,
-  unconfirmBatch
+  getById
 };

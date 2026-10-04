@@ -52,10 +52,6 @@ const occurrenceSchema = new mongoose.Schema({
     type: Date,
     default: null
   },
-  confirmedAt: {
-    type: Date,
-    default: null
-  },
   // Флаги: какие пуши уже отправлены по этому вхождению
   notificationsSent: {
     dayBefore: { type: Date, default: null },

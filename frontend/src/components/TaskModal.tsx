@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Modal from './Modal';
 import TaskModalContent from './TaskModalContent';
 import TaskModalRail from './TaskModalRail';
-import OccurrenceConfirmModal from './OccurrenceConfirmModal';
+import OccurrenceHistoryModal from './OccurrenceHistoryModal';
 import { useTaskDetail } from '../hooks/useTaskDetail';
 import { useOccurrences } from '../hooks/useOccurrences';
 import { useConfirm } from './ConfirmProvider';
@@ -82,19 +82,15 @@ const TaskModal: React.FC<TaskModalProps> = ({ taskId, statuses, onClose, onUpda
       </Modal>
 
       {detail.task && isRecurring && (
-        <OccurrenceConfirmModal
+        <OccurrenceHistoryModal
           open={occurrencesOpen}
           onClose={() => setOccurrencesOpen(false)}
           taskTitle={detail.task.title}
-          pending={occurrences.pendingDue}
+          pending={occurrences.pending}
           done={occurrences.done}
           loading={occurrences.loading}
-          onConfirm={async (ids) => {
-            await occurrences.confirmIds(ids);
-            onUpdate?.();
-          }}
-          onUnconfirm={async (ids) => {
-            await occurrences.unconfirmIds(ids);
+          onAct={async (originalDate, action) => {
+            await occurrences.act({ taskId: detail.task!._id, originalDate, action });
             onUpdate?.();
           }}
         />

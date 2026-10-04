@@ -22,13 +22,11 @@ export interface UseOccurrencesResult {
   pending: Occurrence[];
   // Только с dueAt <= now (просроченные/наступившие) — для UI
   pendingDue: Occurrence[];
-  // Все подтверждённые
+  // Все закрытые (done/skipped/missed) — для истории
   done: Occurrence[];
   loading: boolean;
   error: string;
   refresh: () => Promise<void>;
-  confirmIds: (ids: string[]) => Promise<void>;
-  unconfirmIds: (ids: string[]) => Promise<void>;
   act: (params: { taskId: string; originalDate: string; action: OccurrenceAction; dueAt?: string; scope?: OccurrenceScope }) => Promise<void>;
   completeSeries: (tid: string) => Promise<void>;
 }
@@ -71,18 +69,6 @@ export const useOccurrences = (taskId: string | null): UseOccurrencesResult => {
     await fetchAll(taskId);
   };
 
-  const confirmIds = async (ids: string[]) => {
-    if (ids.length === 0) return;
-    await api.put('/api/occurrences/confirm', { ids });
-    await refresh();
-  };
-
-  const unconfirmIds = async (ids: string[]) => {
-    if (ids.length === 0) return;
-    await api.put('/api/occurrences/unconfirm', { ids });
-    await refresh();
-  };
-
   /** Действие над вхождением (F1c): done/skip/undo/move. */
   const act = async (params: {
     taskId: string; originalDate: string; action: OccurrenceAction; dueAt?: string; scope?: OccurrenceScope;
@@ -107,8 +93,6 @@ export const useOccurrences = (taskId: string | null): UseOccurrencesResult => {
     loading,
     error,
     refresh,
-    confirmIds,
-    unconfirmIds,
     act,
     completeSeries,
   };

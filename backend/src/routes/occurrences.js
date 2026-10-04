@@ -12,7 +12,5 @@ router.post('/complete-series', occurrenceActionsController.completeSeries);
 router.get('/by-task/:taskId', occurrenceController.getByTask);
 router.get('/:id', occurrenceController.getById);
 
-router.put('/confirm', occurrenceController.confirmBatch);
-router.put('/unconfirm', occurrenceController.unconfirmBatch);
 
 module.exports = router;
