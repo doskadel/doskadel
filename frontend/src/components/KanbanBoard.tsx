@@ -20,6 +20,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { Status } from '../utils/status';
 import { formatDueDate, isOverdue, deadlineLevel } from '../utils/date';
 import { useUpcomingDays } from '../hooks/useUpcomingDays';
+import { useCoarsePointer } from '../hooks/useCoarsePointer';
 import { Repeat } from 'lucide-react';
 import { Recurrence, formatRecurrenceShort } from '../utils/recurrence';
 
@@ -56,7 +57,8 @@ interface DraggableTaskProps {
 }
 
 const DraggableTask: React.FC<DraggableTaskProps> = ({ task, statusColor, statusIsFinal, onOpenTask }) => {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+  const coarse = useCoarsePointer();
+  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({
     id: task._id,
     data: { type: 'task', statusId: task.statusId },
   });
@@ -83,12 +85,22 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, statusColor, status
       ref={setNodeRef}
       style={style}
       className="kanban-card"
-      {...listeners}
-      {...attributes}
+      {...(coarse ? {} : listeners)}
+      {...(coarse ? {} : attributes)}
     >
       <div
         className={'kanban-card-rail' + (dl ? ' kanban-card-rail--' + dl : '')}
       />
+      {coarse && (
+        <span
+          ref={setActivatorNodeRef}
+          className="kanban-card-grip"
+          title="Перетащить"
+          aria-label="Перетащить"
+          {...listeners}
+          {...attributes}
+        >⠿</span>
+      )}
       <div className="kanban-card-content">
         <div className="kanban-card-row">
           <a
