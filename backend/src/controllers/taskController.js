@@ -279,7 +279,15 @@ const getTaskById = async (req, res) => {
   try {
     const task = await Task.findOne({ _id: req.params.id, workspaceId: req.workspaceId });
     if (!task) return res.status(404).json({ success: false, message: 'Task not found' });
-    res.json({ success: true, task });
+    // F1c: обогащаем сроковой сводкой (nextOccurrenceDueAt, pendingOccurrenceCount, occurrenceStatus)
+    const obj = task.toObject();
+    if (obj.recurrence && obj.recurrence.freq) {
+      const summary = await summarizeOccurrences(req.workspaceId, [obj]);
+      enrichTaskDue(obj, summary);
+    } else {
+      enrichTaskDue(obj, new Map());
+    }
+    res.json({ success: true, task: obj });
   } catch (error) {
     console.error('Get task error:', error);
     res.status(500).json({ success: false, message: 'Server error' });
