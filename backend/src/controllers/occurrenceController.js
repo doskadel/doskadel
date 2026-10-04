@@ -39,6 +39,33 @@ const getByTask = async (req, res) => {
   }
 };
 
+// GET /api/occurrences/history/:taskId — история серии (обе части по seriesId)
+const getHistory = async (req, res) => {
+  try {
+    const { taskId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(taskId)) {
+      return res.status(400).json({ success: false, message: 'Invalid taskId' });
+    }
+    const task = await Task.findOne({ _id: taskId, workspaceId: req.workspaceId }).select('_id seriesId').lean();
+    if (!task) return res.status(404).json({ success: false, message: 'Task not found' });
+
+    const seriesId = task.seriesId || task._id;
+    // все задачи серии
+    const seriesTasks = await Task.find({ workspaceId: req.workspaceId, $or: [{ _id: seriesId }, { seriesId }] }).select('_id').lean();
+    const ids = seriesTasks.map((t) => t._id);
+    const occurrences = await Occurrence.find({ workspaceId: req.workspaceId, taskId: { $in: ids } })
+      .select('taskId originalDate dueAt status completedAt')
+      .sort({ originalDate: -1 })
+      .lean();
+    const done = occurrences.filter((o) => o.status === 'done').length;
+    const skipped = occurrences.filter((o) => o.status === 'skipped').length;
+    res.json({ success: true, occurrences, done, skipped, total: done + skipped });
+  } catch (e) {
+    console.error('Get history error:', e);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
 // GET /api/occurrences/:id
 const getById = async (req, res) => {
   try {
@@ -68,5 +95,6 @@ const getById = async (req, res) => {
 
 module.exports = {
   getByTask,
-  getById
+  getById,
+  getHistory
 };

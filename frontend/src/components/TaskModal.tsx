@@ -85,6 +85,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ taskId, statuses, onClose, onUpda
         <OccurrenceHistoryModal
           open={occurrencesOpen}
           onClose={() => setOccurrencesOpen(false)}
+          taskId={detail.task._id}
           taskTitle={detail.task.title}
           pending={occurrences.pending}
           done={occurrences.done}

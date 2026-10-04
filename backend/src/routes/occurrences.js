@@ -9,6 +9,7 @@ router.use(require('../middleware/workspace'));
 
 router.post('/action', occurrenceActionsController.action);
 router.post('/complete-series', occurrenceActionsController.completeSeries);
+router.get('/history/:taskId', occurrenceController.getHistory);
 router.get('/by-task/:taskId', occurrenceController.getByTask);
 router.get('/:id', occurrenceController.getById);
 

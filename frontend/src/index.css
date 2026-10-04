@@ -568,6 +568,16 @@ margin-bottom: var(--space-md);
 .occ-move-actions { display: flex; gap: 8px; margin-top: 4px; }
 .occ-move-actions .occ-action-btn { justify-content: center; }
 .occ-scope-hint { margin: 4px 0 0; font-size: 13px; color: var(--color-text-muted); }
+.occ-summary { font-size: 13px; color: var(--color-text-muted); margin: 0 0 10px; }
+.occ-row-actions { display: flex; gap: 8px; margin-left: auto; }
+.occ-icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: none; background: transparent; border-radius: var(--radius-sm); color: var(--color-text-muted); cursor: pointer; }
+.occ-icon-btn:hover:not(:disabled) { background: var(--color-surface-alt); color: var(--color-text); }
+.occ-icon-btn:disabled { opacity: 0.5; cursor: default; }
+.occ-badge { font-size: 12px; padding: 2px 8px; border-radius: 999px; margin-left: 8px; }
+.occ-badge--done { background: color-mix(in srgb, var(--color-success) 16%, transparent); color: var(--color-success); }
+.occ-badge--skipped { background: var(--color-surface-alt); color: var(--color-text-muted); }
+.occ-badge--missed { background: color-mix(in srgb, var(--color-danger) 14%, transparent); color: var(--color-danger); }
+.occ-more { display: block; width: 100%; margin-top: 8px; padding: 8px; border: 1px dashed var(--surface-border); border-radius: var(--radius-sm); background: transparent; color: var(--color-text-muted); font: inherit; font-size: 13px; cursor: pointer; }
 .recur-row { display: flex; align-items: center; gap: 8px; }
 .recur-word { font-size: 14px; color: var(--color-text-muted); white-space: nowrap; }
 .recur-num { width: 64px; }
