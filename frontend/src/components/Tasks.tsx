@@ -511,7 +511,7 @@ const Tasks: React.FC = () => {
               type="button"
               role="switch"
               aria-checked={isRecurring}
-              className={'toggle' + (isRecurring ? ' toggle--on' : '')}
+              className={'rec-toggle' + (isRecurring ? ' rec-toggle--on' : '')}
               onClick={() => {
                 const recurring = !isRecurring;
                 setIsRecurring(recurring);
@@ -519,8 +519,8 @@ const Tasks: React.FC = () => {
                 if (!recurring) setRecurrence(null);
               }}
             >
-              <span className="toggle-knob" />
-              <span className="toggle-text">{isRecurring ? 'Повторяющаяся задача' : 'Разовая задача'}</span>
+              <span className="rec-toggle-knob" />
+              <span className="rec-toggle-text">{isRecurring ? 'Повторяющаяся задача' : 'Разовая задача'}</span>
             </button>
           </div>
 

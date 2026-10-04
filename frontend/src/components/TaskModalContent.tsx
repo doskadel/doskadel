@@ -107,11 +107,11 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
             type="button"
             role="switch"
             aria-checked={!!editRecurrence}
-            className={'toggle' + (editRecurrence ? ' toggle--on' : '')}
+            className={'rec-toggle' + (editRecurrence ? ' rec-toggle--on' : '')}
             onClick={() => setEditRecurrence(editRecurrence ? null : getDefaultRecurrence('daily'))}
           >
-            <span className="toggle-knob" />
-            <span className="toggle-text">{editRecurrence ? 'Повторяющаяся задача' : 'Разовая задача'}</span>
+            <span className="rec-toggle-knob" />
+            <span className="rec-toggle-text">{editRecurrence ? 'Повторяющаяся задача' : 'Разовая задача'}</span>
           </button>
         </div>
 
