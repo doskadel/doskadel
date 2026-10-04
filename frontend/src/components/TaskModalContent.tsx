@@ -204,7 +204,7 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
               <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', margin: '2px 0 0' }}>{task.recurrence.tz}</p>
             )}
             {task.nextOccurrenceDueAt && (
-              <p style={{ color: pendingCount > 0 ? 'var(--color-danger)' : 'var(--color-text)', fontSize: '15px', margin: '8px 0 0' }}>
+              <p style={{ color: 'var(--color-text)', fontSize: '15px', margin: '8px 0 0' }}>
                 Ближайшее: {formatDueDate(task.nextOccurrenceDueAt)}
               </p>
             )}
