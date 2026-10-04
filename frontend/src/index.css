@@ -1485,7 +1485,8 @@ color: var(--color-text);
   }
 
   .kanban-board {
-    scroll-snap-type: x mandatory;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
   }
 
   .kanban-column-title {
