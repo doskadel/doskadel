@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Check, SkipForward, CalendarClock, Square } from 'lucide-react';
 import Modal from './Modal';
 import { useToast } from './Toast';
+import { useConfirm } from './ConfirmProvider';
 import { formatDueDate } from '../utils/date';
 import type { OccurrenceAction, OccurrenceScope } from '../hooks/useOccurrences';
 
@@ -27,6 +28,7 @@ const SCOPE_HINT: Record<OccurrenceScope, string> = {
 
 const OccurrenceActionDialog: React.FC<Props> = ({ open, onClose, originalDate, taskTitle, onAct, onCompleteSeries, canComplete }) => {
   const { toast } = useToast();
+  const confirm = useConfirm();
   const [busy, setBusy] = useState(false);
   const [moveMode, setMoveMode] = useState(false);
   const [newDate, setNewDate] = useState('');
@@ -68,7 +70,23 @@ const OccurrenceActionDialog: React.FC<Props> = ({ open, onClose, originalDate, 
             <CalendarClock size={18} /> Перенести
           </button>
           {canComplete && (
-            <button type="button" className="occ-action-btn occ-action-btn--danger" disabled={busy} onClick={() => run(onCompleteSeries, 'Серия завершена')}>
+            <button
+              type="button"
+              className="occ-action-btn occ-action-btn--danger"
+              disabled={busy}
+              aria-label="Завершить повторение"
+              onClick={async () => {
+                const ok = await confirm({
+                  title: 'Завершить повторение?',
+                  message: 'Новые вхождения создаваться не будут, история сохранится.',
+                  confirmLabel: 'Завершить',
+                  cancelLabel: 'Отмена',
+                  danger: true,
+                });
+                if (!ok) return;
+                run(onCompleteSeries, 'Серия завершена');
+              }}
+            >
               <Square size={18} /> Завершить повторение
             </button>
           )}
