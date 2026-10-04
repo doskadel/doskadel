@@ -36,6 +36,12 @@
 - F1e-5. История: формат даты, отступ иконки, 'Выполнено 0 из 0' скрывать.
 - F1e-6. Автотест на отказ подтверждения 'Завершить повторение'.
 
+### F1f — финальный статус у повторяющихся (после F1e; ADR decisions.md 2026-10-04)
+- Task.activeSince (дефолт createdAt), computeOccurrences фильтрует isFinal + считает от max(activeSince, правило). Финальный -> next=null, счётчики 0, будущие не рисуются. Возврат -> activeSince=now (без хвоста пропущенных).
+- closedReason completed/split не возвращаются; ручной финал (без reason) возвращается.
+- Авто-missed/материализация/пуши пропускают финальные. История (done/skipped/missed) цела.
+- Тесты + миграция activeSince=createdAt (dry-run).
+
 ### Сессии (ADR decisions.md; wip/sessions от main; не срочно, вылет раз в 30д терпимо)
 Первыми (убирают 'вылетел'): скользящий refresh; grace 10-30с + single-flight BroadcastChannel; скелетон при холодном старте PWA.
 Следом: 'помни меня' (вкл persistent 30д / выкл session+24ч), абсолютный максимум 90д (личное 180).
