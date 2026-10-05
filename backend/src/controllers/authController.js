@@ -27,14 +27,16 @@ const issueRefreshToken = async (userId, family, familyCreatedAt) => {
   return token;
 };
 
-const setRefreshCookie = (res, token) => {
-  res.cookie(COOKIE_NAME, token, {
+const setRefreshCookie = (res, token, remember = true) => {
+  const opts = {
     httpOnly: true,
     secure: IS_PROD,
     sameSite: 'lax',
     path: '/api/auth/refresh',
-    maxAge: REFRESH_TTL_DAYS * 24 * 60 * 60 * 1000,
-  });
+  };
+  // «Помни меня»: persistent cookie (30д). Иначе — session cookie.
+  if (remember) opts.maxAge = REFRESH_TTL_DAYS * 24 * 60 * 60 * 1000;
+  res.cookie(COOKIE_NAME, token, opts);
 };
 
 const clearRefreshCookie = (res) => {
@@ -119,7 +121,7 @@ const login = async (req, res) => {
       return res.status(400).json({ success: false, errors: errors.array() });
     }
 
-    const { email, password } = req.body;
+    const { email, password, remember } = req.body;
     const user = await User.findOne({ email });
 
     if (!user || !(await user.comparePassword(password))) {
@@ -129,7 +131,7 @@ const login = async (req, res) => {
     const accessToken = generateAccessToken(user._id);
     const family = crypto.randomUUID();
     const refreshToken = await issueRefreshToken(user._id, family);
-    setRefreshCookie(res, refreshToken);
+    setRefreshCookie(res, refreshToken, remember !== false);
 
     res.json({
       success: true,

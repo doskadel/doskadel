@@ -7,13 +7,14 @@ import { setToken } from '../utils/token';
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [remember, setRemember] = useState(true);
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await api.post('/api/auth/login', { email, password });
+      const response = await api.post('/api/auth/login', { email, password, remember });
       const { token } = response.data;
       setToken(token);
       navigate('/');
@@ -38,6 +39,10 @@ const Login: React.FC = () => {
             required
           />
           <PasswordInput value={password} onChange={setPassword} autoComplete="current-password" required />
+          <label className="auth-remember">
+            <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
+            <span>Запомнить меня</span>
+          </label>
           <button type="submit" className="button">Войти</button>
         </form>
         <p className="auth-footer">

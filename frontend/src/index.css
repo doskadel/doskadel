@@ -565,6 +565,10 @@ margin-bottom: var(--space-md);
 .rec-toggle-text { font-size: 14px; white-space: nowrap; }
 .rec-toggle-summary { font-size: 13px; color: var(--color-text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
+/* ==================== AUTH REMEMBER ==================== */
+.auth-remember { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--color-text-muted); cursor: pointer; min-height: 44px; }
+.auth-remember input { width: 18px; height: 18px; accent-color: var(--color-primary); }
+
 /* ==================== SKELETON ==================== */
 .skeleton-page { padding: var(--space-xl) var(--space-lg); max-width: 1280px; margin: 0 auto; }
 .skeleton { background: var(--color-surface-alt); border-radius: var(--radius-md); animation: skel 1.2s ease-in-out infinite; }
