@@ -10,19 +10,46 @@ interface Props {
   autoComplete?: string;
 }
 
-/** Поле пароля с кнопкой показать/скрыть (type=password <-> text). */
+/**
+ * Поле пароля с кнопкой показать/скрыть.
+ * Скрыто: все символы — точки, КРОМЕ последнего (iOS-стиль).
+ * Показано: обычный текст.
+ */
 const PasswordInput: React.FC<Props> = ({ value, onChange, placeholder = 'Пароль', className = 'input', required, autoComplete }) => {
   const [visible, setVisible] = useState(false);
+
+  const masked = value ? '•'.repeat(value.length - 1) + value.slice(-1) : '';
+
   return (
     <div className="password-field">
       <input
-        type={visible ? 'text' : 'password'}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
+        type="text"
+        value={visible ? value : masked}
+        onChange={(e) => {
+          const raw = e.target.value;
+          if (visible) {
+            onChange(raw);
+            return;
+          }
+          // Скрытый режим: raw = маска. Определяем, что изменилось.
+          if (raw.length > value.length) {
+            // добавили в конец (типовой случай)
+            onChange(value + raw.slice(value.length));
+          } else if (raw.length < value.length) {
+            // удалили
+            onChange(value.slice(0, raw.length));
+          } else {
+            // замена последнего символа
+            onChange(value.slice(0, -1) + raw.slice(-1));
+          }
+        }}
         placeholder={placeholder}
         className={className}
         required={required}
         autoComplete={autoComplete}
+        autoCapitalize="off"
+        autoCorrect="off"
+        spellCheck={false}
       />
       <button
         type="button"
