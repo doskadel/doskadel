@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Search, BookOpen } from 'lucide-react';
 import PullToRefresh from './PullToRefresh';
 import LoadingOverlay from './LoadingOverlay';
 import { useSearchParams } from 'react-router-dom';
@@ -246,13 +246,19 @@ const Knowledge: React.FC = () => {
       />
 
       {articles.length === 0 && hasActiveFilters && (
-        <p style={{ color: 'var(--color-text-muted)', textAlign: 'center', padding: 'var(--space-xl)' }}>
-          Ничего не найдено по вашим фильтрам
-        </p>
+        <div className="empty-state">
+          <Search size={40} className="empty-state-icon" />
+          <p className="empty-state-title">Ничего не найдено</p>
+          <p className="empty-state-text">Попробуйте изменить фильтры или запрос</p>
+        </div>
       )}
 
       {articles.length === 0 && !hasActiveFilters && (
-        <p style={{ color: 'var(--color-text-muted)' }}>Статей пока нет</p>
+        <div className="empty-state">
+          <BookOpen size={44} className="empty-state-icon" />
+          <p className="empty-state-title">Статей пока нет</p>
+          <p className="empty-state-text">Нажмите «Создать», чтобы добавить первую статью</p>
+        </div>
       )}
 
       {articles.length > 0 && (

@@ -2745,6 +2745,40 @@ color: var(--color-text);
   margin-bottom: var(--space-sm);
 }
 
+/* Пустое состояние списков/доски */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: var(--space-xl) var(--space-lg);
+  text-align: center;
+  background: var(--color-surface);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  margin-top: var(--space-md);
+}
+.empty-state-icon {
+  color: var(--color-text-muted);
+  opacity: 0.6;
+  margin-bottom: var(--space-xs);
+}
+.empty-state-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+}
+.empty-state-text {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  margin: 0 0 var(--space-sm);
+}
+.empty-state .button {
+  margin-top: var(--space-xs);
+}
+
 .dashboard-empty-text {
   font-size: 15px;
   color: var(--color-text-muted);
@@ -3064,6 +3098,46 @@ color: var(--color-text);
 .command-palette-close:hover {
   background: var(--color-bg);
   color: var(--color-text);
+}
+
+/* Кнопка «Назад» — только на мобилке; очистка — при вводе */
+.command-palette-back {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin-left: -6px;
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+.command-palette-back:hover { background: var(--color-bg); }
+
+.command-palette-clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.command-palette-clear:hover { background: var(--color-bg); color: var(--color-text); }
+
+@media (max-width: 640px) {
+  .command-palette-back { display: inline-flex; }
+  .command-palette-close { display: none; }
+  .command-palette-icon { display: none; }
+  .command-palette-input-wrap { padding: var(--space-sm) var(--space-md); gap: var(--space-xs); }
+  .command-palette-input { font-size: 16px; }
 }
 
 /* Body */

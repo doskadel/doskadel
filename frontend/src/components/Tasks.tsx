@@ -4,7 +4,7 @@ import LoadingOverlay from './LoadingOverlay';
 import CalendarView from './CalendarView';
 import OccurrenceActionDialog from './OccurrenceActionDialog';
 import SortableSettings from './shared/SortableSettings';
-import { GripVertical, X, Plus, Settings, CalendarDays, Columns, List, Info, LayoutList, Repeat } from 'lucide-react';
+import { GripVertical, X, Plus, Settings, CalendarDays, Columns, List, Info, LayoutList, Repeat, Search, ListChecks } from 'lucide-react';
 
 import { useSearchParams } from 'react-router-dom';
 import api from '../utils/api';
@@ -569,9 +569,19 @@ const Tasks: React.FC = () => {
       />
 
       {tasks.length === 0 && hasActiveFilters && (
-        <p style={{ color: 'var(--color-text-muted)', textAlign: 'center', padding: 'var(--space-xl)' }}>
-          Ничего не найдено по вашим фильтрам
-        </p>
+        <div className="empty-state">
+          <Search size={40} className="empty-state-icon" />
+          <p className="empty-state-title">Ничего не найдено</p>
+          <p className="empty-state-text">Попробуйте изменить фильтры или поисковый запрос</p>
+        </div>
+      )}
+
+      {tasks.length === 0 && !hasActiveFilters && view !== 'calendar' && (
+        <div className="empty-state">
+          <ListChecks size={44} className="empty-state-icon" />
+          <p className="empty-state-title">Задач пока нет</p>
+          <p className="empty-state-text">Нажмите «Создать», чтобы добавить первую задачу</p>
+        </div>
       )}
 
       {tasks.length > 0 && view === 'board' && (

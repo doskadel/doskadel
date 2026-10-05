@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Home, CheckSquare, BookOpen, User, Bot, MoreHorizontal, Search } from 'lucide-react';
 import SearchModal from './SearchModal';
 import ProfileModal from './ProfileModal';
+import PushPrompt from './PushPrompt';
 import api from '../utils/api';
 import { useGlobalHotkey } from '../hooks/useGlobalHotkey';
 import BotStub from './BotStub';
@@ -183,6 +184,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
       <BotStub open={botOpen} onClose={() => setBotOpen(false)} />
       <ProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} />
+      <PushPrompt />
     </div>
   );
 };

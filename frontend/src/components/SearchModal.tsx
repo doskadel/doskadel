@@ -1,4 +1,4 @@
-import { Search } from 'lucide-react';
+import { Search, X, ArrowLeft } from 'lucide-react';
 import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
@@ -331,6 +331,14 @@ const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
     <div className="command-palette-backdrop" onMouseDown={handleBackdropClick}>
       <div className="command-palette">
         <div className="command-palette-input-wrap">
+          <button
+            type="button"
+            className="command-palette-back"
+            onClick={onClose}
+            aria-label="Назад"
+          >
+            <ArrowLeft size={20} />
+          </button>
           <span className="command-palette-icon"><Search size={18} /></span>
           <input
             ref={inputRef}
@@ -340,13 +348,23 @@ const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
+          {query.length > 0 && (
+            <button
+              type="button"
+              className="command-palette-clear"
+              onClick={() => { setQuery(''); inputRef.current?.focus(); }}
+              aria-label="Очистить"
+            >
+              <X size={18} />
+            </button>
+          )}
           <button
             type="button"
             className="command-palette-close"
             onClick={onClose}
             aria-label="Закрыть"
           >
-            ✕
+            <X size={18} />
           </button>
         </div>
 
