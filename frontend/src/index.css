@@ -1304,7 +1304,6 @@ color: var(--color-text);
   padding-bottom: var(--space-sm);
   margin-top: var(--space-md);
   align-items: stretch;
-  height: calc(100dvh - 240px);
   min-height: 280px;
   overscroll-behavior-x: contain;
 }
@@ -1312,8 +1311,7 @@ color: var(--color-text);
 .kanban-column {
   flex: 1 1 0;
   min-width: 240px;
-  min-height: 0;
-  max-height: 100%;
+  min-height: 420px;
   background: var(--color-surface-alt);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -1360,14 +1358,10 @@ color: var(--color-text);
 
 .kanban-column-body {
   flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior-y: contain;
   padding: var(--space-sm);
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
-  scrollbar-gutter: stable;
 }
 
 .kanban-empty {
