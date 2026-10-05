@@ -190,18 +190,16 @@ const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
     }
   };
 
+  // Открываем задачу/статью так же, как из других мест: переходим на раздел с параметром,
+  // где разворачивается штатная модалка (TaskModal/ArticleModal).
   const openTaskDetail = (id: string) => {
-    savedScrollRef.current = bodyRef.current?.scrollTop || 0;
-    setDetailType('task');
-    setDetailId(id);
-    setMode('detail');
+    onClose();
+    navigate(`/tasks?task=${id}`);
   };
 
   const openArticleDetail = (id: string) => {
-    savedScrollRef.current = bodyRef.current?.scrollTop || 0;
-    setDetailType('article');
-    setDetailId(id);
-    setMode('detail');
+    onClose();
+    navigate(`/knowledge?article=${id}`);
   };
 
   const closeDetail = () => {
