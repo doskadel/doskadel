@@ -1217,6 +1217,9 @@ margin-bottom: var(--space-md);
   .view-toggle { display: flex; justify-content: center; width: 100%; }
   .view-toggle-btn { flex: 1 1 0; padding: 9px 12px; font-size: 13px; text-align: center; }
 }
+@media (min-width: 1024px) {
+  .view-toggle-btn { min-width: 120px; }
+}
 
 /* ==================== PAGES ==================== */
 .page-title {
@@ -1539,7 +1542,6 @@ color: var(--color-text);
   gap: 6px;
   background: transparent;
   border: none;
-  min-width: 120px;
   padding: 8px 16px;
   font-size: 14px;
   font-weight: 500;
