@@ -706,7 +706,7 @@ const Tasks: React.FC = () => {
             Включайте виды переключателем, меняйте порядок перетаскиванием за ручку.
           </p>
           <SortableSettings
-            items={viewTabs.map((v) => ({ id: v, label: VIEW_LABELS[v], enabled: true }))}
+            items={viewTabs.map((v) => ({ id: v, label: VIEW_LABELS[v], icon: VIEW_ICONS[v], enabled: true }))}
             onToggle={(id) => {
               const next = viewTabs.filter((x) => x !== id);
               if (next.length === 0) return; // хотя бы одна включена

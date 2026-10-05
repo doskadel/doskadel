@@ -12,6 +12,7 @@ import { GripVertical } from 'lucide-react';
 export interface SortableRowItem {
   id: string;
   label: string;
+  icon?: ReactNode;
   enabled: boolean;
   extra?: ReactNode;
 }
@@ -30,7 +31,7 @@ const Row: React.FC<RowProps> = ({ item, onToggle, toggleAria }) => {
       <button type="button" className="ve-handle" {...attributes} {...listeners} aria-label="Перетащить">
         <GripVertical size={18} />
       </button>
-      <span className="ve-label">{item.label}</span>
+      <span className="ve-label">{item.icon && <span className="ve-icon">{item.icon}</span>}{item.label}</span>
       {item.extra}
       <button
         type="button"
