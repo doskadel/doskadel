@@ -59,7 +59,24 @@ const getHistory = async (req, res) => {
       .lean();
     const done = occurrences.filter((o) => o.status === 'done').length;
     const skipped = occurrences.filter((o) => o.status === 'skipped').length;
-    res.json({ success: true, occurrences, done, skipped, total: done + skipped });
+
+    // Предстоящие: вычисленные будущие вхождения серии (на лету), минус done/skipped
+    const { getNextOccurrences } = require('../utils/recurrence');
+    const recTasks = await Task.find({ _id: { $in: ids }, workspaceId: req.workspaceId, 'recurrence.freq': { $exists: true } })
+      .select('_id title recurrence').lean();
+    const doneOrSkipped = new Set(occurrences.filter((o) => o.status === 'done' || o.status === 'skipped').map((o) => String(o.originalDate)));
+    const now = new Date();
+    const upcoming = [];
+    for (const rt of recTasks) {
+      const dates = getNextOccurrences(rt.recurrence, now, 30);
+      for (const d of dates) {
+        if (doneOrSkipped.has(String(d))) continue;
+        upcoming.push({ taskId: rt._id, title: rt.title, dueAt: d, originalDate: d, status: 'pending' });
+      }
+    }
+    upcoming.sort((a, b) => new Date(a.dueAt) - new Date(b.dueAt));
+
+    res.json({ success: true, occurrences, done, skipped, total: done + skipped, upcoming });
   } catch (e) {
     console.error('Get history error:', e);
     res.status(500).json({ success: false, message: 'Server error' });

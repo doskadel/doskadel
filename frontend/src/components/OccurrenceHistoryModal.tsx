@@ -28,12 +28,14 @@ const OccurrenceHistoryModal: React.FC<Props> = ({ open, onClose, taskId, taskTi
   const [history, setHistory] = useState<Occurrence[]>([]);
   const [counts, setCounts] = useState<{ done: number; total: number }>({ done: 0, total: 0 });
   const [showAll, setShowAll] = useState(false);
+  const [upcoming, setUpcoming] = useState<Array<{ taskId: string; title: string; dueAt: string; originalDate: string }>>([]);
 
   useEffect(() => {
     if (!open) return;
     api.get(`/api/occurrences/history/${taskId}`).then((r) => {
       setHistory(r.data.occurrences || []);
       setCounts({ done: r.data.done || 0, total: r.data.total || 0 });
+      setUpcoming(r.data.upcoming || []);
     }).catch(() => {});
   }, [open, taskId, pending, done]);
 
@@ -42,8 +44,7 @@ const OccurrenceHistoryModal: React.FC<Props> = ({ open, onClose, taskId, taskTi
     try { await onAct(orig, action); } finally { setBusy(false); }
   };
 
-  // Предстоящие: pending по возрастанию, ближайшие 10
-  const upcoming = [...pending].sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime());
+  // Предстоящие: вычисленные будущие вхождения серии (с бэка), ближайшие 10
   const upcomingShown = showAll ? upcoming : upcoming.slice(0, 10);
   // История: done/skipped/missed, от новых
   const historyList = history.filter((o) => o.status !== 'pending');
@@ -68,7 +69,7 @@ const OccurrenceHistoryModal: React.FC<Props> = ({ open, onClose, taskId, taskTi
             <>
               {!loading && upcoming.length === 0 && <p className="occ-empty">Нет предстоящих</p>}
               {upcomingShown.map((occ) => (
-                <div key={occ._id || occ.originalDate} className="occ-row">
+                <div key={occ.originalDate} className="occ-row">
                   <span className="occ-row-date">{formatDueDate(occ.dueAt)}</span>
                   <div className="occ-row-actions">
                     <button type="button" className="occ-icon-btn" disabled={busy} onClick={() => run(occ.originalDate, 'done')} title="Выполнено" aria-label="Выполнено"><Check size={16} /></button>
