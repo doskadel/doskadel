@@ -63,7 +63,6 @@
 - O1. Ленивая загрузка маршрутов (React.lazy+Suspense): Tasks, Knowledge, CalendarView, ProfileModal, SearchModal.
 - O2. .lean() в read-запросах бэка (сейчас нет).
 - O3. Text-индекс для поиска статей ($regex его не использует; нужен $text).
-- O4. Удалить мёртвые зависимости @mui/material, @emotion/*.
 - O5. Тесты (jest+supertest): порог 'Ближайшие', refresh-токены, проверка владельца.
 - O6. dump.txt/dump.bat в корне (в .gitignore, не отслеживаются) — убрать с диска, закрыть B2.
 
@@ -81,9 +80,6 @@
 - A2. Цель нажатия >=44px у иконок-кнопок.
 - A3. Space (не только Enter) в div role=button (Dashboard/Tasks/Knowledge/Calendar) — или общий хелпер/button.
 - A4. prefers-reduced-motion не проверен.
-
-### Безопасность
-- S5 (B5). CORS origin:true -> ограничить для прода (или убрать при reverse-proxy).
 
 ### Неавторизованная зона (AUTH; приоритет: после F1e, одним заходом с P2/P4)
 - AUTH-1. Отдельные маршруты /login, /register, /forgot, /reset, /verify на общем AuthLayout (не вкладки: свои URL, ссылки, закладки, автозаполнение пароля).
@@ -106,4 +102,4 @@
 ---
 
 ## Выполнено (кратко, подробности — changelog.md)
-- W1, F1a/F1b/F1c, R1, D2, D3, D9, A1, S1-S4, X1-X5, O3 (частично).
+- W1, F1a/F1b/F1c, R1, D2, D3, D9, A1, S1-S5, X1-X5, O3 (частично), O4.
