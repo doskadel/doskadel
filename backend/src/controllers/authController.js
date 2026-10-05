@@ -41,6 +41,8 @@ const setRefreshCookie = (res, token, remember = true) => {
 
 const clearRefreshCookie = (res) => {
   res.clearCookie(COOKIE_NAME, { path: '/api/auth/refresh' });
+  // Легаси-путь '/' (до сужения cookie): гасим дубль, иначе старая cookie перекрывает новую
+  res.clearCookie(COOKIE_NAME, { path: '/' });
 };
 
 // Дешёвая CSRF-защита: Origin должен совпадать с хостом (кроме dev).

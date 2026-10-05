@@ -39,11 +39,8 @@
 ### F1f — финальный статус у повторяющихся — СДЕЛАНО (2026-10-05)
 Реализовано ранее: computeOccurrences фильтрует isFinal (activeStatusIds), activeSince=now при возврате, запрет возврата completed/split, финал manual/split. Добавлено 2026-10-05: миграция scripts/migrate-active-since.js (48 задач, dry-run→apply, идемпотентна). Осталось: автотесты (O5, инфры нет).
 
-### Сессии (ADR decisions.md; wip/sessions от main; не срочно, вылет раз в 30д терпимо)
-Первыми (убирают 'вылетел'): скользящий refresh; grace 10-30с + single-flight BroadcastChannel; скелетон при холодном старте PWA.
-Следом: 'помни меня' (вкл persistent 30д / выкл session+24ч), абсолютный максимум 90д (личное 180).
-Вместе со сменой пароля (P1): список сессий + 'Выйти везде' в 'Безопасности'.
-ВНИМАНИЕ: Path cookie -> /auth сбросит сессии у всех (старый Path=/ дублируется) — очистка Set-Cookie Path=/ Max-Age=0 + тест.
+### Сессии — в основном СДЕЛАНО (2026-10-05)
+Реализовано: rotation+reuse-detection, grace 20с (гонка вкладок), скользящий idle-TTL 30д, «помни меня» (persistent 30д / session), абсолютный максимум 90д, single-flight на клиенте (api.ts), список сессий + «Выйти везде» (P1). Добавлено: очистка легаси-cookie Path=/ в clearRefreshCookie. Осталось (не срочно): single-flight между вкладками (BroadcastChannel), скелетон при холодном старте PWA.
 
 ### P — пароли (ADR decisions.md)
 - P1 — СДЕЛАНО (2026-10-05). Смена из профиля (старый+новый, >=10, отзыв refresh кроме текущей), раздел «Безопасность», список сессий, «Выйти везде», кнопка показать/скрыть (PasswordInput). Добавлен rate limit на change-password (5/15мин прод).
