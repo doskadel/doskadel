@@ -174,6 +174,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
   const [selected, setSelected] = useState<Date>(today);
   const [activeTask, setActiveTask] = useState<CalendarTask | null>(null);
   const [markDays, setMarkDays] = useState<Set<string>>(new Set());
+  const [itemsByDay, setItemsByDay] = useState<Record<string, Array<{ taskId: string; title: string; dueAt: string; priority?: number; isRecurring: boolean; originalDate: string | null }>>>({});
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -200,7 +201,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
     const from = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
     const to = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1);
     api.get(`/api/tasks/calendar-marks?from=${from.toISOString()}&to=${to.toISOString()}`)
-      .then((r: any) => setMarkDays(new Set(r.data?.days || [])))
+      .then((r: any) => { setMarkDays(new Set(r.data?.days || [])); setItemsByDay(r.data?.itemsByDay || {}); })
       .catch(() => {});
   }, [cursor, tasks]);
 
@@ -347,6 +348,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
     const tb = db ? db.getTime() : Infinity;
     return ta - tb;
   });
+  const selectedItems = (itemsByDay[dayKeyStr(selected)] || []).slice().sort((a: any, b: any) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime());
   const renderDayPanel = () => (
     <div className="calendar-day-panel">
       <div className="calendar-day-title">
@@ -354,21 +356,25 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
           ? `${WEEKDAYS_FULL[(selected.getDay() + 6) % 7]}, ${selected.getDate()} ${MONTHS_GEN[selected.getMonth()]}`
           : `${selected.getDate()} ${MONTHS_GEN[selected.getMonth()]}`}
       </div>
-      {selectedTasks.length === 0 ? (
+      {selectedItems.length === 0 ? (
         <div className="calendar-empty">На этот день задач нет</div>
       ) : (
-        selectedTasks.map((t) => (
-          <DraggableTask
-            key={t._id}
-            task={t}
-            day={selected}
-            getDayDate={dateForDay}
-            onOpen={() => onOpenTask(t._id)}
-            onAction={onOccurrenceAction && isRecurring(t) ? () => {
-              const dd = dateForDay(t, selected);
-              if (dd) onOccurrenceAction(t._id, dd.toISOString());
-            } : undefined}
-          />
+        selectedItems.map((it: any) => (
+          <div
+            key={(it.taskId || '') + (it.originalDate || it.dueAt)}
+            className="calendar-task"
+            onClick={() => it.isRecurring && onOccurrenceAction && it.originalDate
+              ? onOccurrenceAction(it.taskId, it.originalDate)
+              : onOpenTask(it.taskId)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === 'Enter') onOpenTask(it.taskId); }}
+          >
+            <span className={'calendar-task-rail calendar-task-rail--' + (deadlineLevel(it.dueAt, 3) || 'far')} />
+            {it.isRecurring && <Repeat size={14} className="recur-icon" />}
+            <span className="calendar-task-title">{it.title}</span>
+            <span className="calendar-task-time">{new Date(it.dueAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}</span>
+          </div>
         ))
       )}
     </div>
