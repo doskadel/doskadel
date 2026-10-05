@@ -362,9 +362,30 @@ const updateTask = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Нельзя менять дедлайн повторяющейся задачи' });
     }
 
+    // F1f: возврат задачи с closedReason (completed/split) в активный — запрещён.
+    if (req.body.statusId !== undefined && oldTask.closedReason && (oldTask.closedReason === 'completed' || oldTask.closedReason === 'split')) {
+      const Status = require('../models/Status');
+      const newSt = await Status.findById(req.body.statusId).select('isFinal').lean();
+      if (newSt && !newSt.isFinal) {
+        return res.status(400).json({ success: false, message: 'Завершённую серию нельзя вернуть в активный статус' });
+      }
+    }
+
     const allowed = ['title', 'description', 'statusId', 'priority', 'order', 'dueDate', 'recurrence', 'notifications'];
     const updateData = {};
     allowed.forEach((k) => { if (req.body[k] !== undefined) updateData[k] = req.body[k]; });
+
+    // F1f: смена финальный -> нефинальный => activeSince=now (вхождения с даты возврата).
+    if (req.body.statusId !== undefined) {
+      const Status = require('../models/Status');
+      const [oldSt, newSt] = await Promise.all([
+        Status.findById(oldTask.statusId).select('isFinal').lean(),
+        Status.findById(req.body.statusId).select('isFinal').lean(),
+      ]);
+      if (oldSt && oldSt.isFinal && newSt && !newSt.isFinal) {
+        updateData.activeSince = new Date();
+      }
+    }
     if (dueChanged) {
       updateData.notificationsSent = {
         dayBefore: null,

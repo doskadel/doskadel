@@ -88,6 +88,8 @@ const taskSchema = new mongoose.Schema({
     required: true,
     index: true
   },
+  // Дата последнего возврата в нефинальный статус (F1f): вхождения считаются с неё.
+  activeSince: { type: Date, default: null },
   // Авторство (createdBy = бывший userId). Позже — updatedBy/assigneeId/deletedAt
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,

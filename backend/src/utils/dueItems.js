@@ -31,6 +31,11 @@ async function computeOccurrences(window, ctx = {}) {
       const sd = new Date(t.recurrence.startDate);
       if (!isNaN(sd.getTime()) && sd > from) from = sd;
     }
+    // F1f: после возврата из финала считать только с activeSince
+    if (t.activeSince) {
+      const as = new Date(t.activeSince);
+      if (!isNaN(as.getTime()) && as > from) from = as;
+    }
     const dates = getNextOccurrences(t.recurrence, from, 60).filter(
       (d) => d >= window.gte && d < window.lt
     );
