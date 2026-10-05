@@ -1,8 +1,18 @@
 const express = require('express');
 const { body } = require('express-validator');
+const rateLimit = require('express-rate-limit');
 const authController = require('../controllers/authController');
 const auth = require('../middleware/auth');
 const router = express.Router();
+
+// P1: строгий лимит на смену пароля (защита от брутфорса текущего пароля)
+const changePasswordLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: process.env.NODE_ENV === 'development' ? 50 : 5,
+  message: { success: false, message: 'Слишком много попыток. Попробуйте позже.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // Регистрация
 router.post('/register', [
@@ -24,7 +34,7 @@ router.post('/refresh', authController.refresh);
 router.post('/logout', authController.logout);
 
 // P1: смена пароля, список сессий, выйти везде (требуют access-токен)
-router.post('/change-password', auth, authController.changePassword);
+router.post('/change-password', auth, changePasswordLimiter, authController.changePassword);
 router.get('/sessions', auth, authController.listSessions);
 router.post('/logout-all', auth, authController.logoutAll);
 
