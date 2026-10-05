@@ -53,11 +53,16 @@ async function computeOccurrences(window, ctx = {}) {
     for (const d of dates) {
       const ex = origMap.get(d.getTime());
       if (ex) {
-        // если вхождение перенесено (dueAt != originalDate) и попало в окно — отдадим по dueAt
-        if (ex.status === 'pending' && ex.dueAt && ex.dueAt.getTime() !== d.getTime() && ex.dueAt >= window.gte && ex.dueAt < window.lt) {
-          out.push({ task: t, dueAt: ex.dueAt, originalDate: d, occurrenceId: ex._id });
+        // pending без переноса — это просто материализованная запись, отдаём как обычное вхождение
+        if (ex.status === 'pending') {
+          const due = ex.dueAt && ex.dueAt.getTime() !== d.getTime() ? ex.dueAt : d;
+          if (due >= window.gte && due < window.lt) {
+            out.push({ task: t, dueAt: due, originalDate: d, occurrenceId: ex._id });
+          }
+          continue;
         }
-        continue; // done/skipped или уже обработано — не отдаём как обычное
+        // done/skipped/missed — вхождение исключено
+        continue;
       }
       out.push({ task: t, dueAt: d, originalDate: d, occurrenceId: null });
     }
