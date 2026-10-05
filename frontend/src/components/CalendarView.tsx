@@ -75,11 +75,11 @@ const DayCell: React.FC<{
   day: Date;
   isToday: boolean;
   isSelected: boolean;
-  hasOverdue: boolean;
+  hasTasks: boolean;
   onClick: () => void;
   variant: 'month' | 'week';
   children?: React.ReactNode;
-}> = ({ day, isToday, isSelected, hasOverdue, onClick, variant, children }) => {
+}> = ({ day, isToday, isSelected, hasTasks, onClick, variant, children }) => {
   const { setNodeRef, isOver } = useDroppable({ id: dayKey(day) });
 
   if (variant === 'week') {
@@ -103,9 +103,9 @@ const DayCell: React.FC<{
       onClick={onClick}
     >
       {children}
-      {hasOverdue && (
+      {hasTasks && (
         <span className="calendar-dots">
-          <span className="calendar-dot calendar-dot--overdue" />
+          <span className="calendar-dot" />
         </span>
       )}
     </button>
@@ -190,15 +190,9 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
 
   const tasksByDay = (day: Date) => tasks.filter((t) => dateForDay(t, day) !== null);
 
-  const isOverdueForDay = (t: CalendarTask, day: Date) => {
-    if (t.statusId && finalSet.has(String(t.statusId))) return false;
-    if (t.recurrence && t.lastOverdueAt) {
-      const d = new Date(t.lastOverdueAt);
-      return !isNaN(d.getTime()) && sameDay(d, day);
-    }
-    const d = taskDate(t);
-    return d && d.getTime() < Date.now();
-  };
+  // Есть ли на день хотя бы одна НЕвыполненная (не финальная) задача — для синего маркера.
+  const hasActiveTask = (day: Date) =>
+    tasksByDay(day).some((t) => !(t.statusId && finalSet.has(String(t.statusId))));
 
   const navigate = (dir: -1 | 1) => {
     if (view === 'month') {
@@ -285,14 +279,14 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
       <div className="calendar-grid">
         {cells.map((day, i) => {
           if (!day) return <div key={'e' + i} className="calendar-cell calendar-cell--empty" />;
-          const hasOverdue = tasksByDay(day).some((t) => isOverdueForDay(t, day));
+          const hasTasks = hasActiveTask(day);
           return (
             <DayCell
               key={day.toISOString()}
               day={day}
               isToday={sameDay(day, today)}
               isSelected={sameDay(day, selected)}
-              hasOverdue={hasOverdue}
+              hasTasks={hasTasks}
               onClick={() => setSelected(day)}
               variant="month"
             >
@@ -311,22 +305,22 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
     return (
       <div className="calendar-week">
         {days.map((day) => {
-          const hasOverdue = tasksByDay(day).some((t) => isOverdueForDay(t, day));
+          const hasTasks = hasActiveTask(day);
           return (
             <DayCell
               key={day.toISOString()}
               day={day}
               isToday={sameDay(day, today)}
               isSelected={sameDay(day, selected)}
-              hasOverdue={hasOverdue}
+              hasTasks={hasTasks}
               onClick={() => setSelected(day)}
               variant="week"
             >
               <span className="calendar-week-dayname">{WEEKDAYS[(day.getDay() + 6) % 7]}</span>
               <span className="calendar-week-daynum">{day.getDate()}</span>
-              {hasOverdue && (
+              {hasTasks && (
                 <span className="calendar-dots">
-                  <span className="calendar-dot calendar-dot--overdue" />
+                  <span className="calendar-dot" />
                 </span>
               )}
             </DayCell>
