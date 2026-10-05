@@ -8,10 +8,11 @@ interface ModalProps {
   wide?: boolean;
   rightRail?: ReactNode;
   onBack?: () => void;
+  className?: string;
   children: ReactNode;
 }
 
-const Modal: React.FC<ModalProps> = ({ open, onClose, title, wide, rightRail, onBack, children }) => {
+const Modal: React.FC<ModalProps> = ({ open, onClose, title, wide, rightRail, onBack, className, children }) => {
   const backdropRef = useRef<HTMLDivElement>(null);
   const mouseDownOnBackdropRef = useRef(false);
 
@@ -54,7 +55,7 @@ const Modal: React.FC<ModalProps> = ({ open, onClose, title, wide, rightRail, on
       onMouseUp={handleMouseUp}
     >
       <div
-        className={wide ? 'modal-content modal-content--wide' : 'modal-content'}
+        className={['modal-content', wide ? 'modal-content--wide' : '', className || ''].filter(Boolean).join(' ')}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="modal-header">

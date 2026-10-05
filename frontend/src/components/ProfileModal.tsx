@@ -263,7 +263,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ open, onClose }) => {
     'Профиль';
 
   return (
-    <Modal open={open} onClose={handleClose} title={title}>
+    <Modal open={open} onClose={handleClose} title={title} className="modal-content--profile">
       {loading && <p>Загрузка...</p>}
       {error && <p style={{ color: 'var(--color-danger)' }}>{error}</p>}
 
