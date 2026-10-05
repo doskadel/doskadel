@@ -70,7 +70,7 @@
 ### Доступность
 - A2 — СДЕЛАНО 2026-10-05. Иконки-кнопки увеличены: occ-icon-btn/filter-icon-btn/calendar-nav 38→40, modal-rail-btn 36→40, dash-arrow 30→36 (fb-icon-btn уже 44).
 - A3 — СДЕЛАНО 2026-10-05. Space (не только Enter) в div role=button: Dashboard (3), CalendarView (2), Knowledge (1), SearchModal (2). + preventDefault.
-- A4. prefers-reduced-motion: есть точечно (skeleton, fb-search), проверить полноту.
+- A4 — СДЕЛАНО 2026-10-05. Глобальный prefers-reduced-motion: гасит анимации модалок/тостов/sheet/переходов; spinner загрузки оставлен (смысловой).
 
 ### Неавторизованная зона (AUTH; приоритет: после F1e, одним заходом с P2/P4)
 - AUTH-1. Отдельные маршруты /login, /register, /forgot, /reset, /verify на общем AuthLayout (не вкладки: свои URL, ссылки, закладки, автозаполнение пароля).

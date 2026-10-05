@@ -3,6 +3,7 @@
 Короткие записи по датам (что вошло в main). Новые — сверху.
 
 ## 2026-10-05
+- **A4** — глобальный prefers-reduced-motion (гасит декоративные анимации).
 - **A2** — иконки-кнопки увеличены (40px), dash-arrow 36px (цель нажатия).
 - **A3** — Space активирует div role=button (Dashboard/Calendar/Knowledge/SearchModal), помимо Enter.
 - **O6** — dump.txt/dump.bat удалены с диска.
