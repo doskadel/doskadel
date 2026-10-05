@@ -151,9 +151,18 @@ const StatusManager: React.FC<StatusManagerProps> = ({ open, statuses, onClose, 
     }
   };
 
-  // X и клик по фону всегда закрывают всю иерархию настроек.
-  // Возврат к списку статусов — только через кнопку «Назад».
-  const handleClose = () => {
+  // X и клик по фону: если форма создания/редактирования изменена — подтвердить выход.
+  const handleClose = async () => {
+    const dirty = formSnap !== '' && formSig !== formSnap;
+    if (dirty) {
+      const ok = await confirm({
+        title: 'Есть несохранённые данные',
+        message: 'Изменения не будут сохранены. Выйти без сохранения?',
+        confirmLabel: 'Выйти без сохранения',
+        danger: true,
+      });
+      if (!ok) return;
+    }
     onClose();
   };
 
