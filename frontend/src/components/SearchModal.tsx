@@ -388,7 +388,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
                         onClick={() => openTaskDetail(t._id)}
                         role="button"
                         tabIndex={0}
-                        onKeyDown={(e) => e.key === 'Enter' && openTaskDetail(t._id)}
+                        onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), openTaskDetail(t._id))}
                       >
                         <span className="command-palette-item-rail" />
                         <div className="command-palette-item-content">
@@ -436,7 +436,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
                         onClick={() => openArticleDetail(a._id)}
                         role="button"
                         tabIndex={0}
-                        onKeyDown={(e) => e.key === 'Enter' && openArticleDetail(a._id)}
+                        onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), openArticleDetail(a._id))}
                       >
                         <span className="command-palette-item-rail command-palette-item-rail--article" />
                         <div className="command-palette-item-content">

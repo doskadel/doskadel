@@ -265,7 +265,7 @@ const Knowledge: React.FC = () => {
               role="button"
               tabIndex={0}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') openArticle(article._id);
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openArticle(article._id); }
               }}
             >
               <h3 className="article-card-title">{article.title}</h3>

@@ -148,7 +148,7 @@ const DraggableTask: React.FC<{
       role="button"
       tabIndex={0}
       title={recurring ? 'Действия над вхождением' : undefined}
-      onKeyDown={(e) => { if (e.key === 'Enter') (recurring && onAction ? onAction() : onOpen()); }}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); (recurring && onAction ? onAction() : onOpen()); } }}
     >
       <span
         ref={setActivatorNodeRef}
@@ -368,7 +368,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
               : onOpenTask(it.taskId)}
             role="button"
             tabIndex={0}
-            onKeyDown={(e) => { if (e.key === 'Enter') onOpenTask(it.taskId); }}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpenTask(it.taskId); } }}
           >
             <span className={'calendar-task-rail calendar-task-rail--' + (deadlineLevel(it.dueAt, 3) || 'far')} />
             {it.isRecurring && <Repeat size={14} className="recur-icon" />}

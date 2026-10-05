@@ -282,7 +282,7 @@ const Dashboard: React.FC = () => {
                       onClick={() => navigate(`/tasks?task=${t._id}`)}
                       role="button"
                       tabIndex={0}
-                      onKeyDown={(e) => e.key === 'Enter' && navigate(`/tasks?task=${t._id}`)}
+                      onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), navigate(`/tasks?task=${t._id}`))}
                     >
                       <span className="dashboard-item-title">{t.title}</span>
                       <span className="dashboard-item-date dashboard-item-date--danger">
@@ -323,7 +323,7 @@ const Dashboard: React.FC = () => {
                       onClick={() => navigate(`/tasks?task=${t._id}`)}
                       role="button"
                       tabIndex={0}
-                      onKeyDown={(e) => e.key === 'Enter' && navigate(`/tasks?task=${t._id}`)}
+                      onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), navigate(`/tasks?task=${t._id}`))}
                     >
                       <span className="dashboard-item-title">{t.title}</span>
                       <span className="dashboard-item-date">
@@ -353,7 +353,7 @@ const Dashboard: React.FC = () => {
                     onClick={() => navigate(`/tasks?statuses=${s.statusId}`)}
                     role="button"
                     tabIndex={0}
-                    onKeyDown={(e) => e.key === 'Enter' && navigate(`/tasks?statuses=${s.statusId}`)}
+                    onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), navigate(`/tasks?statuses=${s.statusId}`))}
                   >
                     <div
                       className="dashboard-status-rail"
@@ -391,7 +391,7 @@ const Dashboard: React.FC = () => {
                     onClick={() => navigate(`/tasks?task=${t._id}`)}
                     role="button"
                     tabIndex={0}
-                    onKeyDown={(e) => e.key === 'Enter' && navigate(`/tasks?task=${t._id}`)}
+                    onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), navigate(`/tasks?task=${t._id}`))}
                   >
                     <span className="dashboard-item-title">{t.title}</span>
                     <span className="dashboard-item-date">{formatDate(t.updatedAt)}</span>
@@ -422,7 +422,7 @@ const Dashboard: React.FC = () => {
                     onClick={() => navigate(`/knowledge?article=${a._id}`)}
                     role="button"
                     tabIndex={0}
-                    onKeyDown={(e) => e.key === 'Enter' && navigate(`/knowledge?article=${a._id}`)}
+                    onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), navigate(`/knowledge?article=${a._id}`))}
                   >
                     <span className="dashboard-item-title">{a.title}</span>
                     <span className="dashboard-item-date">{formatDate(a.createdAt)}</span>

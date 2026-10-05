@@ -69,7 +69,7 @@
 
 ### Доступность
 - A2. Цель нажатия >=44px у иконок-кнопок.
-- A3. Space (не только Enter) в div role=button (Dashboard/Tasks/Knowledge/Calendar) — или общий хелпер/button.
+- A3 — СДЕЛАНО 2026-10-05. Space (не только Enter) в div role=button: Dashboard (3), CalendarView (2), Knowledge (1), SearchModal (2). + preventDefault.
 - A4. prefers-reduced-motion: есть точечно (skeleton, fb-search), проверить полноту.
 
 ### Неавторизованная зона (AUTH; приоритет: после F1e, одним заходом с P2/P4)
