@@ -52,7 +52,9 @@ const OccurrenceHistoryModal: React.FC<Props> = ({ open, onClose, taskId, taskTi
   return (
     <Modal open={open} onClose={onClose} title={`История: ${taskTitle}`} wide>
       <div className="occ-modal">
-        <p className="occ-summary">Выполнено {counts.done} из {counts.total}</p>
+        {counts.total > 0 && (
+          <p className="occ-summary">Выполнено {counts.done} из {counts.total}</p>
+        )}
         <div className="occ-tabs">
           <button type="button" className={`occ-tab ${tab === 'history' ? 'occ-tab--active' : ''}`} onClick={() => setTab('history')}>
             История ({historyList.length})
