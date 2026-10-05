@@ -1,0 +1,49 @@
+# Прод-сборка для сервера (/opt/doskadel). Caddy терминирует HTTPS и проксирует
+# doskadel.ru -> frontend:3000, api.doskadel.ru -> backend:5000.
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - worklist-network
+    env_file:
+      - ./backend/.env
+    ports:
+      - "5000:5000"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    restart: unless-stopped
+    depends_on:
+      - backend
+    networks:
+      - worklist-network
+    ports:
+      - "3000:3000"
+
+  mongo:
+    image: mongo:7.0
+    restart: unless-stopped
+    networks:
+      - worklist-network
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  worklist-network:
+    driver: bridge
+
+volumes:
+  mongo_data:

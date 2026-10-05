@@ -1,0 +1,47 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - doskadel-network
+    env_file:
+      - ./backend/.env
+    environment:
+      - NODE_ENV=production
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    restart: unless-stopped
+    depends_on:
+      - backend
+    networks:
+      - doskadel-network
+    ports:
+      - "80:80"
+
+  mongo:
+    image: mongo:7.0
+    restart: unless-stopped
+    networks:
+      - doskadel-network
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  doskadel-network:
+    driver: bridge
+
+volumes:
+  mongo_data:
