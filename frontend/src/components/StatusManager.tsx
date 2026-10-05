@@ -115,7 +115,12 @@ const StatusManager: React.FC<StatusManagerProps> = ({ open, statuses, onClose, 
         });
       }
       onChanged();
-      goToList();
+      // После сохранения — в список БЕЗ проверки dirty (formSnap ещё старый)
+      setMode('list');
+      setEditingStatus(null);
+      setFormSnap('');
+      setName('');
+      setError('');
     } catch (err: any) {
       console.error('Error saving status:', err);
       setError(err.response?.data?.message || 'Ошибка сохранения');
