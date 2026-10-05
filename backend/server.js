@@ -19,7 +19,19 @@ app.use((req, res, next) => {
 const PORT = process.env.PORT || 5000;
 
 app.use(helmet());
-app.use(cors({ origin: true, credentials: true }));
+// CORS: список origin из env CORS_ORIGIN (через запятую).
+// dev без env — как было (любой origin); prod без env — только same-origin.
+const corsOrigins = (process.env.CORS_ORIGIN || '').split(',').map(s => s.trim()).filter(Boolean);
+const corsOptions = {
+  credentials: true,
+  origin: corsOrigins.length > 0
+    ? (origin, cb) => {
+        if (!origin || corsOrigins.includes(origin)) return cb(null, true);
+        cb(new Error('CORS: origin not allowed: ' + origin));
+      }
+    : (process.env.NODE_ENV === 'development' ? true : false),
+};
+app.use(cors(corsOptions));
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
