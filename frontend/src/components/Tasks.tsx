@@ -298,6 +298,16 @@ const Tasks: React.FC = () => {
     }
   };
 
+  const handleReorderStatuses = async (order: Array<{ id: string; order: number }>) => {
+    try {
+      await api.put('/api/statuses/reorder', { order });
+      refreshAll();
+      toast('Порядок колонок обновлён', 'success');
+    } catch (err: any) {
+      toast(err?.response?.data?.message || 'Не удалось изменить порядок колонок', 'error');
+    }
+  };
+
   const handleReorder = async (updates: Array<{ id: string; statusId: string; order: number }>) => {
     setTasks((prev) => {
       const next = [...prev];
@@ -593,6 +603,7 @@ const Tasks: React.FC = () => {
           tasks={tasks as KanbanTask[]}
           statuses={statuses}
           onReorder={handleReorder}
+          onReorderStatuses={handleReorderStatuses}
           onOpenTask={openTask}
         />
       )}

@@ -14,6 +14,7 @@ import {
   SortableContext,
   useSortable,
   verticalListSortingStrategy,
+  horizontalListSortingStrategy,
   arrayMove,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -155,22 +156,45 @@ interface ColumnProps {
 }
 
 const Column: React.FC<ColumnProps> = ({ status, tasks, onOpenTask }) => {
-  const { setNodeRef, isOver } = useDroppable({
+  // Колонка и как droppable (для карточек), и как sortable (перетаскивание за заголовок)
+  const { setNodeRef: setDropRef, isOver } = useDroppable({
     id: status._id,
     data: { type: 'column', statusId: status._id },
   });
+  const {
+    attributes,
+    listeners,
+    setNodeRef: setSortRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: `col:${status._id}` });
+
+  const setRefs = (node: HTMLDivElement | null) => {
+    setDropRef(node);
+    setSortRef(node);
+  };
 
   const taskIds = tasks.map((t) => t._id);
   const headerTextColor = getTextColorForBackground(status.color);
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
 
   return (
     <div
-      ref={setNodeRef}
+      ref={setRefs}
+      style={style}
       className={`kanban-column ${isOver ? 'kanban-column--over' : ''}`}
     >
       <div
         className="kanban-column-header"
-        style={{ backgroundColor: status.color }}
+        style={{ backgroundColor: status.color, cursor: 'grab', touchAction: 'none' }}
+        title="Нажмите и удерживайте, чтобы переместить колонку"
+        {...attributes}
+        {...listeners}
       >
         <h3 className="kanban-column-title" style={{ color: headerTextColor }}>
           {status.name}
@@ -274,10 +298,11 @@ interface KanbanBoardProps {
   tasks: KanbanTask[];
   statuses: Status[];
   onReorder: (updates: Array<{ id: string; statusId: string; order: number }>) => void;
+  onReorderStatuses?: (order: Array<{ id: string; order: number }>) => void;
   onOpenTask: (id: string) => void;
 }
 
-const KanbanBoard: React.FC<KanbanBoardProps> = ({ tasks, statuses, onReorder, onOpenTask }) => {
+const KanbanBoard: React.FC<KanbanBoardProps> = ({ tasks, statuses, onReorder, onReorderStatuses, onOpenTask }) => {
   const [activeId, setActiveId] = useState<string | null>(null);
   const boardRef = useRef<HTMLDivElement>(null);
   useEdgeAutoScroll(!!activeId, boardRef);
@@ -291,6 +316,9 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ tasks, statuses, onReorder, o
   const activeStatus = activeTask
     ? statuses.find((s) => s._id === activeTask.statusId)
     : null;
+  const activeColumn = activeId && activeId.startsWith('col:')
+    ? statuses.find((s) => s._id === activeId.slice(4))
+    : null;
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string);
@@ -301,6 +329,21 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ tasks, statuses, onReorder, o
     setActiveId(null);
 
     if (!over) return;
+
+    // Перетаскивание колонки (id = 'col:<statusId>')
+    const activeStr = String(active.id);
+    if (activeStr.startsWith('col:')) {
+      const fromId = activeStr.slice(4);
+      const overStr = String(over.id);
+      const toId = overStr.startsWith('col:') ? overStr.slice(4) : overStr;
+      if (!toId || fromId === toId) return;
+      const fromIdx = statuses.findIndex((s) => s._id === fromId);
+      const toIdx = statuses.findIndex((s) => s._id === toId);
+      if (fromIdx < 0 || toIdx < 0) return;
+      const next = arrayMove(statuses, fromIdx, toIdx);
+      onReorderStatuses?.(next.map((s, i) => ({ id: s._id, order: i })));
+      return;
+    }
 
     const activeTaskId = active.id as string;
     const activeTaskData = tasks.find((t) => t._id === activeTaskId);
@@ -398,20 +441,43 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ tasks, statuses, onReorder, o
       onDragEnd={handleDragEnd}
     >
       <div className="kanban-board" ref={boardRef}>
-        {statuses.map((status) => (
-          <Column
-            key={status._id}
-            status={status}
-            tasks={tasks
-              .filter((t) => t.statusId === status._id)
-              .sort((a, b) => a.order - b.order)}
-            onOpenTask={onOpenTask}
-          />
-        ))}
+        <SortableContext
+          items={statuses.map((s) => `col:${s._id}`)}
+          strategy={horizontalListSortingStrategy}
+        >
+          {statuses.map((status) => (
+            <Column
+              key={status._id}
+              status={status}
+              tasks={tasks
+                .filter((t) => t.statusId === status._id)
+                .sort((a, b) => a.order - b.order)}
+              onOpenTask={onOpenTask}
+            />
+          ))}
+        </SortableContext>
       </div>
 
       <DragOverlay>
-        {activeTask ? (
+        {activeColumn ? (
+          <div className="kanban-column kanban-column--overlay">
+            <div className="kanban-column-header" style={{ backgroundColor: activeColumn.color }}>
+              <h3 className="kanban-column-title" style={{ color: getTextColorForBackground(activeColumn.color) }}>
+                {activeColumn.name}
+              </h3>
+              <span
+                className="kanban-column-count"
+                style={{
+                  color: getTextColorForBackground(activeColumn.color),
+                  borderColor: getTextColorForBackground(activeColumn.color),
+                  backgroundColor: 'transparent',
+                }}
+              >
+                {tasks.filter((t) => t.statusId === activeColumn._id).length}
+              </span>
+            </div>
+          </div>
+        ) : activeTask ? (
           <div className="kanban-card kanban-card--overlay">
             <div className="kanban-card-rail" />
             <div className="kanban-card-content">

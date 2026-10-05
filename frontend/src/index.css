@@ -1484,6 +1484,15 @@ color: var(--color-text);
   border-color: var(--color-primary);
 }
 
+/* Призрак колонки при перетаскивании (плавно следует за курсором) */
+.kanban-column--overlay {
+  width: 260px;
+  min-height: auto;
+  box-shadow: var(--shadow-lg);
+  opacity: 0.95;
+  cursor: grabbing;
+}
+
 .kanban-column-header {
   display: flex;
   justify-content: space-between;
