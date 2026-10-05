@@ -134,6 +134,7 @@ textarea.input {
 display: inline-flex;
 align-items: center;
 justify-content: center;
+gap: 8px;
 min-height: 44px;
 padding: 10px 20px;
 background-color: var(--color-primary);
