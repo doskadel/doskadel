@@ -3,13 +3,13 @@
   "name": "DoskaDel",
   "lang": "ru",
   "description": "Приложение для управления задачами и базой знаний",
-  "lang": "ru",
+  "id": "/",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "theme_color": "#0969da",
-  "background_color": "#ffffff",
+  "theme_color": "#111417",
+  "background_color": "#111417",
   "icons": [
     {
       "src": "favicon-96x96.png",
