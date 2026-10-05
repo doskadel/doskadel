@@ -9,6 +9,7 @@ import ArticleModal from './ArticleModal';
 import ArticleFilterBar from './ArticleFilterBar';
 import { useConfirm } from './ConfirmProvider';
 import { useToast } from './Toast';
+import SwipeableRow from './SwipeableRow';
 
 interface Article {
   _id: string;
@@ -130,6 +131,23 @@ const Knowledge: React.FC = () => {
     }
     resetCreateForm();
     setCreateOpen(false);
+  };
+
+  const handleDeleteArticle = async (id: string, title: string) => {
+    const ok = await confirm({
+      title: `Удалить статью «${title}»?`,
+      message: 'Это действие нельзя отменить.',
+      confirmLabel: 'Удалить',
+      danger: true,
+    });
+    if (!ok) return;
+    try {
+      await api.delete(`/api/articles/${id}`);
+      toast('Статья удалена', 'success');
+      fetchArticles();
+    } catch (err: any) {
+      toast(err?.response?.data?.message || 'Не удалось удалить статью', 'error');
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -268,8 +286,12 @@ const Knowledge: React.FC = () => {
       {articles.length > 0 && (
         <div className="article-grid">
           {articles.map((article) => (
-            <div
+            <SwipeableRow
               key={article._id}
+              onEdit={() => openArticle(article._id)}
+              onDelete={() => handleDeleteArticle(article._id, article.title)}
+            >
+            <div
               className="article-card"
               onClick={() => openArticle(article._id)}
               role="button"
@@ -284,6 +306,7 @@ const Knowledge: React.FC = () => {
                 Создано: {new Date(article.createdAt).toLocaleDateString('ru-RU')}
               </div>
             </div>
+            </SwipeableRow>
           ))}
         </div>
       )}

@@ -2772,6 +2772,48 @@ color: var(--color-text);
   margin-bottom: var(--space-sm);
 }
 
+/* ==================== SWIPE-ROW (списки задач/статей) ==================== */
+.swipe-row {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-md);
+}
+.swipe-row-actions {
+  position: absolute;
+  inset: 0 0 0 auto;
+  display: flex;
+  align-items: stretch;
+}
+.swipe-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 66px;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  color: #fff;
+}
+.swipe-action--edit { background: var(--color-primary); }
+.swipe-action--edit:hover { background: var(--color-primary-hover); }
+.swipe-action--delete { background: var(--color-danger); }
+.swipe-action--delete:hover { background: var(--color-danger-hover); }
+.swipe-row-content {
+  position: relative;
+  z-index: 1;
+  background: transparent;
+  will-change: transform;
+}
+/* Карточка внутри swipe-row: убрать собственный нижний отступ */
+.swipe-row-content .task-card,
+.swipe-row-content .article-card {
+  margin-bottom: 0;
+}
+
 /* Пустое состояние списков/доски */
 .empty-state {
   display: flex;

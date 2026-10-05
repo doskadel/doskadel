@@ -9,6 +9,7 @@ import { GripVertical, X, Plus, Settings, CalendarDays, Columns, List, Info, Lay
 import { useSearchParams } from 'react-router-dom';
 import api from '../utils/api';
 import KanbanBoard, { KanbanTask } from './KanbanBoard';
+import SwipeableRow from './SwipeableRow';
 import Modal from './Modal';
 import TaskModal from './TaskModal';
 import StatusManager from './StatusManager';
@@ -295,6 +296,23 @@ const Tasks: React.FC = () => {
     } catch (err: any) {
       toast(err?.response?.data?.message || 'Не удалось создать задачу', 'error');
       console.error('Error creating task:', err);
+    }
+  };
+
+  const handleDeleteTask = async (id: string, title: string) => {
+    const ok = await confirm({
+      title: `Удалить задачу «${title}»?`,
+      message: 'Это действие нельзя отменить.',
+      confirmLabel: 'Удалить',
+      danger: true,
+    });
+    if (!ok) return;
+    try {
+      await api.delete(`/api/tasks/${id}`);
+      toast('Задача удалена', 'success');
+      refreshAll();
+    } catch (err: any) {
+      toast(err?.response?.data?.message || 'Не удалось удалить задачу', 'error');
     }
   };
 
@@ -618,8 +636,12 @@ const Tasks: React.FC = () => {
             const isFinal = !!st && !!st.isFinal;
 
             return (
-              <div
+              <SwipeableRow
                 key={task._id}
+                onEdit={() => openTask(task._id)}
+                onDelete={() => handleDeleteTask(task._id, task.title)}
+              >
+              <div
                 className="task-card"
                 onClick={() => openTask(task._id)}
                 role="button"
@@ -670,6 +692,7 @@ const Tasks: React.FC = () => {
                   </div>
                 </div>
               </div>
+              </SwipeableRow>
             );
           })}
         </div>
