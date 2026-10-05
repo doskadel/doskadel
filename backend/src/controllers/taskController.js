@@ -6,6 +6,7 @@ const escapeRegex = require('../utils/escapeRegex');
 const { SINGLE, RECURRING } = require('../utils/taskKinds');
 const { canByMembership } = require('../utils/can');
 const { summarizeOccurrences, enrichTaskDue } = require('../utils/taskDueSummary');
+const { getActiveStatusIds } = require('../utils/dueItems');
 
 const OCCURRENCE_HORIZON_DAYS = 7;
 
@@ -84,6 +85,40 @@ const createTask = async (req, res) => {
     res.status(201).json({ success: true, task });
   } catch (error) {
     console.error('Create task error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+// GET /api/tasks/calendar-marks?from=&to= — дни с хотя бы одной НЕвыполненной задачей (для маркеров календаря).
+const getCalendarMarks = async (req, res) => {
+  try {
+    const { from, to } = req.query;
+    if (!from || !to) return res.status(400).json({ success: false, message: 'from and to required' });
+    const fromD = new Date(from);
+    const toD = new Date(to);
+    if (isNaN(fromD.getTime()) || isNaN(toD.getTime())) return res.status(400).json({ success: false, message: 'Invalid dates' });
+
+    const { resolveTz } = require('../utils/tz');
+    const { DateTime } = require('luxon');
+    const User = require('../models/User');
+    const u = await User.findById(req.user._id).select('timezone').lean();
+    const tz = resolveTz(u, req.get('X-Timezone'));
+    const active = await getActiveStatusIds();
+    const daySet = new Set();
+    const addDay = (date) => { const key = DateTime.fromJSDate(new Date(date), { zone: tz }).toISODate(); if (key) daySet.add(key); };
+
+    // разовые: dueDate, нефинал
+    const singles = await Task.find({ ...SINGLE, workspaceId: req.workspaceId, statusId: { $in: active }, dueDate: { $gte: fromD, $lt: toD } }).select('dueDate').lean();
+    singles.forEach((t) => addDay(t.dueDate));
+
+    // повторяющиеся: на лету
+    const { computeOccurrences } = require('../utils/dueItems');
+    const occ = await computeOccurrences({ gte: fromD, lt: toD }, { workspaceId: req.workspaceId, activeStatusIds: active, floorDays: 0 });
+    occ.forEach((o) => addDay(o.dueAt));
+
+    res.json({ success: true, days: Array.from(daySet) });
+  } catch (e) {
+    console.error('calendar marks error:', e);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };
@@ -402,6 +437,7 @@ const reorderTasks = async (req, res) => {
 module.exports = {
   createTask,
   getTasks,
+  getCalendarMarks,
   getTaskById,
   updateTask,
   deleteTask,
