@@ -40,7 +40,7 @@ input:focus:not(:focus-visible) {
 .dash-set-row { display: flex; align-items: center; gap: 10px; padding: 8px 4px; cursor: pointer; font-size: 15px; }
 .dash-block-row { display: flex; align-items: center; gap: 8px; padding: 6px 4px; font-size: 15px; }
 .dash-block-name { flex: 1; }
-.dash-arrow { width: 30px; height: 30px; border: 1px solid var(--color-border); background: var(--color-surface); border-radius: var(--radius-sm); cursor: pointer; font-size: 15px; color: var(--color-text); }
+.dash-arrow { width: 36px; height: 36px; border: 1px solid var(--color-border); background: var(--color-surface); border-radius: var(--radius-sm); cursor: pointer; font-size: 15px; color: var(--color-text); }
 .dash-arrow:hover:not(:disabled) { border-color: var(--color-primary); color: var(--color-primary); }
 .dash-arrow:disabled { opacity: 0.4; cursor: default; }
 .more-page-list { display: flex; flex-direction: column; gap: 8px; }
@@ -630,7 +630,7 @@ margin-bottom: var(--space-md);
 .occ-scope-hint { margin: 4px 0 0; font-size: 13px; color: var(--color-text-muted); }
 .occ-summary { font-size: 13px; color: var(--color-text-muted); margin: 0 0 10px; }
 .occ-row-actions { display: flex; gap: 8px; margin-left: auto; }
-.occ-icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border: 1.5px solid var(--color-border); background: var(--color-surface-alt); border-radius: var(--radius-md); color: var(--color-text); cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+.occ-icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border: 1.5px solid var(--color-border); background: var(--color-surface-alt); border-radius: var(--radius-md); color: var(--color-text); cursor: pointer; transition: border-color 0.15s, background 0.15s; }
 .occ-icon-btn svg { width: 18px; height: 18px; }
 .occ-icon-btn:hover:not(:disabled) { border-color: var(--color-primary); color: var(--color-primary); }
 .occ-icon-btn:hover:not(:disabled) { background: var(--color-surface-alt); color: var(--color-text); }
@@ -1154,7 +1154,7 @@ margin-bottom: var(--space-md);
 .calendar-nav-row { display: flex; align-items: center; justify-content: center; gap: 8px; }
 .calendar-nav-row .calendar-today-btn { min-width: 110px; }
 .calendar-nav {
-  width: 36px; height: 36px; border-radius: var(--radius-sm); border: 1px solid var(--color-border);
+  width: 40px; height: 40px; border-radius: var(--radius-sm); border: 1px solid var(--color-border);
   background: var(--color-surface); font-size: 20px; cursor: pointer; color: var(--color-text);
 }
 .calendar-nav:hover { background: var(--color-bg); }
@@ -1741,8 +1741,8 @@ color: var(--color-text);
 }
 
 .modal-rail-btn {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: var(--radius-sm);
   background: transparent;
   border: none;
@@ -2349,8 +2349,8 @@ color: var(--color-text);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   padding: 0;
   background: var(--color-surface-alt);
   border: 1px solid var(--color-border);
