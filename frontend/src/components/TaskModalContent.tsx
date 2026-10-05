@@ -179,6 +179,11 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-md)' }}>
         <div>
           <p style={{ fontSize: '12px', textTransform: 'uppercase', color: 'var(--color-text-muted)', marginBottom: '4px' }}>Статус</p>
+          {task.recurrence ? (
+            <p style={{ fontSize: '15px', color: task.occurrenceStatus === 'overdue' ? 'var(--color-danger)' : 'var(--color-text)', fontWeight: task.occurrenceStatus === 'overdue' ? 500 : 400 }}>
+              {task.occurrenceStatus === 'overdue' ? 'Просрочено' : 'Ожидает'}
+            </p>
+          ) : (
           <select
             value={task.statusId}
             onChange={(e) => onQuickChangeStatus(e.target.value)}
@@ -189,6 +194,7 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
               <option key={s._id} value={s._id}>{s.name}</option>
             ))}
           </select>
+          )}
         </div>
         <div>
           <p style={{ fontSize: '12px', textTransform: 'uppercase', color: 'var(--color-text-muted)', marginBottom: '4px' }}>Приоритет</p>
