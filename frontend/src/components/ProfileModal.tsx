@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Moon, Sun, Settings, LogOut, Bell } from 'lucide-react';
+import { Moon, Sun, Settings, LogOut, Bell, Shield } from 'lucide-react';
 import { useTheme } from '../hooks/useTheme';
 import Modal from './Modal';
 import api from '../utils/api';
+import PasswordInput from './PasswordInput';
 import { clearToken } from '../utils/token';
 import { useConfirm } from './ConfirmProvider';
 import {
@@ -14,7 +15,7 @@ import {
   getNotificationPermission,
 } from '../utils/push';
 
-type View = 'profile' | 'settings' | 'notifications';
+type View = 'profile' | 'settings' | 'notifications' | 'security';
 
 interface ProfileModalProps {
   open: boolean;
@@ -54,6 +55,12 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ open, onClose }) => {
   const confirm = useConfirm();
   const [view, setView] = useState<View>('profile');
   const [user, setUser] = useState<any>(null);
+  // P1: безопасность
+  const [oldPw, setOldPw] = useState('');
+  const [newPw, setNewPw] = useState('');
+  const [pwMsg, setPwMsg] = useState('');
+  const [pwErr, setPwErr] = useState('');
+  const [sessions, setSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -252,6 +259,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ open, onClose }) => {
   const title =
     view === 'settings' ? 'Настройки' :
     view === 'notifications' ? 'Уведомления' :
+    view === 'security' ? 'Безопасность' :
     'Профиль';
 
   return (
@@ -314,6 +322,15 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ open, onClose }) => {
               <span className="profile-menu-label">Уведомления</span>
               <span className="profile-menu-arrow">›</span>
             </button>
+            <button
+              type="button"
+              className="profile-menu-item"
+              onClick={() => setView('security')}
+            >
+              <span className="profile-menu-icon"><Shield size={18} /></span>
+              <span className="profile-menu-label">Безопасность</span>
+              <span className="profile-menu-arrow">›</span>
+            </button>
           </div>
 
           <div className="settings-section-title">Внешний вид</div>
@@ -331,6 +348,63 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ open, onClose }) => {
             >
               <span className="ve-toggle-knob" />
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* ============ SECURITY (P1) ============ */}
+      {!loading && user && view === 'security' && (
+        <div className="settings-view">
+          <button type="button" className="settings-back" onClick={() => setView('settings')}>← Назад</button>
+
+          <div className="settings-section">
+            <h4 className="settings-section-title">Смена пароля</h4>
+            <PasswordInput value={oldPw} onChange={setOldPw} placeholder="Текущий пароль" autoComplete="current-password" />
+            <div style={{ height: 8 }} />
+            <PasswordInput value={newPw} onChange={setNewPw} placeholder="Новый пароль (мин. 10)" autoComplete="new-password" />
+            {pwErr && <p style={{ color: 'var(--color-danger)', fontSize: 14 }}>{pwErr}</p>}
+            {pwMsg && <p style={{ color: 'var(--color-success)', fontSize: 14 }}>{pwMsg}</p>}
+            <button
+              type="button"
+              className="button button--sm"
+              style={{ marginTop: 8 }}
+              disabled={!oldPw || newPw.length < 10}
+              onClick={async () => {
+                setPwErr(''); setPwMsg('');
+                try {
+                  await api.post('/api/auth/change-password', { oldPassword: oldPw, newPassword: newPw });
+                  setOldPw(''); setNewPw(''); setPwMsg('Пароль изменён');
+                } catch (e: any) {
+                  setPwErr(e?.response?.data?.message || 'Ошибка');
+                }
+              }}
+            >Сохранить пароль</button>
+          </div>
+
+          <div className="settings-section">
+            <h4 className="settings-section-title">Активные сессии</h4>
+            <button type="button" className="button button--sm" style={{ marginBottom: 8 }} onClick={async () => {
+              const r = await api.get('/api/auth/sessions');
+              setSessions(r.data?.sessions || []);
+            }}>Показать сессии</button>
+            {sessions.map((s) => (
+              <div key={s.id} className="session-row">
+                <span>{new Date(s.createdAt).toLocaleString('ru-RU')}</span>
+                {s.current && <span className="session-current">текущая</span>}
+              </div>
+            ))}
+            <button
+              type="button"
+              className="button button--danger-outline button--sm"
+              style={{ marginTop: 8 }}
+              onClick={async () => {
+                const ok = await confirm({ title: 'Выйти на всех устройствах?', message: 'Все сессии, кроме текущей, будут завершены.', confirmLabel: 'Выйти везде', danger: true });
+                if (!ok) return;
+                await api.post('/api/auth/logout-all');
+                clearToken();
+                window.location.href = '/login';
+              }}
+            >Выйти везде</button>
           </div>
         </div>
       )}
