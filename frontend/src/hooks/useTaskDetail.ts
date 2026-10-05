@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../utils/api';
+import { useToast } from '../components/Toast';
 import { toDateTimeLocalValue } from '../utils/date';
 import { Recurrence } from '../utils/recurrence';
 
@@ -63,6 +64,7 @@ export const useTaskDetail = (
     danger?: boolean;
   }) => Promise<boolean>
 ): UseTaskDetailResult => {
+  const { toast } = useToast();
   const [task, setTask] = useState<Task | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -171,7 +173,9 @@ export const useTaskDetail = (
       setTask(response.data.task);
       setIsEditing(false);
       onUpdate?.();
-    } catch (err) {
+      toast('Задача сохранена', 'success');
+    } catch (err: any) {
+      toast(err?.response?.data?.message || 'Не удалось сохранить задачу', 'error');
       console.error('Error updating task:', err);
     } finally {
       setSaving(false);
@@ -184,7 +188,9 @@ export const useTaskDetail = (
       const response = await api.put(`/api/tasks/${task._id}`, { statusId: newStatusId });
       setTask(response.data.task);
       onUpdate?.();
-    } catch (err) {
+      toast('Статус изменён', 'success');
+    } catch (err: any) {
+      toast(err?.response?.data?.message || 'Не удалось изменить статус', 'error');
       console.error('Error changing status:', err);
     }
   };
@@ -203,8 +209,10 @@ export const useTaskDetail = (
     try {
       await api.delete(`/api/tasks/${task._id}`);
       onUpdate?.();
+      toast('Задача удалена', 'success');
       return true;
-    } catch (err) {
+    } catch (err: any) {
+      toast(err?.response?.data?.message || 'Не удалось удалить задачу', 'error');
       console.error('Error deleting task:', err);
       return false;
     }

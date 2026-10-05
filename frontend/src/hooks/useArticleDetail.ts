@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../utils/api';
+import { useToast } from '../components/Toast';
 
 export interface Article {
   _id: string;
@@ -42,6 +43,7 @@ export const useArticleDetail = (
     danger?: boolean;
   }) => Promise<boolean>
 ): UseArticleDetailResult => {
+  const { toast } = useToast();
   const [article, setArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -123,7 +125,9 @@ export const useArticleDetail = (
       setArticle(response.data.article);
       setIsEditing(false);
       onUpdate?.();
-    } catch (err) {
+      toast('Статья сохранена', 'success');
+    } catch (err: any) {
+      toast(err?.response?.data?.message || 'Не удалось сохранить статью', 'error');
       console.error('Error updating article:', err);
     } finally {
       setSaving(false);
@@ -144,8 +148,10 @@ export const useArticleDetail = (
     try {
       await api.delete(`/api/articles/${article._id}`);
       onUpdate?.();
+      toast('Статья удалена', 'success');
       return true;
-    } catch (err) {
+    } catch (err: any) {
+      toast(err?.response?.data?.message || 'Не удалось удалить статью', 'error');
       console.error('Error deleting article:', err);
       return false;
     }
