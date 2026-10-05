@@ -10,3 +10,5 @@ backups/
 *.archive
 .agent/.cache/
 /scripts/
+*.local.md
+.agent/PROD.local.md
