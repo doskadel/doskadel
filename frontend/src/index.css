@@ -1730,15 +1730,17 @@ color: var(--color-text);
 
 @media (max-width: 640px) {
   .modal-backdrop {
-    padding: var(--space-md);
+    padding: 0;
     align-items: flex-end;
   }
 
   .modal-content {
     max-width: 100%;
     max-height: 92vh;
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
   }
 
   .modal-header,
