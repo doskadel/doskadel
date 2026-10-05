@@ -178,8 +178,8 @@ const Knowledge: React.FC = () => {
   return (
     <PullToRefresh onRefresh={handleRefresh}>
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-lg)', gap: 'var(--space-md)', flexWrap: 'wrap' }}>
-        <h2 className="page-title" style={{ margin: 0 }}>База знаний</h2>
+      <h2 className="page-title" style={{ margin: 0, marginBottom: 'var(--space-md)' }}>База знаний</h2>
+      <div className="tasks-actions-row">
         <button
           type="button"
           className="button"
