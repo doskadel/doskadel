@@ -9,6 +9,7 @@
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
 
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
     <script>
       // Тема до рендера (без мигания). По умолчанию светлая,
       // тёмная — только если пользователь явно выбрал.
@@ -16,6 +17,7 @@
         try {
           var t = localStorage.getItem('doskadel_theme') || 'dark';
           document.documentElement.setAttribute('data-theme', t);
+          document.documentElement.style.colorScheme = (t === 'dark' ? 'dark' : 'light');
         } catch (e) {}
       })();
     </script>
