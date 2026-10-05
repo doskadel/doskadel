@@ -495,10 +495,11 @@ const Dashboard: React.FC = () => {
           {settingsErr && (
             <p style={{ color: 'var(--color-danger)', fontSize: 14, marginTop: 12, marginBottom: 0 }}>{settingsErr}</p>
           )}
-          <div style={{ marginTop: 16, display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+          <div style={{ marginTop: 16, display: 'flex', gap: 12 }}>
             <button
               type="button"
               className="button button--outline dashboard-reset-btn"
+              style={{ flex: 1 }}
               disabled={savingSettings}
               onClick={async () => {
                 const ok = await confirm({
@@ -534,6 +535,7 @@ const Dashboard: React.FC = () => {
             <button
               type="button"
               className="button"
+              style={{ flex: 1 }}
               disabled={savingSettings}
               onClick={async () => {
                 // валидация: все числовые поля заполнены (в т.ч. лимиты видимых блоков)
