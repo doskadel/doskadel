@@ -54,6 +54,7 @@ const recurrenceValidation = body('recurrence')
   });
 
 router.post('/', [priorityValidation, dueDateValidation, recurrenceValidation, validate], taskController.createTask);
+router.get('/calendar-marks', taskController.getCalendarMarks);
 router.get('/', taskController.getTasks);
 router.put('/reorder', taskController.reorderTasks);
 router.get('/:id', taskController.getTaskById);

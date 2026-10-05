@@ -6,6 +6,7 @@ const escapeRegex = require('../utils/escapeRegex');
 const { SINGLE, RECURRING } = require('../utils/taskKinds');
 const { canByMembership } = require('../utils/can');
 const { summarizeOccurrences, enrichTaskDue } = require('../utils/taskDueSummary');
+const { getActiveStatusIds } = require('../utils/dueItems');
 
 const OCCURRENCE_HORIZON_DAYS = 7;
 
@@ -84,6 +85,44 @@ const createTask = async (req, res) => {
     res.status(201).json({ success: true, task });
   } catch (error) {
     console.error('Create task error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+// GET /api/tasks/calendar-marks?from=&to= — дни с хотя бы одной НЕвыполненной задачей (для маркеров календаря).
+const getCalendarMarks = async (req, res) => {
+  try {
+    const { from, to } = req.query;
+    if (!from || !to) return res.status(400).json({ success: false, message: 'from and to required' });
+    const fromD = new Date(from);
+    const toD = new Date(to);
+    if (isNaN(fromD.getTime()) || isNaN(toD.getTime())) return res.status(400).json({ success: false, message: 'Invalid dates' });
+
+    const { resolveTz } = require('../utils/tz');
+    const { DateTime } = require('luxon');
+    const User = require('../models/User');
+    const u = await User.findById(req.user._id).select('timezone').lean();
+    const tz = resolveTz(u, req.get('X-Timezone'));
+    const active = await getActiveStatusIds();
+    const itemsByDay = {};
+    const addItem = (date, item) => {
+      const key = DateTime.fromJSDate(new Date(date), { zone: tz }).toISODate();
+      if (!key) return;
+      (itemsByDay[key] = itemsByDay[key] || []).push(item);
+    };
+
+    // разовые: dueDate, нефинал
+    const singles = await Task.find({ ...SINGLE, workspaceId: req.workspaceId, statusId: { $in: active }, dueDate: { $gte: fromD, $lt: toD } }).select('_id title dueDate priority recurrence statusId').lean();
+    singles.forEach((t) => addItem(t.dueDate, { taskId: String(t._id), title: t.title, dueAt: t.dueDate, priority: t.priority, isRecurring: false, originalDate: null }));
+
+    // повторяющиеся: на лету (виртуальные вхождения)
+    const { computeOccurrences } = require('../utils/dueItems');
+    const occ = await computeOccurrences({ gte: fromD, lt: toD }, { workspaceId: req.workspaceId, activeStatusIds: active, floorDays: 0 });
+    occ.forEach((o) => addItem(o.dueAt, { taskId: String(o.task._id), title: o.task.title, dueAt: o.dueAt, priority: o.task.priority, isRecurring: true, originalDate: o.originalDate }));
+
+    res.json({ success: true, days: Object.keys(itemsByDay), itemsByDay });
+  } catch (e) {
+    console.error('calendar marks error:', e);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };
@@ -402,6 +441,7 @@ const reorderTasks = async (req, res) => {
 module.exports = {
   createTask,
   getTasks,
+  getCalendarMarks,
   getTaskById,
   updateTask,
   deleteTask,

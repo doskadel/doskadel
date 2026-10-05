@@ -18,6 +18,10 @@ interface Props {
   onCompleteSeries: () => Promise<void>;
   /** показывать ли 'Завершить повторение' (бессрочная серия) */
   canComplete?: boolean;
+  /** открыть сразу в режиме переноса (после DnD) */
+  initialMove?: boolean;
+  /** начальная дата переноса (ISO) */
+  initialDue?: string;
 }
 
 const SCOPE_HINT: Record<OccurrenceScope, string> = {
@@ -26,12 +30,12 @@ const SCOPE_HINT: Record<OccurrenceScope, string> = {
   all: 'Все: изменится время всей серии',
 };
 
-const OccurrenceActionDialog: React.FC<Props> = ({ open, onClose, originalDate, taskTitle, onAct, onCompleteSeries, canComplete }) => {
+const OccurrenceActionDialog: React.FC<Props> = ({ open, onClose, originalDate, taskTitle, onAct, onCompleteSeries, canComplete, initialMove, initialDue }) => {
   const { toast } = useToast();
   const confirm = useConfirm();
   const [busy, setBusy] = useState(false);
-  const [moveMode, setMoveMode] = useState(false);
-  const [newDate, setNewDate] = useState('');
+  const [moveMode, setMoveMode] = useState(!!initialMove);
+  const [newDate, setNewDate] = useState(initialDue ? new Date(initialDue).toISOString().slice(0, 16) : '');
   const [scope, setScope] = useState<OccurrenceScope>('this');
 
   const dateLabel = originalDate ? formatDueDate(originalDate) : '';

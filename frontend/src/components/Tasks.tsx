@@ -667,6 +667,8 @@ const Tasks: React.FC = () => {
           taskId={occDialog.taskId}
           originalDate={occDialog.originalDate}
           taskTitle={tasks.find((t) => t._id === occDialog.taskId)?.title}
+          initialMove={!!occDialog.newDue}
+          initialDue={occDialog.newDue}
           canComplete={(() => { const t = tasks.find((x) => x._id === occDialog.taskId); return !!(t?.recurrence && !t.recurrence.count && !t.recurrence.until); })()}
           onAct={async ({ action, dueAt, scope }) => {
             await api.post('/api/occurrences/action', {

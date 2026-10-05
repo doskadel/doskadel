@@ -15,10 +15,9 @@ const { getNextOccurrences } = require('./recurrence');
  */
 async function computeOccurrences(window, ctx = {}) {
   if (!ctx.activeStatusIds) ctx.activeStatusIds = await getActiveStatusIds();
-  const tasks = await Task.find({
-    ...RECURRING,
-    statusId: { $in: ctx.activeStatusIds },
-  }).lean();
+  const q = { ...RECURRING, statusId: { $in: ctx.activeStatusIds } };
+  if (ctx.workspaceId) q.workspaceId = ctx.workspaceId;
+  const tasks = await Task.find(q).lean();
 
   const out = [];
   for (const t of tasks) {
@@ -213,4 +212,4 @@ async function sendDuePushes(kind, field, window, buildPush, deps) {
   }
 }
 
-module.exports = { getDueItems, markNotified, unmarkNotified, getActiveStatusIds, sendDuePushes, clearUserCache };
+module.exports = { getDueItems, markNotified, unmarkNotified, getActiveStatusIds, sendDuePushes, clearUserCache, computeOccurrences };
