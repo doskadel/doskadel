@@ -565,6 +565,16 @@ margin-bottom: var(--space-md);
 .rec-toggle-text { font-size: 14px; white-space: nowrap; }
 .rec-toggle-summary { font-size: 13px; color: var(--color-text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
+/* ==================== SKELETON ==================== */
+.skeleton-page { padding: var(--space-xl) var(--space-lg); max-width: 1280px; margin: 0 auto; }
+.skeleton { background: var(--color-surface-alt); border-radius: var(--radius-md); animation: skel 1.2s ease-in-out infinite; }
+@keyframes skel { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+.skeleton-title { height: 28px; width: 200px; margin-bottom: var(--space-lg); }
+.skeleton-line { height: 16px; width: 100%; margin-bottom: 10px; }
+.skeleton-line--short { width: 60%; }
+.skeleton-card { height: 72px; margin-top: var(--space-md); }
+@media (prefers-reduced-motion: reduce) { .skeleton { animation: none; } }
+
 /* ==================== PASSWORD FIELD ==================== */
 .password-field { position: relative; display: flex; }
 .password-field .input { width: 100%; padding-right: 44px; }

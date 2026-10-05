@@ -2,6 +2,7 @@ import React, { ReactNode, useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import axios from 'axios';
 import { getToken, setToken } from '../utils/token';
+import Skeleton from './Skeleton';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -30,7 +31,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }, [state]);
 
   if (state === 'checking') {
-    return <div style={{ padding: 24, color: 'var(--color-text-muted)' }}>Загрузка...</div>;
+    return <Skeleton />;
   }
   if (state === 'no') {
     return <Navigate to="/login" replace />;
