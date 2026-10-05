@@ -1,6 +1,7 @@
 const express = require('express');
 const { body } = require('express-validator');
 const authController = require('../controllers/authController');
+const auth = require('../middleware/auth');
 const router = express.Router();
 
 // Регистрация
@@ -21,5 +22,10 @@ router.post('/refresh', authController.refresh);
 
 // Выход (отзыв refresh-токена)
 router.post('/logout', authController.logout);
+
+// P1: смена пароля, список сессий, выйти везде (требуют access-токен)
+router.post('/change-password', auth, authController.changePassword);
+router.get('/sessions', auth, authController.listSessions);
+router.post('/logout-all', auth, authController.logoutAll);
 
 module.exports = router;

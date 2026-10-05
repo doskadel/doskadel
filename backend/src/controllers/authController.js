@@ -230,4 +230,59 @@ const logout = async (req, res) => {
   }
 };
 
-module.exports = { register, login, refresh, logout };
+// Смена пароля (P1): старый+новый, >=10, отзыв всех семей кроме текущей
+const changePassword = async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    if (!newPassword || newPassword.length < 10) {
+      return res.status(400).json({ success: false, message: 'Новый пароль: минимум 10 символов' });
+    }
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    if (!(await user.comparePassword(oldPassword || ''))) {
+      return res.status(400).json({ success: false, message: 'Неверный текущий пароль' });
+    }
+    user.password = newPassword;
+    await user.save();
+    // отзыв всех семей кроме текущей
+    const token = req.cookies ? req.cookies[COOKIE_NAME] : null;
+    const cur = token ? await RefreshToken.findOne({ token }).select('family').lean() : null;
+    if (cur) await RefreshToken.deleteMany({ userId: user._id, family: { $ne: cur.family } });
+    else await RefreshToken.deleteMany({ userId: user._id });
+    res.json({ success: true });
+  } catch (e) {
+    console.error('changePassword error:', e);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+// Список активных сессий (по семьям)
+const listSessions = async (req, res) => {
+  try {
+    const token = req.cookies ? req.cookies[COOKIE_NAME] : null;
+    const cur = token ? await RefreshToken.findOne({ token }).select('family').lean() : null;
+    const fams = await RefreshToken.aggregate([
+      { $match: { userId: req.user._id, used: false } },
+      { $group: { _id: '$family', createdAt: { $min: '$createdAt' }, expiresAt: { $max: '$expiresAt' } } },
+      { $sort: { createdAt: -1 } },
+    ]);
+    res.json({ success: true, sessions: fams.map((f) => ({ id: f._id, createdAt: f.createdAt, expiresAt: f.expiresAt, current: cur ? f._id === cur.family : false })) });
+  } catch (e) {
+    console.error('listSessions error:', e);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+// Выйти везде (все семьи)
+const logoutAll = async (req, res) => {
+  try {
+    await RefreshToken.deleteMany({ userId: req.user._id });
+    clearRefreshCookie(res);
+    res.json({ success: true });
+  } catch (e) {
+    console.error('logoutAll error:', e);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+module.exports = { register, login, refresh, logout, changePassword, listSessions, logoutAll };
