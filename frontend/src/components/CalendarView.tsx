@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Repeat } from 'lucide-react';
+import { Repeat, ChevronLeft, ChevronRight } from 'lucide-react';
 import api from '../utils/api';
 import { deadlineLevel } from '../utils/date';
 import {
@@ -403,9 +403,9 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
 
           <div className="calendar-card-body">
             <div className="calendar-nav-row">
-              <button type="button" className="calendar-nav" onClick={() => navigate(-1)} aria-label="Назад">‹</button>
+              <button type="button" className="calendar-nav" onClick={() => navigate(-1)} aria-label="Назад"><ChevronLeft size={20} /></button>
               <button type="button" className="calendar-today-btn" onClick={goToday}>Сегодня</button>
-              <button type="button" className="calendar-nav" onClick={() => navigate(1)} aria-label="Вперёд">›</button>
+              <button type="button" className="calendar-nav" onClick={() => navigate(1)} aria-label="Вперёд"><ChevronRight size={20} /></button>
             </div>
 
             {view !== 'day' && (
