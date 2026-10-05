@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, Transition } from '@headlessui/react';
-import { Settings, ChevronDown, CheckSquare, FileText } from 'lucide-react';
+import { Settings, ChevronDown, CheckSquare, FileText, Plus } from 'lucide-react';
 import SortableSettings from './shared/SortableSettings';
 import { useConfirm } from './ConfirmProvider';
 import Modal from './Modal';
@@ -212,7 +212,7 @@ const Dashboard: React.FC = () => {
         <div className="dashboard-actions">
           <Menu as="div" className="create-menu">
             <Menu.Button className="button button--white button--sm create-menu-btn">
-              + Создать <span className="create-menu-sep" /> <ChevronDown size={16} />
+              <Plus size={16} /> Создать <span className="create-menu-sep" /> <ChevronDown size={16} />
             </Menu.Button>
             <Transition
               enter="fb-tr-enter" enterFrom="fb-tr-from" enterTo="fb-tr-to"

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Plus } from 'lucide-react';
 import PullToRefresh from './PullToRefresh';
 import LoadingOverlay from './LoadingOverlay';
 import { useSearchParams } from 'react-router-dom';
@@ -185,7 +186,7 @@ const Knowledge: React.FC = () => {
           className="button"
           onClick={() => setCreateOpen(true)}
         >
-          + Создать
+          <Plus size={16} /> Создать
         </button>
       </div>
 
