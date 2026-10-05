@@ -26,6 +26,11 @@ async function computeOccurrences(window, ctx = {}) {
     const floorDays = ctx.floorDays != null ? ctx.floorDays : 90;
     const floor = floorDays > 0 ? new Date(Date.now() - floorDays * 24 * 60 * 60 * 1000) : new Date(0);
     let from = new Date(Math.max(window.gte.getTime() - 24 * 60 * 60 * 1000, floor.getTime()));
+    // Нижняя граница вхождений: задача не может иметь вхождения раньше создания.
+    if (t.createdAt) {
+      const ca = new Date(t.createdAt);
+      if (!isNaN(ca.getTime()) && ca > from) from = ca;
+    }
     // Начало серии (F1e): не считать вхождения раньше startDate
     if (t.recurrence.startDate) {
       const sd = new Date(t.recurrence.startDate);
