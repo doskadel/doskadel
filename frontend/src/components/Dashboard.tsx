@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Settings } from 'lucide-react';
+import { Menu, Transition } from '@headlessui/react';
+import { Settings, ChevronDown, CheckSquare, FileText } from 'lucide-react';
 import SortableSettings from './shared/SortableSettings';
 import { useConfirm } from './ConfirmProvider';
 import Modal from './Modal';
@@ -209,20 +210,32 @@ const Dashboard: React.FC = () => {
       <h2 className="page-title">Главная</h2>
       <div className="tasks-actions-row">
         <div className="dashboard-actions">
-          <button
-            type="button"
-            className="button button--white button--sm"
-            onClick={() => navigate('/tasks?new=1')}
-          >
-            + Добавить задачу
-          </button>
-          <button
-            type="button"
-            className="button button--sm"
-            onClick={() => navigate('/knowledge?new=1')}
-          >
-            + Добавить статью
-          </button>
+          <Menu as="div" className="create-menu">
+            <Menu.Button className="button button--white button--sm create-menu-btn">
+              + Создать <ChevronDown size={16} />
+            </Menu.Button>
+            <Transition
+              enter="fb-tr-enter" enterFrom="fb-tr-from" enterTo="fb-tr-to"
+              leave="fb-tr-enter" leaveFrom="fb-tr-to" leaveTo="fb-tr-from"
+            >
+              <Menu.Items className="create-menu-panel" static>
+                <Menu.Item>
+                  {({ close }) => (
+                    <button type="button" className="create-menu-item" onClick={() => { close(); navigate('/tasks?new=1'); }}>
+                      <CheckSquare size={16} /> Задача
+                    </button>
+                  )}
+                </Menu.Item>
+                <Menu.Item>
+                  {({ close }) => (
+                    <button type="button" className="create-menu-item" onClick={() => { close(); navigate('/knowledge?new=1'); }}>
+                      <FileText size={16} /> Статья
+                    </button>
+                  )}
+                </Menu.Item>
+              </Menu.Items>
+            </Transition>
+          </Menu>
         </div>
         <button
             type="button"
@@ -249,7 +262,7 @@ const Dashboard: React.FC = () => {
             <div className="dashboard-section" style={{ order: sectionOrder('overdue') }}>
               <div className="dashboard-section-header">
                 <h3 className="dashboard-section-title dashboard-section-title--danger">
-                  Просрочено ({data.overdueDistinctTasks ?? data.overdueTasks.length})
+                  Просрочено
                 </h3>
                 <button
                   type="button"
@@ -290,7 +303,7 @@ const Dashboard: React.FC = () => {
             <div className="dashboard-section" style={{ order: sectionOrder('upcoming') }}>
               <div className="dashboard-section-header">
                 <h3 className="dashboard-section-title">
-                  Ближайшие сроки ({data.upcomingDistinctTasks ?? data.upcomingTasks.length})
+                  Ближайшие сроки
                 </h3>
                 <button
                   type="button"
@@ -485,7 +498,7 @@ const Dashboard: React.FC = () => {
           <div style={{ marginTop: 16, display: 'flex', justifyContent: 'space-between', gap: 12 }}>
             <button
               type="button"
-              className="button button--danger-outline dashboard-reset-btn"
+              className="button button--outline dashboard-reset-btn"
               disabled={savingSettings}
               onClick={async () => {
                 const ok = await confirm({
@@ -516,7 +529,7 @@ const Dashboard: React.FC = () => {
                 }
               }}
             >
-              Сбросить по умолчанию
+              По умолчанию
             </button>
             <button
               type="button"

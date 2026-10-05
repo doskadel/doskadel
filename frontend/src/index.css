@@ -563,6 +563,19 @@ margin-bottom: var(--space-md);
 .rec-toggle--on .rec-toggle-knob::after { transform: translateX(16px); }
 .rec-toggle-text { font-size: 14px; white-space: nowrap; }
 
+/* ==================== CREATE MENU (+ Создать ▾) ==================== */
+.create-menu { position: relative; display: inline-block; }
+.create-menu-btn { display: inline-flex; align-items: center; gap: 6px; }
+.create-menu-panel {
+  position: absolute; top: calc(100% + 6px); left: 0; z-index: 50; min-width: 180px; padding: 6px;
+  background: var(--color-surface); border: 1px solid var(--surface-border); border-radius: var(--radius-md); box-shadow: var(--shadow-lg);
+}
+.create-menu-item {
+  display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px;
+  border: none; background: transparent; color: var(--color-text); font: inherit; font-size: 14px; text-align: left; cursor: pointer; border-radius: var(--radius-sm);
+}
+.create-menu-item:hover { background: var(--color-surface-alt); }
+
 /* ==================== OCCURRENCE ACTIONS ==================== */
 .occ-actions { display: flex; flex-direction: column; gap: 8px; }
 .occ-action-btn {

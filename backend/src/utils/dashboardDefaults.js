@@ -6,8 +6,8 @@ const DEFAULT_DASHBOARD = {
     { id: 'byStatus', visible: true, order: 0, statusKeys: ['pending', 'in_progress'] },
     { id: 'overdue', visible: true, order: 1, statusKeys: [] },
     { id: 'upcoming', visible: true, order: 2, statusKeys: [] },
-    { id: 'recentTasks', visible: true, order: 3, statusKeys: [] },
-    { id: 'recentArticles', visible: true, order: 4, statusKeys: [] }
+    { id: 'recentTasks', visible: false, order: 3, statusKeys: [] },
+    { id: 'recentArticles', visible: false, order: 4, statusKeys: [] }
   ]
 };
 

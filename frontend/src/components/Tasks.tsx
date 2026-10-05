@@ -437,7 +437,7 @@ const Tasks: React.FC = () => {
           className="button button--white"
           onClick={() => setCreateOpen(true)}
         >
-          + Добавить задачу
+          + Создать
         </button>
         <button
           type="button"

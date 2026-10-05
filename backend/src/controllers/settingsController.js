@@ -12,7 +12,7 @@ async function resolveSettings(user) {
     const c = cfg || {};
     if (id === 'byStatus') return { statusIds: (c.statusIds || []).filter((x) => own.has(String(x))) };
     if (id === 'recentTasks' || id === 'recentArticles' || id === 'overdue' || id === 'upcoming') {
-      const lim = Math.min(20, Math.max(1, parseInt(c.limit, 10) || 5));
+      const lim = Math.min(20, Math.max(1, parseInt(c.limit, 10) || 3));
       return { limit: lim };
     }
     return {};
@@ -76,7 +76,7 @@ const putDashboard = async (req, res) => {
         if (b.id === 'byStatus') {
           config = { statusIds: Array.isArray(cfg.statusIds) ? cfg.statusIds.filter((id) => own.has(String(id))) : [] };
         } else if (b.id === 'recentTasks' || b.id === 'recentArticles' || b.id === 'overdue' || b.id === 'upcoming') {
-          config = { limit: Math.min(20, Math.max(1, parseInt(cfg.limit, 10) || 5)) };
+          config = { limit: Math.min(20, Math.max(1, parseInt(cfg.limit, 10) || 3)) };
         }
         return {
           id: b.id,

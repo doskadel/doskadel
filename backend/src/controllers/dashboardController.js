@@ -93,7 +93,7 @@ const getDashboard = async (req, res) => {
     // Сортируем: сначала самая свежая просрочка, потом остальные
     allOverdue.sort((a, b) => new Date(b.dueDate) - new Date(a.dueDate));
 
-    const overdueTasks = allOverdue.slice(0, limitOf('overdue', 5));
+    const overdueTasks = allOverdue.slice(0, limitOf('overdue', 3));
 
     // ==== БЛИЖАЙШИЕ ====
     // 1) Разовые задачи
@@ -147,7 +147,7 @@ const getDashboard = async (req, res) => {
     // Сортируем: сначала ближайшее
     allUpcoming.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
 
-    const upcomingTasks = allUpcoming.slice(0, limitOf('upcoming', 5));
+    const upcomingTasks = allUpcoming.slice(0, limitOf('upcoming', 3));
 
     // Общие счётчики
     const totalTasks = await Task.countDocuments({ workspaceId, closedReason: null });
@@ -155,12 +155,12 @@ const getDashboard = async (req, res) => {
 
     const recentTasks = await Task.find({ workspaceId, closedReason: null })
       .sort({ updatedAt: -1 })
-      .limit(5)
+      .limit(limitOf('recentTasks', 3))
       .select('_id title statusId priority updatedAt');
 
     const recentArticles = await Article.find({ workspaceId })
       .sort({ createdAt: -1 })
-      .limit(5)
+      .limit(limitOf('recentArticles', 3))
       .select('_id title createdAt');
 
     res.json({

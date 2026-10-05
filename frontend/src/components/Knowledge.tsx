@@ -185,7 +185,7 @@ const Knowledge: React.FC = () => {
           className="button"
           onClick={() => setCreateOpen(true)}
         >
-          + Добавить статью
+          + Создать
         </button>
       </div>
 
