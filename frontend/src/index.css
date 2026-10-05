@@ -3193,6 +3193,7 @@ color: var(--color-text);
 }
 
 .command-palette-item {
+  position: relative;
   display: flex;
   align-items: stretch;
   gap: var(--space-sm);
@@ -3203,11 +3204,17 @@ color: var(--color-text);
   background: transparent;
   text-align: left;
   font-family: inherit;
-  border-top: 1px solid color-mix(in srgb, var(--color-border) 40%, transparent);
 }
 
-.command-palette-item:first-of-type {
-  border-top: none;
+/* Мягкий разделитель с отступами по краям (не на всю ширину) */
+.command-palette-item + .command-palette-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: var(--space-lg);
+  right: var(--space-lg);
+  height: 1px;
+  background: color-mix(in srgb, var(--color-border) 45%, transparent);
 }
 
 .command-palette-item:hover {
