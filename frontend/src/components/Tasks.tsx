@@ -23,6 +23,7 @@ import { Status } from '../utils/status';
 import { formatDueDate, isOverdue } from '../utils/date';
 import { Recurrence, isRecurrenceValid, formatRecurrenceShort, formatRecurrence, getDefaultRecurrence } from '../utils/recurrence';
 import { useConfirm } from './ConfirmProvider';
+import { useToast } from './Toast';
 
 interface Task {
   _id: string;
@@ -53,6 +54,7 @@ const Tasks: React.FC = () => {
   const isMobile = useMediaQuery('(max-width: 640px)');
   const [searchParams, setSearchParams] = useSearchParams();
   const confirm = useConfirm();
+  const { toast } = useToast();
 
   const openedTaskId = searchParams.get('task');
   const q = searchParams.get('q') || '';
@@ -265,7 +267,7 @@ const Tasks: React.FC = () => {
 
     if (isRecurring) {
       if (!recurrence || !isRecurrenceValid(recurrence)) {
-        alert('Заполните параметры повторения корректно');
+        toast('Заполните параметры повторения корректно', 'error');
         return;
       }
     }
@@ -289,7 +291,9 @@ const Tasks: React.FC = () => {
       resetCreateForm();
       setCreateOpen(false);
       refreshAll();
-    } catch (err) {
+      toast('Задача создана', 'success');
+    } catch (err: any) {
+      toast(err?.response?.data?.message || 'Не удалось создать задачу', 'error');
       console.error('Error creating task:', err);
     }
   };

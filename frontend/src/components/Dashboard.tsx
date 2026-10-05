@@ -3,6 +3,7 @@ import { Menu, Transition } from '@headlessui/react';
 import { Settings, ChevronDown, CheckSquare, FileText, Plus, ArrowRight } from 'lucide-react';
 import SortableSettings from './shared/SortableSettings';
 import { useConfirm } from './ConfirmProvider';
+import { useToast } from './Toast';
 import Modal from './Modal';
 import PullToRefresh from './PullToRefresh';
 import LoadingOverlay from './LoadingOverlay';
@@ -58,6 +59,7 @@ interface DashboardData {
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const confirm = useConfirm();
+  const { toast } = useToast();
 
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -565,9 +567,11 @@ const Dashboard: React.FC = () => {
                   setNumStr(buildNumStr(outBlocks, days));
                   setSettingsOpen(false);
                   fetchDashboard();
-                } catch (e) {
+                  toast('Настройки сохранены', 'success');
+                } catch (e: any) {
                   console.error('save dashboard settings', e);
                   setSettingsErr('Не удалось сохранить');
+                  toast(e?.response?.data?.message || 'Не удалось сохранить настройки', 'error');
                 } finally {
                   setSavingSettings(false);
                 }

@@ -8,6 +8,7 @@ import Modal from './Modal';
 import ArticleModal from './ArticleModal';
 import ArticleFilterBar from './ArticleFilterBar';
 import { useConfirm } from './ConfirmProvider';
+import { useToast } from './Toast';
 
 interface Article {
   _id: string;
@@ -21,6 +22,7 @@ const DEFAULT_SORT = 'createdAt_desc';
 const Knowledge: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const confirm = useConfirm();
+  const { toast } = useToast();
 
   const openedArticleId = searchParams.get('article');
   const q = searchParams.get('q') || '';
@@ -137,7 +139,9 @@ const Knowledge: React.FC = () => {
       resetCreateForm();
       setCreateOpen(false);
       fetchArticles();
-    } catch (err) {
+      toast('Статья создана', 'success');
+    } catch (err: any) {
+      toast(err?.response?.data?.message || 'Не удалось создать статью', 'error');
       console.error('Error creating article:', err);
     }
   };
@@ -208,6 +212,7 @@ const Knowledge: React.FC = () => {
 
       <Modal open={createOpen} onClose={handleCloseCreate} title="Новая статья">
         <form onSubmit={handleSubmit} className="form">
+          <label className="input-label input-label--required">Заголовок</label>
           <input
             type="text"
             placeholder="Заголовок"
@@ -217,6 +222,7 @@ const Knowledge: React.FC = () => {
             required
             autoFocus
           />
+          <label className="input-label input-label--required">Содержимое</label>
           <textarea
             placeholder="Содержимое"
             value={content}

@@ -3440,6 +3440,18 @@ color: var(--color-text);
   letter-spacing: 0.5px;
 }
 
+/* Обязательное поле: аккуратная красная звёздочка */
+.input-label--required::after {
+  content: ' *';
+  color: var(--color-danger);
+}
+
+/* Плейсхолдеры обязательных полей — тоже со звёздочкой (когда label нет) */
+.input-required-mark {
+  color: var(--color-danger);
+  margin-left: 2px;
+}
+
 /* ==================== KANBAN CARD DUE ==================== */
 .kanban-card-due {
   margin-top: 4px;

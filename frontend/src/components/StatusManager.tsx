@@ -4,6 +4,7 @@ import { Pencil, Trash2 } from 'lucide-react';
 import Modal from './Modal';
 import { Status, STATUS_COLOR_PALETTE } from '../utils/status';
 import { useConfirm } from './ConfirmProvider';
+import { useToast } from './Toast';
 
 interface StatusManagerProps {
   open: boolean;
@@ -17,6 +18,7 @@ type ViewMode = 'list' | 'edit' | 'create';
 
 const StatusManager: React.FC<StatusManagerProps> = ({ open, statuses, onClose, onChanged, onBack }) => {
   const confirm = useConfirm();
+  const { toast } = useToast();
 
   const [mode, setMode] = useState<ViewMode>('list');
   const [editingStatus, setEditingStatus] = useState<Status | null>(null);
@@ -115,6 +117,7 @@ const StatusManager: React.FC<StatusManagerProps> = ({ open, statuses, onClose, 
         });
       }
       onChanged();
+      toast(mode === 'edit' ? 'Статус обновлён' : 'Статус создан', 'success');
       // После сохранения — в список БЕЗ проверки dirty (formSnap ещё старый)
       setMode('list');
       setEditingStatus(null);
@@ -123,6 +126,7 @@ const StatusManager: React.FC<StatusManagerProps> = ({ open, statuses, onClose, 
       setError('');
     } catch (err: any) {
       console.error('Error saving status:', err);
+      toast(err?.response?.data?.message || 'Не удалось сохранить статус', 'error');
       setError(err.response?.data?.message || 'Ошибка сохранения');
     } finally {
       setSaving(false);
@@ -143,8 +147,10 @@ const StatusManager: React.FC<StatusManagerProps> = ({ open, statuses, onClose, 
     try {
       await api.delete(`/api/statuses/${status._id}`);
       onChanged();
+      toast('Статус удалён', 'success');
     } catch (err: any) {
       console.error('Error deleting status:', err);
+      toast(err?.response?.data?.message || 'Не удалось удалить статус', 'error');
       setError(err.response?.data?.message || 'Ошибка удаления');
     } finally {
       setDeletingId(null);

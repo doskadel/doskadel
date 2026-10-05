@@ -4,6 +4,7 @@ import api from '../utils/api';
 import { PRIORITY_OPTIONS, getPriorityLabel } from '../utils/priority';
 import { Status } from '../utils/status';
 import { useConfirm } from './ConfirmProvider';
+import { useToast } from './Toast';
 
 interface Task {
   _id: string;
@@ -19,6 +20,7 @@ const TaskDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const confirm = useConfirm();
+  const { toast } = useToast();
 
   const [task, setTask] = useState<Task | null>(null);
   const [statuses, setStatuses] = useState<Status[]>([]);
@@ -95,7 +97,9 @@ const TaskDetail: React.FC = () => {
       });
       setTask(response.data.task);
       setIsEditing(false);
-    } catch (err) {
+      toast('Задача сохранена', 'success');
+    } catch (err: any) {
+      toast(err?.response?.data?.message || 'Не удалось сохранить задачу', 'error');
       console.error('Error updating task:', err);
     } finally {
       setSaving(false);
@@ -113,8 +117,10 @@ const TaskDetail: React.FC = () => {
     if (!ok) return;
     try {
       await api.delete(`/api/tasks/${task._id}`);
+      toast('Задача удалена', 'success');
       navigate('/tasks');
-    } catch (err) {
+    } catch (err: any) {
+      toast(err?.response?.data?.message || 'Не удалось удалить задачу', 'error');
       console.error('Error deleting task:', err);
     }
   };

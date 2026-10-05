@@ -6,6 +6,7 @@ import api from '../utils/api';
 import PasswordInput from './PasswordInput';
 import { clearToken } from '../utils/token';
 import { useConfirm } from './ConfirmProvider';
+import { useToast } from './Toast';
 import {
   isPushSupported,
   isSubscribed,
@@ -53,6 +54,7 @@ const DEFAULT_SETTINGS: NotificationSettings = {
 const ProfileModal: React.FC<ProfileModalProps> = ({ open, onClose }) => {
   const { theme, toggle: toggleTheme } = useTheme();
   const confirm = useConfirm();
+  const { toast } = useToast();
   const [view, setView] = useState<View>('profile');
   const [user, setUser] = useState<any>(null);
   // P1: безопасность
@@ -177,8 +179,11 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ open, onClose }) => {
         setSettingsSnap(JSON.stringify(merged));
       }
       setSettingsSavedAt(Date.now());
+      toast('Настройки уведомлений сохранены', 'success');
     } catch (err: any) {
-      setSettingsError(err.response?.data?.message || 'Ошибка сохранения');
+      const m = err.response?.data?.message || 'Не удалось сохранить настройки';
+      setSettingsError(m);
+      toast(m, 'error');
     } finally {
       setSavingSettings(false);
     }
@@ -362,8 +367,11 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ open, onClose }) => {
                 try {
                   const r = await api.put('/api/users/timezone', { timezone: tz });
                   setUser(r.data.user);
+                  toast('Часовой пояс сохранён', 'success');
                 } catch (err: any) {
-                  setError(err?.response?.data?.message || 'Не удалось сохранить зону');
+                  const m = err?.response?.data?.message || 'Не удалось сохранить часовой пояс';
+                  setError(m);
+                  toast(m, 'error');
                 }
               }}
             >
@@ -398,8 +406,11 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ open, onClose }) => {
                 try {
                   await api.post('/api/auth/change-password', { oldPassword: oldPw, newPassword: newPw });
                   setOldPw(''); setNewPw(''); setPwMsg('Пароль изменён');
+                  toast('Пароль изменён', 'success');
                 } catch (e: any) {
-                  setPwErr(e?.response?.data?.message || 'Ошибка');
+                  const m = e?.response?.data?.message || 'Не удалось изменить пароль';
+                  setPwErr(m);
+                  toast(m, 'error');
                 }
               }}
             >Сохранить пароль</button>

@@ -29,8 +29,11 @@ const Register: React.FC = () => {
       footer={<>Уже есть аккаунт? <Link to="/login">Войти</Link></>}
     >
       <form onSubmit={handleSubmit} className="form">
+        <label className="input-label input-label--required">Имя пользователя</label>
         <input type="text" placeholder="Имя пользователя" value={username} onChange={(e) => setUsername(e.target.value)} className="input" autoComplete="username" required />
+        <label className="input-label input-label--required">Email</label>
         <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="input" autoComplete="email" inputMode="email" required />
+        <label className="input-label input-label--required">Пароль</label>
         <PasswordInput value={password} onChange={setPassword} autoComplete="new-password" required />
         <button type="submit" className="button auth-submit">Зарегистрироваться</button>
       </form>

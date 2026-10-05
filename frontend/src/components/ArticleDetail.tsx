@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { useConfirm } from './ConfirmProvider';
+import { useToast } from './Toast';
 
 interface Article {
   _id: string;
@@ -15,6 +16,7 @@ const ArticleDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const confirm = useConfirm();
+  const { toast } = useToast();
 
   const [article, setArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
@@ -77,7 +79,9 @@ const ArticleDetail: React.FC = () => {
       });
       setArticle(response.data.article);
       setIsEditing(false);
-    } catch (err) {
+      toast('Статья сохранена', 'success');
+    } catch (err: any) {
+      toast(err?.response?.data?.message || 'Не удалось сохранить статью', 'error');
       console.error('Error updating article:', err);
     } finally {
       setSaving(false);
@@ -95,8 +99,10 @@ const ArticleDetail: React.FC = () => {
     if (!ok) return;
     try {
       await api.delete(`/api/articles/${article._id}`);
+      toast('Статья удалена', 'success');
       navigate('/knowledge');
-    } catch (err) {
+    } catch (err: any) {
+      toast(err?.response?.data?.message || 'Не удалось удалить статью', 'error');
       console.error('Error deleting article:', err);
     }
   };
