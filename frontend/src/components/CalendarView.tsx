@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Repeat } from 'lucide-react';
+import api from '../utils/api';
 import { deadlineLevel } from '../utils/date';
 import {
   DndContext,
@@ -172,6 +173,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
   const [cursor, setCursor] = useState<Date>(new Date(today.getFullYear(), today.getMonth(), 1));
   const [selected, setSelected] = useState<Date>(today);
   const [activeTask, setActiveTask] = useState<CalendarTask | null>(null);
+  const [markDays, setMarkDays] = useState<Set<string>>(new Set());
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -190,9 +192,17 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
 
   const tasksByDay = (day: Date) => tasks.filter((t) => dateForDay(t, day) !== null);
 
-  // Есть ли на день хотя бы одна НЕвыполненная (не финальная) задача — для синего маркера.
-  const hasActiveTask = (day: Date) =>
-    tasksByDay(day).some((t) => !(t.statusId && finalSet.has(String(t.statusId))));
+  // День (локальный ключ yyyy-mm-dd) для набора маркеров; маркеры с сервера (независимо от фильтров).
+  const dayKeyStr = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const hasMark = (day: Date) => markDays.has(dayKeyStr(day));
+
+  useEffect(() => {
+    const from = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
+    const to = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1);
+    api.get(`/api/tasks/calendar-marks?from=${from.toISOString()}&to=${to.toISOString()}`)
+      .then((r: any) => setMarkDays(new Set(r.data?.days || [])))
+      .catch(() => {});
+  }, [cursor, tasks]);
 
   const navigate = (dir: -1 | 1) => {
     if (view === 'month') {
@@ -279,7 +289,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
       <div className="calendar-grid">
         {cells.map((day, i) => {
           if (!day) return <div key={'e' + i} className="calendar-cell calendar-cell--empty" />;
-          const hasTasks = hasActiveTask(day);
+          const hasTasks = hasMark(day);
           return (
             <DayCell
               key={day.toISOString()}
@@ -305,7 +315,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, finalStatusIds = [],
     return (
       <div className="calendar-week">
         {days.map((day) => {
-          const hasTasks = hasActiveTask(day);
+          const hasTasks = hasMark(day);
           return (
             <DayCell
               key={day.toISOString()}
