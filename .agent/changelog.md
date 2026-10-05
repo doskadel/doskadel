@@ -3,6 +3,7 @@
 Короткие записи по датам (что вошло в main). Новые — сверху.
 
 ## 2026-10-05
+- **O6** — dump.txt/dump.bat удалены с диска.
 - **P3 (CLI reset-password)** — scripts/reset-password.js <email> <пароль>: сброс + отзыв сессий. Проверено.
 - **Сессии** — сверка: rotation+reuse, grace 20с, скользящий TTL, «помни меня», absolute max 90д, single-flight — реализованы; добавлена очистка легаси-cookie Path=/.
 - **P1 (смена пароля)** — сверка: реализовано (старый+новый, отзыв refresh кроме текущей, сессии, выйти везде); добавлен rate limit на change-password.
