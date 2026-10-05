@@ -8,5 +8,6 @@ router.use(auth);
 router.get('/me', userController.getMe);
 router.put('/notification-settings', userController.updateNotificationSettings);
 router.put('/avatar', userController.updateAvatar);
+router.put('/timezone', userController.updateTimezone);
 
 module.exports = router;

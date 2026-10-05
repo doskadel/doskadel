@@ -1,4 +1,25 @@
 const User = require('../models/User');
+const { isValidTz } = require('../utils/tz');
+
+// PUT /api/users/timezone — W3: IANA-зона пользователя
+const updateTimezone = async (req, res) => {
+  try {
+    const { timezone } = req.body;
+    // допускаем null (сброс на авто/UTC) или валидную IANA-зону
+    if (timezone !== null && timezone !== undefined && !isValidTz(timezone)) {
+      return res.status(400).json({ success: false, message: 'Некорректная зона (IANA)' });
+    }
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { timezone: timezone || null },
+      { new: true }
+    ).select('-password');
+    res.json({ success: true, user });
+  } catch (error) {
+    console.error('Update timezone error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
 
 // GET /api/users/me
 const getMe = async (req, res) => {
@@ -63,5 +84,6 @@ const updateAvatar = async (req, res) => {
 module.exports = {
   getMe,
   updateNotificationSettings,
-  updateAvatar
+  updateAvatar,
+  updateTimezone
 };

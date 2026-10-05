@@ -349,6 +349,30 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ open, onClose }) => {
               <span className="ve-toggle-knob" />
             </button>
           </div>
+
+          <div className="settings-section-title">Часовой пояс</div>
+          <div className="settings-section">
+            <label className="input-label" htmlFor="tz-select">Зона (IANA)</label>
+            <select
+              id="tz-select"
+              className="input"
+              value={user?.timezone || ''}
+              onChange={async (e) => {
+                const tz = e.target.value || null;
+                try {
+                  const r = await api.put('/api/users/timezone', { timezone: tz });
+                  setUser(r.data.user);
+                } catch (err: any) {
+                  setError(err?.response?.data?.message || 'Не удалось сохранить зону');
+                }
+              }}
+            >
+              <option value="">Авто (по устройству)</option>
+              {['Europe/Moscow','Europe/Kaliningrad','Europe/Samara','Asia/Yekaterinburg','Asia/Omsk','Asia/Krasnoyarsk','Asia/Irkutsk','Asia/Yakutsk','Asia/Vladivostok','Asia/Magadan','Asia/Kamchatka','UTC','Europe/London','Europe/Berlin','Europe/Paris','Asia/Almaty','Asia/Tbilisi','Asia/Dubai','Asia/Tokyo','America/New_York','America/Los_Angeles'].map((z) => (
+                <option key={z} value={z}>{z}</option>
+              ))}
+            </select>
+          </div>
         </div>
       )}
 

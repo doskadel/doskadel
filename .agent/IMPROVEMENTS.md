@@ -50,7 +50,7 @@
 
 ### W — workspace (долги)
 - W2. Прямой тест agenda (сейчас косвенный через getDueItems).
-- W3. tz-UI и user.timezone (сейчас recurrence.tz дефолт из миграции).
+- W3 — СДЕЛАНО 2026-10-06: PUT /api/users/timezone (валидация IANA) + UI выбора зоны в Профиль→Настройки («Авто» + список зон).
 - W4. Аудит seriesId/prevTaskId (или replica set) — split без транзакции.
 
 ### Оптимизация
