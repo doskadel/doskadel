@@ -423,7 +423,7 @@ const Tasks: React.FC = () => {
                 onClick={() => setView(v)}
                 title={VIEW_LABELS[v]}
               >
-                {VIEW_ICONS[v]} {VIEW_LABELS[v]}
+                {VIEW_ICONS[v]} <span className="view-toggle-label">{VIEW_LABELS[v]}</span>
               </button>
             ))}
           </div>
