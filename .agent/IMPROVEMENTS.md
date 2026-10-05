@@ -61,10 +61,10 @@
 ### Дизайн (осталось)
 - D1. Заменить оставшиеся hex/rgba токенами (частично сделано в D9).
 - D5. Единые радиусы/тень.
-- D6. Кнопки: primary/secondary/ghost/destructive + состояния + 44px.
-- D7. Мягкие чипы статусов/приоритетов.
+- D6 — СДЕЛАНО (проверено): .button 44px, варианты primary/outline/white/danger/danger-outline, состояния.
+- D7 — СДЕЛАНО (мягкие occ-badge с color-mix).
 - D8 — ЧАСТИЧНО 2026-10-06. Стрелки календаря (было), «Все →»→ArrowRight (Dashboard), «›»→ChevronRight и «← Назад»→ArrowLeft (ProfileModal). Проверить остальные текстовые символы.
-- D10. Микро-анимации + prefers-reduced-motion; 'Отменить' в тосте.
+- D10 — СДЕЛАНО 2026-10-06: микро-анимации (toast-in, modal-slide), prefers-reduced-motion (A4), «Отменить» в тосте (Toast API + .toast-undo).
 - D11. PWA/бренд: maskable-иконка, splash, theme-color, экран входа.
 
 ### Доступность

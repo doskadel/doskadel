@@ -7,10 +7,11 @@ interface ToastItem {
   id: number;
   kind: ToastKind;
   text: string;
+  onUndo?: () => void;
 }
 
 interface ToastCtx {
-  toast: (text: string, kind?: ToastKind) => void;
+  toast: (text: string, kind?: ToastKind, opts?: { onUndo?: () => void }) => void;
 }
 
 const Ctx = createContext<ToastCtx>({ toast: () => {} });
@@ -26,10 +27,10 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     setItems((cur) => cur.filter((t) => t.id !== id));
   }, []);
 
-  const toast = useCallback((text: string, kind: ToastKind = 'info') => {
+  const toast = useCallback((text: string, kind: ToastKind = 'info', opts?: { onUndo?: () => void }) => {
     const id = ++seq;
-    setItems((cur) => [...cur, { id, kind, text }]);
-    setTimeout(() => remove(id), 3500);
+    setItems((cur) => [...cur, { id, kind, text, onUndo: opts?.onUndo }]);
+    setTimeout(() => remove(id), opts?.onUndo ? 6000 : 3500);
   }, [remove]);
 
   return (
@@ -42,6 +43,15 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
               {t.kind === 'success' ? <CheckCircle2 size={18} /> : t.kind === 'error' ? <AlertTriangle size={18} /> : <Info size={18} />}
             </span>
             <span className="toast-text">{t.text}</span>
+            {t.onUndo && (
+              <button
+                type="button"
+                className="toast-undo"
+                onClick={() => { t.onUndo?.(); remove(t.id); }}
+              >
+                Отменить
+              </button>
+            )}
             <button type="button" className="toast-close" onClick={() => remove(t.id)} aria-label="Закрыть">
               <X size={16} />
             </button>
