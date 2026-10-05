@@ -70,7 +70,7 @@ const OccurrenceActionDialog: React.FC<Props> = ({ open, onClose, originalDate, 
           <button type="button" className="occ-action-btn" disabled={busy} onClick={() => run(() => onAct({ action: 'skip' }), 'Пропущено')}>
             <SkipForward size={18} /> Пропустить
           </button>
-          <button type="button" className="occ-action-btn" disabled={busy} onClick={() => setMoveMode(true)}>
+          <button type="button" className="occ-action-btn" disabled={busy} onClick={() => setMoveMode(true)} aria-label="Перенести">
             <CalendarClock size={18} /> Перенести
           </button>
           {canComplete && (
@@ -115,7 +115,7 @@ const OccurrenceActionDialog: React.FC<Props> = ({ open, onClose, originalDate, 
           <p className="occ-scope-hint">{SCOPE_HINT[scope]}</p>
           <div className="occ-move-actions">
             <button type="button" className="occ-btn-secondary" disabled={busy} onClick={() => setMoveMode(false)}>Назад</button>
-            <button type="button" className="occ-btn-primary" disabled={busy || !newDate} onClick={doMove}>Перенести</button>
+            <button type="button" className="occ-btn-primary" disabled={busy || !newDate} onClick={doMove} aria-label="Перенести">Перенести</button>
           </div>
         </div>
       )}

@@ -33,10 +33,10 @@ const TaskModalRail: React.FC<TaskModalRailProps> = ({
           onClick={onOpenOccurrences}
           title={
             pendingCount > 0
-              ? `Подтверждения: ${pendingCount}`
-              : 'Подтверждения'
+              ? `История вхождений: ${pendingCount} не подтверждено`
+              : 'История вхождений'
           }
-          aria-label="Подтверждения"
+          aria-label="История вхождений"
         >
           ⏱
           {pendingCount > 0 && (
