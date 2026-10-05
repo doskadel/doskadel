@@ -11,6 +11,8 @@ const { JWT_SECRET } = require('../config');
 
 const ACCESS_TTL = '15m';
 const REFRESH_TTL_DAYS = 30;
+const ABSOLUTE_MAX_DAYS = 90;
+const GRACE_SECONDS = 20;
 const IS_PROD = process.env.NODE_ENV === 'production';
 const COOKIE_NAME = 'doskadel_refresh';
 
@@ -18,10 +20,10 @@ const generateAccessToken = (userId) => {
   return jwt.sign({ userId }, JWT_SECRET, { expiresIn: ACCESS_TTL });
 };
 
-const issueRefreshToken = async (userId, family) => {
+const issueRefreshToken = async (userId, family, familyCreatedAt) => {
   const token = crypto.randomBytes(48).toString('hex');
   const expiresAt = new Date(Date.now() + REFRESH_TTL_DAYS * 24 * 60 * 60 * 1000);
-  await RefreshToken.create({ userId, token, family, expiresAt });
+  await RefreshToken.create({ userId, token, family, expiresAt, familyCreatedAt: familyCreatedAt || new Date() });
   return token;
 };
 
@@ -156,11 +158,27 @@ const refresh = async (req, res) => {
       clearRefreshCookie(res);
       return res.status(401).json({ success: false, message: 'Invalid refresh token' });
     }
-    // REUSE-DETECTION: повторно использованный токен -> отзыв всей семьи
+    // Grace: недавно ротированный токен (гонка вкладок) не отзывает семью
     if (stored.used) {
+      const ageMs = stored.usedAt ? Date.now() - new Date(stored.usedAt).getTime() : Infinity;
+      if (ageMs < GRACE_SECONDS * 1000) {
+        // в пределах grace — выдаём новый токен той же семьи, не отзываем
+        const accessToken = generateAccessToken(stored.userId);
+        const newRefresh = await issueRefreshToken(stored.userId, stored.family, stored.familyCreatedAt);
+        setRefreshCookie(res, newRefresh);
+        return res.json({ success: true, token: accessToken });
+      }
+      // реальный reuse после grace -> отзыв семьи
       await RefreshToken.deleteMany({ family: stored.family });
       clearRefreshCookie(res);
       return res.status(401).json({ success: false, message: 'Token reuse detected' });
+    }
+    // Абсолютный максимум: семья старше ABSOLUTE_MAX_DAYS — отказ
+    const famStart = stored.familyCreatedAt ? new Date(stored.familyCreatedAt).getTime() : new Date(stored.createdAt).getTime();
+    if (Date.now() - famStart > ABSOLUTE_MAX_DAYS * 24 * 60 * 60 * 1000) {
+      await RefreshToken.deleteMany({ family: stored.family });
+      clearRefreshCookie(res);
+      return res.status(401).json({ success: false, message: 'Session expired (absolute max)' });
     }
     if (stored.expiresAt < new Date()) {
       await RefreshToken.deleteOne({ _id: stored._id });
@@ -177,9 +195,10 @@ const refresh = async (req, res) => {
 
     // Ротация: помечаем старый использованным, выдаём новый в той же семье
     stored.used = true;
+    stored.usedAt = new Date();
     await stored.save();
     const accessToken = generateAccessToken(user._id);
-    const newRefresh = await issueRefreshToken(user._id, stored.family);
+    const newRefresh = await issueRefreshToken(user._id, stored.family, stored.familyCreatedAt);
     setRefreshCookie(res, newRefresh);
 
     res.json({

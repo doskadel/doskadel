@@ -22,6 +22,15 @@ const refreshTokenSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  usedAt: {
+    type: Date,
+    default: null
+  },
+  // Начало семьи (для абсолютного максимума сессии)
+  familyCreatedAt: {
+    type: Date,
+    default: Date.now
+  },
   expiresAt: {
     type: Date,
     required: true
