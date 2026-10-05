@@ -69,7 +69,6 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
   if (isEditing) {
     return (
       <div className="form" style={{ maxWidth: '100%', margin: 0 }}>
-        <label className="input-label input-label--required">Название</label>
         <input
           type="text"
           value={editTitle}

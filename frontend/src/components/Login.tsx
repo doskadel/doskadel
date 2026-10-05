@@ -32,7 +32,6 @@ const Login: React.FC = () => {
       footer={<>Нет аккаунта? <Link to="/register">Зарегистрироваться</Link></>}
     >
       <form onSubmit={handleSubmit} className="form">
-        <label className="input-label input-label--required">Email</label>
         <input
           type="email"
           placeholder="Email"
@@ -43,7 +42,6 @@ const Login: React.FC = () => {
           inputMode="email"
           required
         />
-        <label className="input-label input-label--required">Пароль</label>
         <PasswordInput value={password} onChange={setPassword} autoComplete="current-password" required />
         <label className="auth-remember">
           <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />

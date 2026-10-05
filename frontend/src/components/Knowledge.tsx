@@ -212,7 +212,6 @@ const Knowledge: React.FC = () => {
 
       <Modal open={createOpen} onClose={handleCloseCreate} title="Новая статья">
         <form onSubmit={handleSubmit} className="form">
-          <label className="input-label input-label--required">Заголовок</label>
           <input
             type="text"
             placeholder="Заголовок"
@@ -222,7 +221,6 @@ const Knowledge: React.FC = () => {
             required
             autoFocus
           />
-          <label className="input-label input-label--required">Содержимое</label>
           <textarea
             placeholder="Содержимое"
             value={content}
