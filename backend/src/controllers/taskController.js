@@ -104,19 +104,23 @@ const getCalendarMarks = async (req, res) => {
     const u = await User.findById(req.user._id).select('timezone').lean();
     const tz = resolveTz(u, req.get('X-Timezone'));
     const active = await getActiveStatusIds();
-    const daySet = new Set();
-    const addDay = (date) => { const key = DateTime.fromJSDate(new Date(date), { zone: tz }).toISODate(); if (key) daySet.add(key); };
+    const itemsByDay = {};
+    const addItem = (date, item) => {
+      const key = DateTime.fromJSDate(new Date(date), { zone: tz }).toISODate();
+      if (!key) return;
+      (itemsByDay[key] = itemsByDay[key] || []).push(item);
+    };
 
     // разовые: dueDate, нефинал
-    const singles = await Task.find({ ...SINGLE, workspaceId: req.workspaceId, statusId: { $in: active }, dueDate: { $gte: fromD, $lt: toD } }).select('dueDate').lean();
-    singles.forEach((t) => addDay(t.dueDate));
+    const singles = await Task.find({ ...SINGLE, workspaceId: req.workspaceId, statusId: { $in: active }, dueDate: { $gte: fromD, $lt: toD } }).select('_id title dueDate priority recurrence statusId').lean();
+    singles.forEach((t) => addItem(t.dueDate, { taskId: String(t._id), title: t.title, dueAt: t.dueDate, priority: t.priority, isRecurring: false, originalDate: null }));
 
-    // повторяющиеся: на лету
+    // повторяющиеся: на лету (виртуальные вхождения)
     const { computeOccurrences } = require('../utils/dueItems');
     const occ = await computeOccurrences({ gte: fromD, lt: toD }, { workspaceId: req.workspaceId, activeStatusIds: active, floorDays: 0 });
-    occ.forEach((o) => addDay(o.dueAt));
+    occ.forEach((o) => addItem(o.dueAt, { taskId: String(o.task._id), title: o.task.title, dueAt: o.dueAt, priority: o.task.priority, isRecurring: true, originalDate: o.originalDate }));
 
-    res.json({ success: true, days: Array.from(daySet) });
+    res.json({ success: true, days: Object.keys(itemsByDay), itemsByDay });
   } catch (e) {
     console.error('calendar marks error:', e);
     res.status(500).json({ success: false, message: 'Server error' });
