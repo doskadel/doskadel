@@ -14,7 +14,7 @@
       // тёмная — только если пользователь явно выбрал.
       (function () {
         try {
-          var t = localStorage.getItem('doskadel_theme') || 'light';
+          var t = localStorage.getItem('doskadel_theme') || 'dark';
           document.documentElement.setAttribute('data-theme', t);
         } catch (e) {}
       })();

@@ -7,7 +7,7 @@ const KEY = 'doskadel_theme';
 const getInitial = (): Theme => {
   const saved = localStorage.getItem(KEY);
   if (saved === 'light' || saved === 'dark') return saved;
-  return 'light'; // по умолчанию светлая
+  return 'dark'; // по умолчанию тёмная
 };
 
 const apply = (t: Theme) => {
