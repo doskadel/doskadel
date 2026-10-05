@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Moon, Sun, Settings, LogOut, Bell, Shield } from 'lucide-react';
+import { Moon, Sun, Settings, LogOut, Bell, Shield, ChevronRight, ArrowLeft } from 'lucide-react';
 import { useTheme } from '../hooks/useTheme';
 import Modal from './Modal';
 import api from '../utils/api';
@@ -288,7 +288,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ open, onClose }) => {
             >
               <span className="profile-menu-icon"><Settings size={18} /></span>
               <span className="profile-menu-label">Настройки</span>
-              <span className="profile-menu-arrow">›</span>
+              <span className="profile-menu-arrow"><ChevronRight size={18} /></span>
             </button>
             <button
               type="button"
@@ -310,7 +310,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ open, onClose }) => {
             className="settings-back"
             onClick={() => setView('profile')}
           >
-            ← Назад
+            <ArrowLeft size={16} /> Назад
           </button>
           <div className="profile-menu">
             <button
@@ -320,7 +320,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ open, onClose }) => {
             >
               <span className="profile-menu-icon"><Bell size={18} /></span>
               <span className="profile-menu-label">Уведомления</span>
-              <span className="profile-menu-arrow">›</span>
+              <span className="profile-menu-arrow"><ChevronRight size={18} /></span>
             </button>
             <button
               type="button"
@@ -329,7 +329,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ open, onClose }) => {
             >
               <span className="profile-menu-icon"><Shield size={18} /></span>
               <span className="profile-menu-label">Безопасность</span>
-              <span className="profile-menu-arrow">›</span>
+              <span className="profile-menu-arrow"><ChevronRight size={18} /></span>
             </button>
           </div>
 
@@ -355,7 +355,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ open, onClose }) => {
       {/* ============ SECURITY (P1) ============ */}
       {!loading && user && view === 'security' && (
         <div className="settings-view">
-          <button type="button" className="settings-back" onClick={() => setView('settings')}>← Назад</button>
+          <button type="button" className="settings-back" onClick={() => setView('settings')}><ArrowLeft size={16} /> Назад</button>
 
           <div className="settings-section">
             <h4 className="settings-section-title">Смена пароля</h4>
@@ -417,7 +417,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ open, onClose }) => {
             className="settings-back"
             onClick={handleBack}
           >
-            ← Назад
+            <ArrowLeft size={16} /> Назад
           </button>
 
           {/* --- Устройство --- */}

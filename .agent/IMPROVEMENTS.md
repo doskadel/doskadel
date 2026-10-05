@@ -63,7 +63,7 @@
 - D5. Единые радиусы/тень.
 - D6. Кнопки: primary/secondary/ghost/destructive + состояния + 44px.
 - D7. Мягкие чипы статусов/приоритетов.
-- D8. lucide везде, стрелки календаря иконками.
+- D8 — ЧАСТИЧНО 2026-10-06. Стрелки календаря (было), «Все →»→ArrowRight (Dashboard), «›»→ChevronRight и «← Назад»→ArrowLeft (ProfileModal). Проверить остальные текстовые символы.
 - D10. Микро-анимации + prefers-reduced-motion; 'Отменить' в тосте.
 - D11. PWA/бренд: maskable-иконка, splash, theme-color, экран входа.
 

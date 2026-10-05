@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, Transition } from '@headlessui/react';
-import { Settings, ChevronDown, CheckSquare, FileText, Plus } from 'lucide-react';
+import { Settings, ChevronDown, CheckSquare, FileText, Plus, ArrowRight } from 'lucide-react';
 import SortableSettings from './shared/SortableSettings';
 import { useConfirm } from './ConfirmProvider';
 import Modal from './Modal';
@@ -269,7 +269,7 @@ const Dashboard: React.FC = () => {
                   className="dashboard-section-link"
                   onClick={() => navigate('/tasks?overdue=1')}
                 >
-                  Все →
+                  Все <ArrowRight size={15} />
                 </button>
               </div>
               <div className="dashboard-list">
@@ -310,7 +310,7 @@ const Dashboard: React.FC = () => {
                   className="dashboard-section-link"
                   onClick={() => navigate('/tasks?dueSoon=1')}
                 >
-                  Все →
+                  Все <ArrowRight size={15} />
                 </button>
               </div>
               <div className="dashboard-list">
@@ -380,7 +380,7 @@ const Dashboard: React.FC = () => {
                   className="dashboard-section-link"
                   onClick={() => navigate('/tasks')}
                 >
-                  Все →
+                  Все <ArrowRight size={15} />
                 </button>
               </div>
               <div className="dashboard-list">
@@ -411,7 +411,7 @@ const Dashboard: React.FC = () => {
                   className="dashboard-section-link"
                   onClick={() => navigate('/knowledge')}
                 >
-                  Все →
+                  Все <ArrowRight size={15} />
                 </button>
               </div>
               <div className="dashboard-list">
