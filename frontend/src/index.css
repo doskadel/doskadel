@@ -3102,7 +3102,7 @@ color: var(--color-text);
 
 /* Кнопка «Назад» — только на мобилке; очистка — при вводе */
 .command-palette-back {
-  display: none;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 36px;
@@ -3133,9 +3133,6 @@ color: var(--color-text);
 .command-palette-clear:hover { background: var(--color-bg); color: var(--color-text); }
 
 @media (max-width: 640px) {
-  .command-palette-back { display: inline-flex; }
-  .command-palette-close { display: none; }
-  .command-palette-icon { display: none; }
   .command-palette-input-wrap { padding: var(--space-sm) var(--space-md); gap: var(--space-xs); }
   .command-palette-input { font-size: 16px; }
 }
@@ -3304,6 +3301,8 @@ color: var(--color-text);
     border-top: none;
   }
 
+
+
   .command-palette-input-wrap {
     padding: var(--space-sm) var(--space-md);
   }
@@ -3320,6 +3319,18 @@ color: var(--color-text);
 /* ==================== COMMAND PALETTE — DETAIL MODE ==================== */
 .command-palette--detail {
   max-height: 80vh;
+}
+
+/* На мобилке detail — полноэкранный, без «дыры» снизу */
+@media (max-width: 640px) {
+  .command-palette--detail {
+    max-height: none;
+    height: 100dvh;
+  }
+  .command-palette-detail-body-wrapper {
+    flex: 1;
+    min-height: 0;
+  }
 }
 
 .command-palette-detail-header {

@@ -339,7 +339,6 @@ const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
           >
             <ArrowLeft size={20} />
           </button>
-          <span className="command-palette-icon"><Search size={18} /></span>
           <input
             ref={inputRef}
             type="text"
@@ -358,14 +357,6 @@ const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
               <X size={18} />
             </button>
           )}
-          <button
-            type="button"
-            className="command-palette-close"
-            onClick={onClose}
-            aria-label="Закрыть"
-          >
-            <X size={18} />
-          </button>
         </div>
 
         <div className="command-palette-body" ref={bodyRef}>
