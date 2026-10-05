@@ -3,6 +3,8 @@
 Короткие записи по датам (что вошло в main). Новые — сверху.
 
 ## 2026-10-05
+- **O1, O2, D4 — уже реализованы** (сверка по коду): React.lazy+Suspense в App.tsx, .lean() в контроллерах, Inter подключён в index.tsx. Сняты из плана.
+- **S5** (264f128) и **O4** (50b1704) закрыты ранее.
 - **O4: удалены мёртвые зависимости** (merge 50b1704). @mui/material, @emotion/react, @emotion/styled не используются в src — убраны из frontend/package.json; npm install, сборка ок.
 - **S5: CORS ограничен** (merge 264f128). origin теперь из env CORS_ORIGIN (список через запятую); dev без env — как было (любой origin), prod без env — только same-origin. Проверено на трёх ветках.
 

@@ -60,15 +60,12 @@
 - W4. Аудит seriesId/prevTaskId (или replica set) — split без транзакции.
 
 ### Оптимизация
-- O1. Ленивая загрузка маршрутов (React.lazy+Suspense): Tasks, Knowledge, CalendarView, ProfileModal, SearchModal.
-- O2. .lean() в read-запросах бэка (сейчас нет).
 - O3. Text-индекс для поиска статей ($regex его не использует; нужен $text).
 - O5. Тесты (jest+supertest): порог 'Ближайшие', refresh-токены, проверка владельца.
 - O6. dump.txt/dump.bat в корне (в .gitignore, не отслеживаются) — убрать с диска, закрыть B2.
 
 ### Дизайн (осталось)
 - D1. Заменить оставшиеся hex/rgba токенами (частично сделано в D9).
-- D4. Шрифт Inter self-host (частично? проверить).
 - D5. Единые радиусы/тень.
 - D6. Кнопки: primary/secondary/ghost/destructive + состояния + 44px.
 - D7. Мягкие чипы статусов/приоритетов.
@@ -79,7 +76,7 @@
 ### Доступность
 - A2. Цель нажатия >=44px у иконок-кнопок.
 - A3. Space (не только Enter) в div role=button (Dashboard/Tasks/Knowledge/Calendar) — или общий хелпер/button.
-- A4. prefers-reduced-motion не проверен.
+- A4. prefers-reduced-motion: есть точечно (skeleton, fb-search), проверить полноту.
 
 ### Неавторизованная зона (AUTH; приоритет: после F1e, одним заходом с P2/P4)
 - AUTH-1. Отдельные маршруты /login, /register, /forgot, /reset, /verify на общем AuthLayout (не вкладки: свои URL, ссылки, закладки, автозаполнение пароля).
