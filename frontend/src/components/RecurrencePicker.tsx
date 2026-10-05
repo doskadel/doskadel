@@ -94,6 +94,16 @@ const RecurrencePicker: React.FC<RecurrencePickerProps> = ({ value, onChange }) 
       )}
 
       <div>
+        <label className="input-label">Начало</label>
+        <input
+          type="date"
+          className="input"
+          value={value.startDate ? value.startDate.slice(0, 10) : new Date().toISOString().slice(0, 10)}
+          onChange={(e) => onChange({ ...value, startDate: new Date(e.target.value + 'T00:00:00Z').toISOString() })}
+        />
+      </div>
+
+      <div>
         <label className="input-label">Время</label>
         <input type="time" className="input" value={value.time || '09:00'} onChange={(e) => handleTimeChange(e.target.value)} />
       </div>

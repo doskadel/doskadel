@@ -25,7 +25,12 @@ async function computeOccurrences(window, ctx = {}) {
     // считаем вхождения чуть раньше окна; floor — параметр (дефолт 90 дней для job)
     const floorDays = ctx.floorDays != null ? ctx.floorDays : 90;
     const floor = floorDays > 0 ? new Date(Date.now() - floorDays * 24 * 60 * 60 * 1000) : new Date(0);
-    const from = new Date(Math.max(window.gte.getTime() - 24 * 60 * 60 * 1000, floor.getTime()));
+    let from = new Date(Math.max(window.gte.getTime() - 24 * 60 * 60 * 1000, floor.getTime()));
+    // Начало серии (F1e): не считать вхождения раньше startDate
+    if (t.recurrence.startDate) {
+      const sd = new Date(t.recurrence.startDate);
+      if (!isNaN(sd.getTime()) && sd > from) from = sd;
+    }
     const dates = getNextOccurrences(t.recurrence, from, 60).filter(
       (d) => d >= window.gte && d < window.lt
     );

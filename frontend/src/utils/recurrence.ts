@@ -6,6 +6,7 @@ export interface Recurrence {
   time: string; // HH:mm в зоне tz (локальное для пользователя)
   byWeekday?: number[]; // 0=вс..6=сб, для weekly
   byMonthDay?: number; // 1-31, для monthly
+  startDate?: string | null; // ISO, начало серии
   until?: string | null; // ISO
   count?: number | null;
   tz: string; // IANA
@@ -61,7 +62,7 @@ export const formatRecurrenceShort = (r?: Recurrence | null): string => {
 
 /** Значение по умолчанию (time — локальное, tz из браузера). */
 export const getDefaultRecurrence = (freq: RecurrenceFreq): Recurrence => {
-  const base = { freq, interval: 1, time: '09:00', tz: getBrowserTz(), until: null, count: null };
+  const base = { freq, interval: 1, time: '09:00', tz: getBrowserTz(), startDate: new Date().toISOString(), until: null, count: null };
   if (freq === 'weekly') return { ...base, byWeekday: [1] };
   if (freq === 'monthly') return { ...base, byMonthDay: 1 };
   return base;

@@ -37,6 +37,7 @@ const taskSchema = new mongoose.Schema({
     byWeekday: { type: [Number] },
     byMonthDay: { type: Number, min: 1, max: 31 },
     time: { type: String, match: /^([01]\d|2[0-3]):[0-5]\d$/ },
+    startDate: { type: Date, default: null },
     until: { type: Date, default: null },
     count: { type: Number, default: null },
     tz: { type: String, default: null }
