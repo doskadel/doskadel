@@ -113,7 +113,8 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
             onClick={() => setEditRecurrence(editRecurrence ? null : getDefaultRecurrence('daily'))}
           >
             <span className="rec-toggle-knob" />
-            <span className="rec-toggle-text">{editRecurrence ? 'Повторяющаяся задача' : 'Разовая задача'}</span>
+            <span className="rec-toggle-text">Повторять</span>
+            {editRecurrence && <span className="rec-toggle-summary">· {formatRecurrence(editRecurrence)}</span>}
           </button>
         </div>
 

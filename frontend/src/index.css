@@ -563,6 +563,7 @@ margin-bottom: var(--space-md);
 .rec-toggle--on .rec-toggle-knob { background: var(--color-primary); border-color: var(--color-primary); }
 .rec-toggle--on .rec-toggle-knob::after { transform: translateX(16px); }
 .rec-toggle-text { font-size: 14px; white-space: nowrap; }
+.rec-toggle-summary { font-size: 13px; color: var(--color-text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* ==================== PASSWORD FIELD ==================== */
 .password-field { position: relative; display: flex; }

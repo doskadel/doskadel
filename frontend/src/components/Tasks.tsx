@@ -21,7 +21,7 @@ import { deadlineLevel, formatOccurrenceLabel } from '../utils/date';
 import { useUpcomingDays } from '../hooks/useUpcomingDays';
 import { Status } from '../utils/status';
 import { formatDueDate, isOverdue } from '../utils/date';
-import { Recurrence, isRecurrenceValid, formatRecurrenceShort, getDefaultRecurrence } from '../utils/recurrence';
+import { Recurrence, isRecurrenceValid, formatRecurrenceShort, formatRecurrence, getDefaultRecurrence } from '../utils/recurrence';
 import { useConfirm } from './ConfirmProvider';
 
 interface Task {
@@ -521,7 +521,8 @@ const Tasks: React.FC = () => {
               }}
             >
               <span className="rec-toggle-knob" />
-              <span className="rec-toggle-text">{isRecurring ? 'Повторяющаяся задача' : 'Разовая задача'}</span>
+              <span className="rec-toggle-text">Повторять</span>
+              {isRecurring && recurrence && <span className="rec-toggle-summary">· {formatRecurrence(recurrence)}</span>}
             </button>
           </div>
 
