@@ -3,6 +3,7 @@
 Короткие записи по датам (что вошло в main). Новые — сверху.
 
 ## 2026-10-05
+- **Светлая тема (D1/D5)**: холодная нейтральная палитра (bg #eaeef4, surface #fff, border #e5eaf2, text #111827, primary #2563eb, danger #dc2626), холодные тени; единые границы+тени карточек (агрегатор), border-strong у шапки/нижнего бара, поля ввода на --color-input, loading-overlay на color-mix(bg). Хардкод #fff/white/rgba-синий убран в токены. Тёмная тема не изменена (добавлены только отсутствовавшие токены).
 - **A4** — глобальный prefers-reduced-motion (гасит декоративные анимации).
 - **A2** — иконки-кнопки увеличены (40px), dash-arrow 36px (цель нажатия).
 - **A3** — Space активирует div role=button (Dashboard/Calendar/Knowledge/SearchModal), помимо Enter.

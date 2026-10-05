@@ -33,22 +33,24 @@
   /* Белый текст на цветном фоне */
   --color-on-accent: #ffffff;
 
-  /* --- Семантические (светлая тема) --- */
-  --color-bg: #e4e8ed;
-  --color-surface: #ffffff;
-  --color-surface-alt: #f0f3f6;
-  --color-border: #c0c7ce;
+  /* --- Семантические (светлая тема, тёплая ненасыщенная) --- */
+  --color-bg: #eaeef4;            /* светло-серый, заметно темнее поверхностей */
+  --color-surface: #ffffff;        /* карточки/панели — белые */
+  --color-surface-alt: #f4f6fa;    /* промежуточный слой */
+  --color-input: #ffffff;
+  --color-border: #e5eaf2;         /* тонкая холодная граница */
+  --color-border-strong: #d7dee9;
   /* Мягкая рамка поверхностей (блоки/карточки); --color-border остаётся для полей и разделителей */
-  --surface-border: rgba(15, 23, 42, 0.08);
-  --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.06);
-  --color-text: #1f2328;
-  --color-text-muted: #656d76;
-  --color-primary: #0969da;
-  --color-primary-hover: #0860c4;
-  --color-danger: #cf222e;
-  --color-danger-hover: #a40e26;
-  --color-success: #1a7f37;
-  --color-warning: #bf8700;
+  --surface-border: var(--color-border);
+  --shadow-card: var(--shadow-sm);
+  --color-text: #111827;           /* графит */
+  --color-text-muted: #6b7280;     /* серый */
+  --color-primary: #2563eb;        /* спокойный синий (контраст с белым текстом) */
+  --color-primary-hover: #1d4ed8;
+  --color-danger: #dc2626;         /* сдержанный красный (читаемый на белом) */
+  --color-danger-hover: #b91c1c;
+  --color-success: #16a34a;
+  --color-warning: #d97706;
 
   /* --- Радиусы --- */
   --radius-sm: 4px;
@@ -62,10 +64,10 @@
   --space-lg: 24px;
   --space-xl: 32px;
 
-  /* --- Тени --- */
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.06);
+  /* --- Тени (холодные, мягкие) --- */
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.08);
+  --shadow-md: 0 4px 12px rgba(16, 24, 40, 0.08), 0 2px 4px rgba(16, 24, 40, 0.06);
+  --shadow-lg: 0 10px 28px rgba(16, 24, 40, 0.12), 0 4px 8px rgba(16, 24, 40, 0.08);
 }
 
 /* --- Тёмная тема --- */
@@ -75,7 +77,9 @@
   --color-bg: #111417;
   --color-surface: #1f242a;
   --color-surface-alt: #292f36;
+  --color-input: #1a1f24;
   --color-border: #363c42;
+  --color-border-strong: #4a525a;
   --surface-border: rgba(255, 255, 255, 0.10);
   --shadow-card: inset 0 1px 0 rgba(255, 255, 255, 0.05);
   --color-text: #e6e9ec;
