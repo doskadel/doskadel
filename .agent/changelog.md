@@ -3,6 +3,7 @@
 Короткие записи по датам (что вошло в main). Новые — сверху.
 
 ## 2026-10-05
+- **P3 (CLI reset-password)** — scripts/reset-password.js <email> <пароль>: сброс + отзыв сессий. Проверено.
 - **Сессии** — сверка: rotation+reuse, grace 20с, скользящий TTL, «помни меня», absolute max 90д, single-flight — реализованы; добавлена очистка легаси-cookie Path=/.
 - **P1 (смена пароля)** — сверка: реализовано (старый+новый, отзыв refresh кроме текущей, сессии, выйти везде); добавлен rate limit на change-password.
 - **F1f (финальный статус)** — сверка: реализовано (isFinal-фильтр, activeSince при возврате, запрет возврата completed/split); добавлена миграция scripts/migrate-active-since.js (48 задач, идемпотентна).
