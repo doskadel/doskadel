@@ -212,7 +212,7 @@ const Dashboard: React.FC = () => {
         <div className="dashboard-actions">
           <Menu as="div" className="create-menu">
             <Menu.Button className="button button--white button--sm create-menu-btn">
-              + Создать <ChevronDown size={16} />
+              + Создать <span className="create-menu-sep" /> <ChevronDown size={16} />
             </Menu.Button>
             <Transition
               enter="fb-tr-enter" enterFrom="fb-tr-from" enterTo="fb-tr-to"
