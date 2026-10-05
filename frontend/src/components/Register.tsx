@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import api from '../utils/api';
+import PasswordInput from './PasswordInput';
 import { useNavigate, Link } from 'react-router-dom';
 
 const Register: React.FC = () => {
@@ -33,7 +34,7 @@ return (
       <form onSubmit={handleSubmit} className="form">
         <input type="text" placeholder="Имя пользователя" value={username} onChange={(e) => setUsername(e.target.value)} className="input" required />
         <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="input" required />
-        <input type="password" placeholder="Пароль" value={password} onChange={(e) => setPassword(e.target.value)} className="input" required />
+        <PasswordInput value={password} onChange={setPassword} autoComplete="new-password" required />
         <button type="submit" className="button">Зарегистрироваться</button>
       </form>
       <p className="auth-footer">

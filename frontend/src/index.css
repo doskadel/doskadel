@@ -564,6 +564,16 @@ margin-bottom: var(--space-md);
 .rec-toggle--on .rec-toggle-knob::after { transform: translateX(16px); }
 .rec-toggle-text { font-size: 14px; white-space: nowrap; }
 
+/* ==================== PASSWORD FIELD ==================== */
+.password-field { position: relative; display: flex; }
+.password-field .input { width: 100%; padding-right: 44px; }
+.password-toggle {
+  position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; border: none; background: transparent; color: var(--color-text-muted); cursor: pointer; border-radius: var(--radius-sm);
+}
+.password-toggle:hover { color: var(--color-text); }
+
 /* ==================== CREATE MENU (+ Создать ▾) ==================== */
 .create-menu { position: relative; display: inline-block; }
 .create-menu-btn { display: inline-flex; align-items: center; gap: 8px; }

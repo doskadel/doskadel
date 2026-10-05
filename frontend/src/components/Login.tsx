@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import api from '../utils/api';
+import PasswordInput from './PasswordInput';
 import { useNavigate, Link } from 'react-router-dom';
 import { setToken } from '../utils/token';
 
@@ -36,14 +37,7 @@ const Login: React.FC = () => {
             className="input"
             required
           />
-          <input
-            type="password"
-            placeholder="Пароль"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="input"
-            required
-          />
+          <PasswordInput value={password} onChange={setPassword} autoComplete="current-password" required />
           <button type="submit" className="button">Войти</button>
         </form>
         <p className="auth-footer">
