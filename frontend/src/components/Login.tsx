@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import api from '../utils/api';
 import PasswordInput from './PasswordInput';
+import AuthLayout from './AuthLayout';
 import { useNavigate, Link } from 'react-router-dom';
 import { setToken } from '../utils/token';
 
@@ -25,31 +26,30 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="auth-wrapper">
-      <div className="auth-card">
-        <h2>Вход</h2>
-        {error && <p className="auth-error">{error}</p>}
-        <form onSubmit={handleSubmit} className="form">
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="input"
-            required
-          />
-          <PasswordInput value={password} onChange={setPassword} autoComplete="current-password" required />
-          <label className="auth-remember">
-            <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
-            <span>Запомнить меня</span>
-          </label>
-          <button type="submit" className="button">Войти</button>
-        </form>
-        <p className="auth-footer">
-          Нет аккаунта? <Link to="/register">Зарегистрироваться</Link>
-        </p>
-      </div>
-    </div>
+    <AuthLayout
+      title="Вход"
+      error={error}
+      footer={<>Нет аккаунта? <Link to="/register">Зарегистрироваться</Link></>}
+    >
+      <form onSubmit={handleSubmit} className="form">
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="input"
+          autoComplete="email"
+          inputMode="email"
+          required
+        />
+        <PasswordInput value={password} onChange={setPassword} autoComplete="current-password" required />
+        <label className="auth-remember">
+          <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
+          <span>Запомнить меня</span>
+        </label>
+        <button type="submit" className="button auth-submit">Войти</button>
+      </form>
+    </AuthLayout>
   );
 };
 
