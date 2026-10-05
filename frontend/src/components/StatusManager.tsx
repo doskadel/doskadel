@@ -1,6 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
 import api from '../utils/api';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2, GripVertical } from 'lucide-react';
+import {
+  DndContext,
+  DragEndEvent,
+  MouseSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  closestCenter,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+  arrayMove,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import Modal from './Modal';
 import { Status, STATUS_COLOR_PALETTE } from '../utils/status';
 import { useConfirm } from './ConfirmProvider';
@@ -16,11 +32,91 @@ interface StatusManagerProps {
 
 type ViewMode = 'list' | 'edit' | 'create';
 
+// Строка статуса с drag-ручкой (перетаскивание меняет порядок на доске)
+const SortableStatusRow: React.FC<{
+  status: Status;
+  deletingId: string | null;
+  onEdit: (s: Status) => void;
+  onDelete: (s: Status) => void;
+}> = ({ status, deletingId, onEdit, onDelete }) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: status._id });
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+  return (
+    <div ref={setNodeRef} style={style} className="status-row">
+      <button
+        type="button"
+        className="status-row-grip"
+        aria-label="Переместить статус"
+        title="Перетащите, чтобы изменить порядок"
+        {...attributes}
+        {...listeners}
+      >
+        <GripVertical size={16} />
+      </button>
+      <span className="status-row-color" style={{ backgroundColor: status.color }} />
+      <span className="status-row-name">
+        {status.name}
+        {status.isFinal && (
+          <span className="status-row-final-badge" title="Финальный статус"> · финальный</span>
+        )}
+      </span>
+      <div className="status-row-actions">
+        <button
+          type="button"
+          className="icon-button icon-button--sm"
+          onClick={() => onEdit(status)}
+          title="Редактировать"
+          aria-label="Редактировать"
+        >
+          <Pencil size={16} />
+        </button>
+        <button
+          type="button"
+          className="icon-button icon-button--sm icon-button--danger"
+          onClick={() => onDelete(status)}
+          title="Удалить"
+          aria-label="Удалить"
+          disabled={deletingId === status._id}
+        >
+          <Trash2 size={16} />
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const StatusManager: React.FC<StatusManagerProps> = ({ open, statuses, onClose, onChanged, onBack }) => {
   const confirm = useConfirm();
   const { toast } = useToast();
 
   const [mode, setMode] = useState<ViewMode>('list');
+  const [localStatuses, setLocalStatuses] = useState<Status[]>(statuses);
+  useEffect(() => { setLocalStatuses(statuses); }, [statuses]);
+  const sensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 8 } })
+  );
+  const handleDragEnd = async (e: DragEndEvent) => {
+    const { active, over } = e;
+    if (!over || active.id === over.id) return;
+    const oldIndex = localStatuses.findIndex((s) => s._id === active.id);
+    const newIndex = localStatuses.findIndex((s) => s._id === over.id);
+    if (oldIndex < 0 || newIndex < 0) return;
+    const next = arrayMove(localStatuses, oldIndex, newIndex);
+    setLocalStatuses(next);
+    try {
+      await api.put('/api/statuses/reorder', { order: next.map((s, i) => ({ id: s._id, order: i })) });
+      onChanged();
+      toast('Порядок статусов обновлён', 'success');
+    } catch (err: any) {
+      setLocalStatuses(statuses); // откат
+      toast(err?.response?.data?.message || 'Не удалось изменить порядок', 'error');
+    }
+  };
   const [editingStatus, setEditingStatus] = useState<Status | null>(null);
   const [name, setName] = useState('');
   const [color, setColor] = useState(STATUS_COLOR_PALETTE[0]);
@@ -190,45 +286,21 @@ const StatusManager: React.FC<StatusManagerProps> = ({ open, statuses, onClose, 
               У вас пока нет статусов
             </p>
           ) : (
-            <div className="status-list">
-              {statuses.map((status) => (
-                <div key={status._id} className="status-row">
-                  <span
-                    className="status-row-color"
-                    style={{ backgroundColor: status.color }}
-                  />
-                  <span className="status-row-name">
-                    {status.name}
-                    {status.isFinal && (
-                      <span className="status-row-final-badge" title="Финальный статус">
-                        {' '}· финальный
-                      </span>
-                    )}
-                  </span>
-                  <div className="status-row-actions">
-                    <button
-                      type="button"
-                      className="icon-button icon-button--sm"
-                      onClick={() => startEdit(status)}
-                      title="Редактировать"
-                      aria-label="Редактировать"
-                    >
-                      <Pencil size={16} />
-                    </button>
-                    <button
-                      type="button"
-                      className="icon-button icon-button--sm icon-button--danger"
-                      onClick={() => handleDelete(status)}
-                      title="Удалить"
-                      aria-label="Удалить"
-                      disabled={deletingId === status._id}
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext items={localStatuses.map((s) => s._id)} strategy={verticalListSortingStrategy}>
+                <div className="status-list">
+                  {localStatuses.map((status) => (
+                    <SortableStatusRow
+                      key={status._id}
+                      status={status}
+                      deletingId={deletingId}
+                      onEdit={startEdit}
+                      onDelete={handleDelete}
+                    />
+                  ))}
                 </div>
-              ))}
-            </div>
+              </SortableContext>
+            </DndContext>
           )}
 
           <div style={{ marginTop: 'var(--space-lg)', paddingTop: 'var(--space-lg)', borderTop: '1px solid var(--color-border)' }}>

@@ -1985,12 +1985,30 @@ color: var(--color-text);
 .status-row {
   display: flex;
   align-items: center;
-  gap: var(--space-md);
+  gap: var(--space-sm);
   padding: var(--space-sm) var(--space-md);
   background: var(--color-surface-alt);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
 }
+
+.status-row-grip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin-left: -6px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: grab;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  touch-action: none;
+}
+.status-row-grip:hover { background: var(--color-surface); color: var(--color-text); }
+.status-row-grip:active { cursor: grabbing; }
 
 .status-row-color {
   width: 20px;
