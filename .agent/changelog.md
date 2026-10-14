@@ -3,6 +3,7 @@
 Короткие записи по датам (что вошло в main). Новые — сверху.
 
 ## 2026-10-14
+- **План ONB (онбординг):** 5 пунктов в IMPROVEMENTS (промо на входе, PWA install prompt, онбординг, лендинг, splash). Приоритет — после основного плана.
 - **Согласован план (2026-10-14):** Фаза 0 бэкапы → Markdown в статьях → Markdown в задачах → MinIO+файлы → интеграция (inline-картинки с zoom/pan) → теги/связи. Решения: MinIO (переезд в облако), @uiw/react-md-editor, безопасность файлов по максимуму (проверка прав + presigned TTL).
 - **SEO-1**: robots.txt, sitemap.xml, canonical, Open Graph, Twitter Card, JSON-LD (SoftwareApplication), расширенные title (DoskaDel — задачи, планы и база знаний в одном месте) и description. Google уже переиндексировал (DoskaDel вместо WorkList); Яндекс — в плане (SEO-3..9).
 
