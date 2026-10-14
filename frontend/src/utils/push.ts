@@ -40,9 +40,13 @@ export const subscribeUser = async (): Promise<{ ok: boolean; message?: string }
   }
 
   // 1. Разрешение
+  const before = Notification.permission;
   const permission = await Notification.requestPermission();
   if (permission !== 'granted') {
-    return { ok: false, message: 'Разрешение на уведомления не выдано' };
+    if (before === 'denied' || permission === 'denied') {
+      return { ok: false, message: 'Уведомления запрещены в браузере. Разрешите их в настройках сайта (значок замка у адреса) и попробуйте снова.' };
+    }
+    return { ok: false, message: 'Разрешение не выдано. Разрешите уведомления в появившемся запросе браузера.' };
   }
 
   // 2. Регистрация SW

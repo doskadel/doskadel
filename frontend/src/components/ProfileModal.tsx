@@ -467,7 +467,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ open, onClose }) => {
 
             {pushSupported && permission === 'denied' && (
               <p className="settings-warning">
-                Уведомления запрещены в настройках браузера. Разрешите их для localhost:3000.
+                Уведомления запрещены в настройках браузера. Разрешите их в настройках сайта (значок замка у адреса) и обновите страницу.
               </p>
             )}
 

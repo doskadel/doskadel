@@ -28,6 +28,8 @@ const PushPrompt: React.FC = () => {
     setVisible(false);
   };
 
+  const [failed, setFailed] = useState(false);
+
   const enable = async () => {
     setBusy(true);
     const res = await subscribeUser();
@@ -37,6 +39,7 @@ const PushPrompt: React.FC = () => {
       setVisible(false);
     } else {
       setMsg(res.message || 'Не удалось включить');
+      setFailed(true);
     }
   };
 
@@ -52,10 +55,16 @@ const PushPrompt: React.FC = () => {
         </p>
       </div>
       <div className="push-prompt-actions">
-        <button type="button" className="button button--sm" onClick={enable} disabled={busy}>
-          {busy ? '...' : 'Включить'}
-        </button>
-        <button type="button" className="push-prompt-skip" onClick={dismiss}>Позже</button>
+        {failed ? (
+          <button type="button" className="button button--sm" onClick={dismiss}>Понятно</button>
+        ) : (
+          <>
+            <button type="button" className="button button--sm" onClick={enable} disabled={busy}>
+              {busy ? '...' : 'Включить'}
+            </button>
+            <button type="button" className="push-prompt-skip" onClick={dismiss}>Позже</button>
+          </>
+        )}
       </div>
       <button type="button" className="push-prompt-close" onClick={dismiss} aria-label="Закрыть">
         <X size={16} />
