@@ -2,6 +2,9 @@
 
 Короткие записи по датам (что вошло в main). Новые — сверху.
 
+## 2026-10-14
+- **SEO-1**: robots.txt, sitemap.xml, canonical, Open Graph, Twitter Card, JSON-LD (SoftwareApplication), расширенные title (DoskaDel — задачи, планы и база знаний в одном месте) и description. Google уже переиндексировал (DoskaDel вместо WorkList); Яндекс — в плане (SEO-3..9).
+
 ## 2026-10-06
 - **Свайп в списках задач/статей** (SwipeableRow): свайп влево открывает «Изменить»/«Удалить» с плавной анимацией, вправо — возврат. Изменить — открыть объект; Удалить — подтверждение и удаление.
 - **Доска: перетаскивание колонок** за заголовок (long-press на тач). @dnd-kit sortable, DragOverlay-призрак колонки, плавные transform/transition, reorder статусов на сервер.

@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /tasks
+Disallow: /knowledge
+Disallow: /more
+
+Sitemap: https://doskadel.ru/sitemap.xml
