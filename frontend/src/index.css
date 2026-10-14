@@ -2772,6 +2772,70 @@ color: var(--color-text);
   margin-bottom: var(--space-sm);
 }
 
+/* ==================== PUSH-PROMPT (первый вход) ==================== */
+.push-prompt {
+  position: fixed;
+  left: 50%;
+  bottom: calc(80px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 150;
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  width: min(560px, calc(100vw - 32px));
+  max-width: calc(100vw - 32px);
+  padding: var(--space-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  animation: toast-in 0.25s ease-out;
+  box-sizing: border-box;
+}
+.push-prompt-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-primary) 14%, transparent);
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+.push-prompt-body { flex: 1; min-width: 0; }
+.push-prompt-title { font-size: 15px; font-weight: 600; color: var(--color-text); margin: 0 0 2px; }
+.push-prompt-text { font-size: 13px; color: var(--color-text-muted); margin: 0; }
+.push-prompt-actions { display: flex; align-items: center; gap: var(--space-sm); flex-shrink: 0; }
+.push-prompt-skip {
+  border: none; background: transparent; color: var(--color-text-muted);
+  cursor: pointer; font-size: 14px; font-family: inherit;
+  padding: 6px 8px; border-radius: var(--radius-sm); white-space: nowrap;
+}
+.push-prompt-skip:hover { color: var(--color-text); }
+.push-prompt-close {
+  position: absolute; top: 8px; right: 8px;
+  border: none; background: transparent; color: var(--color-text-muted);
+  cursor: pointer; padding: 4px; border-radius: var(--radius-sm);
+  display: inline-flex;
+}
+.push-prompt-close:hover { color: var(--color-text); }
+
+@media (max-width: 640px) {
+  .push-prompt {
+    flex-wrap: wrap;
+    bottom: calc(72px + env(safe-area-inset-bottom));
+  }
+  .push-prompt-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+@media (min-width: 1024px) {
+  .push-prompt { bottom: var(--space-lg); }
+}
+
 /* ==================== SWIPE-ROW (списки задач/статей) ==================== */
 .swipe-row {
   position: relative;
