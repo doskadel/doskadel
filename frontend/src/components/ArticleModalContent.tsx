@@ -1,5 +1,7 @@
 import React from 'react';
 import { Article } from '../hooks/useArticleDetail';
+import MarkdownEditor from './MarkdownEditor';
+import MarkdownRenderer from './MarkdownRenderer';
 
 interface ArticleModalContentProps {
   article: Article | null;
@@ -54,14 +56,7 @@ const ArticleModalContent: React.FC<ArticleModalContentProps> = ({
           placeholder="Заголовок"
           required
         />
-        <textarea
-          value={editContent}
-          onChange={(e) => setEditContent(e.target.value)}
-          className="input"
-          rows={12}
-          placeholder="Содержимое"
-          required
-        />
+        <MarkdownEditor value={editContent} onChange={setEditContent} placeholder="Содержимое (поддерживается Markdown)" height={560} />
         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
           <button
             type="button"
@@ -88,9 +83,7 @@ const ArticleModalContent: React.FC<ArticleModalContentProps> = ({
   return (
     <div>
       <div style={{ marginBottom: 'var(--space-lg)' }}>
-        <p style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', wordBreak: 'break-word', color: 'var(--color-text)', margin: 0 }}>
-          {article.content}
-        </p>
+        <MarkdownRenderer content={article.content} />
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-md)' }}>

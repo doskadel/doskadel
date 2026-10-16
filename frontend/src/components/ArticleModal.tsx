@@ -40,7 +40,7 @@ const ArticleModal: React.FC<ArticleModalProps> = ({ articleId, onClose, onUpdat
   ) : null;
 
   return (
-    <Modal open={!!articleId} onClose={handleClose} title={modalTitle} wide rightRail={rail}>
+    <Modal open={!!articleId} onClose={handleClose} title={modalTitle} wide className="modal-content--article" rightRail={rail}>
       <ArticleModalContent
         article={detail.article}
         loading={detail.loading}

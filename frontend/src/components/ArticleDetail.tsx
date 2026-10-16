@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { useConfirm } from './ConfirmProvider';
 import { useToast } from './Toast';
+import MarkdownEditor from './MarkdownEditor';
+import MarkdownRenderer from './MarkdownRenderer';
 
 interface Article {
   _id: string;
@@ -125,14 +127,7 @@ const ArticleDetail: React.FC = () => {
               placeholder="Заголовок"
               required
             />
-            <textarea
-              value={editContent}
-              onChange={(e) => setEditContent(e.target.value)}
-              className="input"
-              rows={10}
-              placeholder="Содержимое"
-              required
-            />
+            <MarkdownEditor value={editContent} onChange={setEditContent} placeholder="Содержимое (поддерживается Markdown)" height={560} />
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
               <button
                 type="button"
@@ -179,7 +174,7 @@ const ArticleDetail: React.FC = () => {
           </div>
 
           <div style={{ marginBottom: 'var(--space-lg)' }}>
-            <p style={{ whiteSpace: 'pre-wrap', color: 'var(--color-text)' }}>{article.content}</p>
+            <MarkdownRenderer content={article.content} />
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-md)', paddingTop: 'var(--space-md)', borderTop: '1px solid var(--color-border)' }}>

@@ -10,6 +10,8 @@ import ArticleFilterBar from './ArticleFilterBar';
 import { useConfirm } from './ConfirmProvider';
 import { useToast } from './Toast';
 import SwipeableRow from './SwipeableRow';
+import MarkdownEditor from './MarkdownEditor';
+import { stripMarkdown } from '../utils/markdown';
 
 interface Article {
   _id: string;
@@ -228,7 +230,7 @@ const Knowledge: React.FC = () => {
         defaultSort={DEFAULT_SORT}
       />
 
-      <Modal open={createOpen} onClose={handleCloseCreate} title="Новая статья">
+      <Modal open={createOpen} onClose={handleCloseCreate} title="Новая статья" wide className="modal-content--article">
         <form onSubmit={handleSubmit} className="form">
           <input
             type="text"
@@ -239,14 +241,7 @@ const Knowledge: React.FC = () => {
             required
             autoFocus
           />
-          <textarea
-            placeholder="Содержимое"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            className="input"
-            rows={8}
-            required
-          />
+          <MarkdownEditor value={content} onChange={setContent} placeholder="Содержимое (поддерживается Markdown)" height={560} />
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: 'var(--space-sm)' }}>
             <button
               type="button"
@@ -301,7 +296,7 @@ const Knowledge: React.FC = () => {
               }}
             >
               <h3 className="article-card-title">{article.title}</h3>
-              <p className="article-card-description">{article.content}</p>
+              <p className="article-card-description">{stripMarkdown(article.content)}</p>
               <div className="article-card-meta">
                 Создано: {new Date(article.createdAt).toLocaleDateString('ru-RU')}
               </div>
