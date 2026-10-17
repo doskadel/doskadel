@@ -41,7 +41,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
 
   const captureCursor = () => {
     if (!editor) { savedPosRef.current = null; return; }
-    savedPosRef.current = { pos: editor.state.selection.from, wasInEditor: editor.isFocused || editor.state.selection.from > 0 };
+    savedPosRef.current = { pos: editor.state.selection.from, wasInEditor: editor.isFocused };
   };
 
   const insertFileAt = async (file: File, editor: any, pos?: number) => {
