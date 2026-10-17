@@ -48,6 +48,31 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
     editorProps: {
       attributes: { class: 'rte-content md-content', 'data-placeholder': placeholder || 'Введите текст...' },
       handleDOMEvents: {
+        mousedown: (view, e) => {
+          const target = e.target as HTMLElement;
+          // Только клик по пустой области самого редактора (padding), не по блоку.
+          if (target !== view.dom) return false;
+          const coords = view.posAtCoords({ left: e.clientX, top: e.clientY });
+          if (!coords) return false;
+          const $pos = view.state.doc.resolve(coords.pos);
+          let d = $pos.depth;
+          while (d > 1) d--;
+          const insertAt = d === 1 ? $pos.after(1) : view.state.doc.content.size;
+          const nodeAfter = view.state.doc.nodeAt(insertAt);
+          if (nodeAfter && nodeAfter.type.name === 'paragraph' && nodeAfter.content.size === 0) {
+            view.dispatch(view.state.tr.setSelection(TextSelection.create(view.state.doc, insertAt + 1)));
+            view.focus();
+            e.preventDefault();
+            return true;
+          }
+          const para = view.state.schema.nodes.paragraph.create();
+          const tr = view.state.tr.insert(insertAt, para);
+          tr.setSelection(TextSelection.create(tr.doc, insertAt + 1));
+          view.dispatch(tr);
+          view.focus();
+          e.preventDefault();
+          return true;
+        },
         // Запрещаем нативный drag выделенного текста внутри ячеек таблицы
         // (иначе при выделении текст «утаскивается» в соседнюю ячейку).
         dragstart: (_view, e) => {
@@ -59,19 +84,8 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
           return false;
         },
       },
-      handleClick: (view, pos, event) => {
-        // Клик мимо блоков (справа/снизу от таблицы/кода) -> курсор в конец документа.
-        const dom = view.dom as HTMLElement;
-        const target = event.target as HTMLElement;
-        if (target === dom) {
-          const end = view.state.doc.content.size;
-          const sel = TextSelection.near(view.state.doc.resolve(end), -1);
-          view.dispatch(view.state.tr.setSelection(sel));
-          view.focus();
-          return true;
-        }
-        return false;
-      },
+      // Клик в пустой области (справа/снизу от блока) -> вставить пустой абзац ПОСЛЕ блока и встать в него (как в Notion).
+      // Отдельный handler в handleDOMEvents ниже.
       handlePaste: (view, event) => {
         // Внутри блока кода — форматируем JSON/XML при вставке.
         if (!editor || !editor.isActive('codeBlock')) return false;
