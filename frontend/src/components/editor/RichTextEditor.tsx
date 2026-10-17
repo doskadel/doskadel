@@ -139,8 +139,25 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
         return true;
       },
       handleDrop: (view, e, _slice, moved) => {
-        // Drag-n-drop файлов из ОС.
         const dt = (e as DragEvent).dataTransfer;
+        // Перетаскивание вложения ИЗ БЛОКА вложений (custom MIME).
+        const attRaw = dt?.getData('application/x-attachment');
+        if (attRaw) {
+          e.preventDefault();
+          try {
+            const meta = JSON.parse(attRaw) as { id: string; filename: string; mime: string };
+            const posInfo = view.posAtCoords({ left: (e as DragEvent).clientX, top: (e as DragEvent).clientY });
+            const isImg = (meta.mime || '').startsWith('image/');
+            const node = isImg
+              ? { type: 'image', attrs: { src: `attachment:${meta.id}`, alt: meta.filename } }
+              : { type: 'attachmentChip', attrs: { id: meta.id, filename: meta.filename, mime: meta.mime } };
+            const chain = editor.chain().focus();
+            if (posInfo?.pos != null) chain.insertContentAt(posInfo.pos, node).run();
+            else chain.insertContent(node).run();
+          } catch { /* ignore */ }
+          return true;
+        }
+        // Drag-n-drop файлов из ОС.
         if (dt && dt.files && dt.files.length > 0 && onUploadFileRef.current) {
           e.preventDefault();
           const posInfo = view.posAtCoords({ left: (e as DragEvent).clientX, top: (e as DragEvent).clientY });

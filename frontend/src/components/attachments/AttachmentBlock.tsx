@@ -159,7 +159,17 @@ const AttachmentBlock: React.FC<Props> = ({ ownerType, ownerId, pendingItems = [
       ) : (
         <ul className="att-list">
           {list.map((att) => (
-            <li key={att._id} className="att-item" onClick={() => setViewer(att)} title={`Открыть ${att.filename}`}>
+            <li
+              key={att._id}
+              className="att-item"
+              onClick={() => setViewer(att)}
+              title={`Открыть ${att.filename}`}
+              draggable
+              onDragStart={(e) => {
+                e.dataTransfer.setData('application/x-attachment', JSON.stringify({ id: att._id, filename: att.filename, mime: att.mime }));
+                e.dataTransfer.effectAllowed = 'copy';
+              }}
+            >
               {isImage(att.mime) ? <AttachmentThumb att={att} onOpen={() => setViewer(att)} /> : <span className="att-icon">{fileIcon(att.mime)}</span>}
               <div className="att-meta">
                 <span className="att-name" title={att.filename}>{att.filename}</span>
