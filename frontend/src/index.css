@@ -2053,6 +2053,13 @@ color: var(--color-text);
 .att-add-btn:hover { background: var(--color-surface); }
 .att-add-btn:disabled { opacity: 0.6; cursor: default; }
 .att-empty { color: var(--color-text-muted); font-style: italic; margin: 4px 0; }
+/* Зона перетаскивания: только на крупных экранах */
+.att-dropzone { display: none; }
+@media (min-width: 900px) {
+  .att-block { position: relative; }
+  .att-dropzone { display: block; border: 1.5px dashed var(--color-border); border-radius: var(--radius-md); padding: 10px; text-align: center; color: var(--color-text-muted); font-size: 13px; margin-bottom: var(--space-sm); }
+  .att-block--dragover .att-dropzone { border-color: var(--color-primary); color: var(--color-primary); background: color-mix(in srgb, var(--color-primary) 8%, transparent); }
+}
 .att-list { list-style: none; padding: 0 0 6px 0; margin: 0; display: flex; flex-direction: row; flex-wrap: nowrap; gap: 8px; overflow-x: auto; overscroll-behavior-x: contain; }
 .att-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface-alt); flex: 0 0 auto; max-width: 260px; min-width: 160px; }
 .att-item .att-meta { min-width: 0; }
@@ -2091,7 +2098,7 @@ color: var(--color-text);
 .attachment-chip:hover { background: color-mix(in srgb, var(--color-primary) 20%, transparent); }
 .attachment-chip--deleted { color: var(--color-text-muted); background: var(--color-surface-alt); border-color: var(--color-border); text-decoration: line-through; cursor: default; }
 .rte-render img[src^="blob:"] { max-width: 100%; height: auto; }
-.att-inline-img--selected { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+.att-inline-img--selected { /* без рамки: только ручка ресайза */ }
 .att-resize-handle { position: absolute; right: -6px; bottom: -6px; width: 14px; height: 14px; border-radius: 3px; background: var(--color-primary); border: 2px solid var(--color-surface); cursor: nwse-resize; display: none; }
 .att-inline-img--selected .att-resize-handle, .att-inline-img:hover .att-resize-handle { display: block; }
 .att-inline-img { line-height: 0; }

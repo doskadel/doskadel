@@ -7,6 +7,7 @@ import { lowlight } from './lowlight';
 import { formatCode } from './codeFormat';
 import MarkdownRenderer from '../MarkdownRenderer';
 import { useAttachmentUrl, parseAttachmentId, AttachmentMeta } from '../../utils/attachments';
+import AttachmentViewer from '../attachments/AttachmentViewer';
 import api from '../../utils/api';
 
 // Компонент-картинка для режима просмотра: attachment:<id> -> blob.
@@ -16,18 +17,18 @@ const RenderedAttachmentImage: React.FC<{ attId: string; alt?: string }> = ({ at
   return <span className="att-inline-ph">{loading ? '…' : (error ? '⚠ файл недоступен' : '')}</span>;
 };
 
-// Чип не-картинки для просмотра.
-const RenderedAttachmentChip: React.FC<{ attId: string; filename: string }> = ({ attId, filename }) => {
-  const { url, error } = useAttachmentUrl(attId);
+// Чип не-картинки для просмотра: клик открывает вьювер, скачивание — кнопкой внутри.
+const RenderedAttachmentChip: React.FC<{ attId: string; filename: string; mime?: string }> = ({ attId, filename, mime }) => {
+  const { error } = useAttachmentUrl(attId);
   const deleted = error;
-  const onClick = () => {
-    if (!url) return;
-    const a = document.createElement('a'); a.href = url; a.download = filename || 'file'; document.body.appendChild(a); a.click(); a.remove();
-  };
+  const [open, setOpen] = React.useState(false);
   return (
-    <span className={'attachment-chip' + (deleted ? ' attachment-chip--deleted' : '')} onClick={deleted ? undefined : onClick} title={filename}>
-      {deleted ? `${filename} (удалён)` : filename}
-    </span>
+    <>
+      <span className={'attachment-chip' + (deleted ? ' attachment-chip--deleted' : '')} onClick={deleted ? undefined : () => setOpen(true)} title={deleted ? filename : `Открыть: ${filename}`}>
+        {deleted ? `${filename} (удалён)` : filename}
+      </span>
+      {open && <AttachmentViewer att={{ _id: attId, filename, mime: mime || '' }} onClose={() => setOpen(false)} />}
+    </>
   );
 };
 
@@ -82,7 +83,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({ contentJson, markdo
     let raw = '';
     try { raw = generateHTML(contentJson, editorExtensions); } catch (e) { console.error('[RICH] generateHTML failed:', e); }
     const clean = DOMPurify.sanitize(raw, {
-      ADD_ATTR: ['data-valign', 'data-row-height', 'style', 'data-color', 'data-attachment-id'],
+      ADD_ATTR: ['data-valign', 'data-row-height', 'style', 'data-color', 'data-attachment-id', 'data-mime'],
       ADD_URI_SAFE_ATTR: ['src', 'href'],
       ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto|tel|attachment):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
     });
@@ -134,7 +135,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({ contentJson, markdo
       const holder = document.createElement('span');
       a.replaceWith(holder);
       const r = createRoot(holder);
-      r.render(<RenderedAttachmentChip attId={id} filename={(a.textContent || 'файл')} />);
+      r.render(<RenderedAttachmentChip attId={id} filename={(a.textContent || 'файл')} mime={a.getAttribute('data-mime') || ''} />);
       roots.push(r);
     });
 

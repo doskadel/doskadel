@@ -4,6 +4,7 @@ import { Node, mergeAttributes } from '@tiptap/core';
 import { ReactNodeViewRenderer, NodeViewWrapper, NodeViewProps } from '@tiptap/react';
 import { useAttachmentUrl, parseAttachmentId } from '../../utils/attachments';
 import { FileText } from 'lucide-react';
+import AttachmentViewer from '../attachments/AttachmentViewer';
 
 /** Картинка с src='attachment:<id>' — грузим blob через хук (Authorization). */
 const AttachmentImage: React.FC<NodeViewProps> = ({ node, updateAttributes, selected }) => {
@@ -71,27 +72,24 @@ export const AttachmentImageExt = Image.extend({
 const ChipView: React.FC<NodeViewProps> = ({ node }) => {
   const attId = node.attrs.id as string;
   const filename = node.attrs.filename as string;
-  const { url, error } = useAttachmentUrl(attId);
+  const mime = node.attrs.mime as string;
+  const { error } = useAttachmentUrl(attId);
   const deleted = error;
-  const onClick = () => {
-    if (!url) return;
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename || 'file';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  };
+  const [open, setOpen] = React.useState(false);
+  const onClick = () => { if (!deleted) setOpen(true); };
   return (
     <NodeViewWrapper as="span" style={{ display: 'inline' }}>
       <span
         className={'attachment-chip' + (deleted ? ' attachment-chip--deleted' : '')}
         onClick={deleted ? undefined : onClick}
-        title={filename}
+        title={deleted ? filename : `Открыть: ${filename}`}
         data-attachment-id={attId}
       >
         <FileText size={13} /> {deleted ? `${filename} (удалён)` : filename}
       </span>
+      {open && (
+        <AttachmentViewer att={{ _id: attId, filename, mime }} onClose={() => setOpen(false)} />
+      )}
     </NodeViewWrapper>
   );
 };
@@ -113,7 +111,7 @@ export const AttachmentChip = Node.create({
     return [{ tag: 'a[data-attachment-id]', getAttrs: (el: any) => ({ id: (el as HTMLElement).getAttribute('data-attachment-id'), filename: (el as HTMLElement).textContent || '', mime: '' }) }];
   },
   renderHTML({ node }: any) {
-    return ['a', mergeAttributes({ 'data-attachment-id': node.attrs.id, class: 'attachment-chip', href: `attachment:${node.attrs.id}` }), node.attrs.filename || 'файл'];
+    return ['a', mergeAttributes({ 'data-attachment-id': node.attrs.id, 'data-mime': node.attrs.mime || '', class: 'attachment-chip', href: `attachment:${node.attrs.id}` }), node.attrs.filename || 'файл'];
   },
   addNodeView() {
     return ReactNodeViewRenderer(ChipView);
