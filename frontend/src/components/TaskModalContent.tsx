@@ -14,6 +14,7 @@ import AttachmentBlock from './attachments/AttachmentBlock';
 import { uploadAttachment, notifyAttachmentsChanged } from '../utils/attachments';
 import TagSelector from './tags/TagSelector';
 import LinkedEntities from './links/LinkedEntities';
+import CommentSection from './comments/CommentSection';
 
 interface TaskModalContentProps {
   task: Task | null;
@@ -221,6 +222,7 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
 
       <AttachmentBlock ownerType="task" ownerId={task._id} readOnly />
       <LinkedEntities ownerType="task" ownerId={task._id} onOpen={(t, id) => window.open(t === 'task' ? `/tasks?task=${id}` : `/knowledge?article=${id}`, '_blank')} readOnly />
+      <CommentSection ownerType="task" ownerId={task._id} />
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-md)' }}>
         <div>

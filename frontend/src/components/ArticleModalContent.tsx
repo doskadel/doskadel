@@ -5,6 +5,7 @@ import RichTextRenderer from './editor/RichTextRenderer';
 import { removeAttachmentFromJson } from './editor/normalize';
 import TagSelector from './tags/TagSelector';
 import LinkedEntities from './links/LinkedEntities';
+import CommentSection from './comments/CommentSection';
 import AttachmentBlock from './attachments/AttachmentBlock';
 import { uploadAttachment, notifyAttachmentsChanged } from '../utils/attachments';
 
@@ -127,6 +128,7 @@ const ArticleModalContent: React.FC<ArticleModalContentProps> = ({
 
       <AttachmentBlock ownerType="article" ownerId={article._id} readOnly />
       <LinkedEntities ownerType="article" ownerId={article._id} onOpen={(t, id) => window.open(t === 'task' ? `/tasks?task=${id}` : `/knowledge?article=${id}`, '_blank')} />
+      <CommentSection ownerType="article" ownerId={article._id} />
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-md)' }}>
         <div>

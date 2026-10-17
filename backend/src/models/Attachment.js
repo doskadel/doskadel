@@ -16,7 +16,7 @@ const attachmentSchema = new mongoose.Schema({
   // Для вложений у несохранённой сущности ownerType/ownerId = null (pending, привязка при создании).
   ownerType: {
     type: String,
-    enum: ['article', 'task', null],
+    enum: ['article', 'task', 'comment', null],
     default: null,
   },
   ownerId: {

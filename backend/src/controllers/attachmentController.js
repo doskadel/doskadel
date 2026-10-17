@@ -24,12 +24,20 @@ const ALLOWED = new Set([
   'application/json',
 ]);
 
+const Comment = require('../models/Comment');
+
+/** Резолвит владельца для прав: для comment — через его родителя (task/article). */
 const getOwner = async (ownerType, ownerId, workspaceId) => {
   if (ownerType === 'article') {
     return Article.findOne({ _id: ownerId, workspaceId, deletedAt: null });
   }
   if (ownerType === 'task') {
     return Task.findOne({ _id: ownerId, workspaceId });
+  }
+  if (ownerType === 'comment') {
+    const c = await Comment.findOne({ _id: ownerId, workspaceId, deletedAt: null }).lean();
+    if (!c) return null;
+    return getOwner(c.ownerType, c.ownerId, workspaceId);
   }
   return null;
 };
@@ -61,7 +69,7 @@ const uploadAttachment = async (req, res) => {
     // Вложение к несохранённой сущности: ownerType/ownerId пусты -> pending.
     const hasOwner = ownerType && ownerId;
     if (hasOwner) {
-      if (!['article', 'task'].includes(ownerType)) {
+      if (!['article', 'task', 'comment'].includes(ownerType)) {
         return res.status(400).json({ success: false, message: 'Invalid ownerType' });
       }
       const owner = await getOwner(ownerType, ownerId, req.workspaceId);
@@ -136,7 +144,7 @@ const uploadAttachment = async (req, res) => {
 const listAttachments = async (req, res) => {
   try {
     const { ownerType, ownerId } = req.query;
-    if (!['article', 'task'].includes(ownerType)) {
+    if (!['article', 'task', 'comment'].includes(ownerType)) {
       return res.status(400).json({ success: false, message: 'Invalid ownerType' });
     }
     const owner = await getOwner(ownerType, ownerId, req.workspaceId);

@@ -8,7 +8,7 @@ import { useConfirm } from '../ConfirmProvider';
 import AttachmentViewer from './AttachmentViewer';
 
 interface Props {
-  ownerType: 'article' | 'task';
+  ownerType: 'article' | 'task' | 'comment';
   ownerId: string | null; // null -> pending-загрузка (черновик)
   pendingItems?: AttachmentMeta[]; // загруженные до создания сущности (объекты)
   onPendingChange?: (items: AttachmentMeta[]) => void;
