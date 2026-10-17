@@ -169,7 +169,7 @@ const TaskModalContent: React.FC<TaskModalContentProps> = (props) => {
     </>
   );
 
-  return <EntityLayout head={head} body={body} extras={extras} aside={aside} />;
+  return <EntityLayout head={head} body={body} extras={extras} aside={aside} asideTitle="Информация о задаче" />;
 };
 
 export default TaskModalContent;

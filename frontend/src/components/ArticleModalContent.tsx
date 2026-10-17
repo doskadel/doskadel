@@ -94,7 +94,7 @@ const ArticleModalContent: React.FC<ArticleModalContentProps> = ({
     </>
   );
 
-  return <EntityLayout head={head} body={body} extras={extras} aside={aside} />;
+  return <EntityLayout head={head} body={body} extras={extras} aside={aside} asideTitle="Информация о статье" />;
 };
 
 export default ArticleModalContent;

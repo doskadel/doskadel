@@ -2063,7 +2063,9 @@ color: var(--color-text);
 .entity-aside { grid-area: aside; min-width: 0; }
 .entity-aside-toggle { display: flex; width: 100%; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 12px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface-alt); color: var(--color-text); font-family: inherit; font-weight: 600; cursor: pointer; }
 .entity-aside-inner { display: none; flex-direction: column; gap: var(--space-md); }
-.entity-aside-inner--open { display: flex; }
+.entity-aside-inner--open { display: flex; padding-top: var(--space-md); margin-top: var(--space-sm); border-top: 1px solid var(--color-border); }
+.entity-aside-field { gap: 6px; }
+.entity-aside-field + .entity-aside-field { margin-top: var(--space-sm); }
 @media (min-width: 900px) {
   .entity-layout { grid-template-columns: minmax(0, 1fr) 300px; grid-template-areas: 'head aside' 'body aside' 'extras aside'; column-gap: var(--space-lg); }
   .entity-aside { border-left: 1px solid var(--color-border); padding-left: var(--space-lg); align-self: start; position: sticky; top: 0; max-height: calc(100vh - 160px); overflow-y: auto; }
