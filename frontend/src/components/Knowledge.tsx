@@ -7,7 +7,6 @@ import api from '../utils/api';
 import Modal from './Modal';
 import ArticleModal from './ArticleModal';
 import ArticleFilterBar from './ArticleFilterBar';
-import TagFilter from './tags/TagFilter';
 import TagSelector from './tags/TagSelector';
 import { useConfirm } from './ConfirmProvider';
 import { useToast } from './Toast';
@@ -234,10 +233,6 @@ const Knowledge: React.FC = () => {
         </button>
       </div>
 
-      <div style={{ marginBottom: 'var(--space-sm)' }}>
-        <TagFilter value={tagIds} onChange={(ids) => updateQuery({ tagIds: ids.length ? ids.join(',') : null, tagMode: ids.length ? tagMode : null })} />
-      </div>
-
       <ArticleFilterBar
         q={searchInput}
         onQChange={setSearchInput}
@@ -252,6 +247,10 @@ const Knowledge: React.FC = () => {
         sort={sortParam || DEFAULT_SORT}
         onSortChange={(s) => updateQuery({ sort: s === DEFAULT_SORT ? null : s })}
         defaultSort={DEFAULT_SORT}
+        tagIds={tagIds}
+        onTagIdsChange={(ids) => updateQuery({ tagIds: ids.length ? ids.join(',') : null, tagMode: ids.length ? tagMode : null })}
+        tagMode={tagMode}
+        onTagModeChange={(m) => updateQuery({ tagMode: tagIds.length ? m : null })}
       />
 
       <Modal open={createOpen} onClose={handleCloseCreate} title="Новая статья" wide className="modal-content--article">

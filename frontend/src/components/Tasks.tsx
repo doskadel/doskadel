@@ -19,7 +19,6 @@ import ClearableField from './ClearableField';
 import RichTextEditor from './editor/RichTextEditor';
 import AttachmentBlock from './attachments/AttachmentBlock';
 import { removeAttachmentFromJson } from './editor/normalize';
-import TagFilter from './tags/TagFilter';
 import TagSelector from './tags/TagSelector';
 import { uploadAttachment, attachToOwner } from '../utils/attachments';
 import MarkdownRenderer from './MarkdownRenderer';
@@ -523,10 +522,6 @@ const Tasks: React.FC = () => {
         </button>
       </div>
 
-      <div style={{ marginBottom: 'var(--space-sm)' }}>
-        <TagFilter value={tagIds} onChange={(ids) => updateQuery({ tagIds: ids.length ? ids.join(',') : null, tagMode: ids.length ? tagMode : null })} />
-      </div>
-
       <FilterBar
         q={searchInput}
         onQChange={setSearchInput}
@@ -551,6 +546,10 @@ const Tasks: React.FC = () => {
         hideSort={view === 'board'}
         dueFilter={dueFilter}
         onDueFilterClear={handleClearDueFilter}
+        tagIds={tagIds}
+        onTagIdsChange={(ids) => updateQuery({ tagIds: ids.length ? ids.join(',') : null, tagMode: ids.length ? tagMode : null })}
+        tagMode={tagMode}
+        onTagModeChange={(m) => updateQuery({ tagMode: tagIds.length ? m : null })}
       />
 
       <Modal open={createOpen} onClose={handleCloseCreate} title="Новая задача" wide className="modal-content--task">
