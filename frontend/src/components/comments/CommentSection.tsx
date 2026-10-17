@@ -14,6 +14,23 @@ interface Props {
   ownerId: string;
 }
 
+/** Пустой ли TipTap-документ (нет текста и нет нетекстовых узлов). */
+const isJsonEmpty = (json: any): boolean => {
+  if (!json) return true;
+  if (typeof json === 'string') return !json.trim();
+  const content = json.content;
+  if (!Array.isArray(content) || content.length === 0) return true;
+  const hasReal = (nodes: any[]): boolean => nodes.some((n) => {
+    if (!n) return false;
+    if (n.type === 'text') return !!(n.text || '').trim();
+    if (n.type === 'image' || n.type === 'attachmentChip') return true;
+    if (Array.isArray(n.content)) return hasReal(n.content);
+    return false;
+  });
+  return !hasReal(content);
+};
+
+
 const CommentEditor: React.FC<{
   ownerType: 'task' | 'article';
   ownerId: string;
@@ -34,7 +51,7 @@ const CommentEditor: React.FC<{
     if (!expanded) return;
     const onDocDown = (e: MouseEvent) => {
       if (rootRef.current && rootRef.current.contains(e.target as Node)) return;
-      const empty = !md.trim() && !json && pending.length === 0;
+      const empty = !md.trim() && isJsonEmpty(json) && pending.length === 0;
       if (empty && !onCancel) setExpanded(false);
     };
     document.addEventListener('mousedown', onDocDown);
@@ -42,7 +59,7 @@ const CommentEditor: React.FC<{
   }, [expanded, md, json, pending, onCancel]);
 
   const submit = async () => {
-    if (!json && !md.trim() && pending.length === 0) return;
+    if (isJsonEmpty(json) && !md.trim() && pending.length === 0) return;
     setBusy(true);
     try {
       await onSubmit(json, md, pending);
