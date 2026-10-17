@@ -180,7 +180,7 @@ const CommentNode: React.FC<{
       )}
       {replying && !c.deleted && (
         <div className="comment-reply-inline">
-          <CommentEditor ownerType={ownerType} ownerId={ownerId} onSubmit={(json, md, pending) => submitReply(c, json, md, pending)} onCancel={() => setReplying(false)} submitLabel="Ответить" />
+          <CommentEditor ownerType={ownerType} ownerId={ownerId} onSubmit={async (json, md, pending) => { await submitReply(c, json, md, pending); setReplying(false); }} onCancel={() => setReplying(false)} submitLabel="Ответить" />
         </div>
       )}
     </div>
