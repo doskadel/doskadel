@@ -25,6 +25,7 @@ export const editorExtensions: Extensions = [
   StarterKit.configure({
     heading: { levels: [1, 2, 3] },
     link: { openOnClick: false, autolink: true },
+    hardBreak: false,
   }),
   Image,
   TaskList,

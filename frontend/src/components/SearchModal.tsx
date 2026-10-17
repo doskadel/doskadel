@@ -3,7 +3,7 @@ import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { Status } from '../utils/status';
-import { stripMarkdown } from '../utils/markdown';
+import { stripMarkdown, plainTextFromJson } from '../utils/markdown';
 import TaskModalContent from './TaskModalContent';
 import TaskModalRail from './TaskModalRail';
 import ArticleModalContent from './ArticleModalContent';
@@ -23,6 +23,7 @@ interface SearchArticle {
   _id: string;
   title: string;
   content: string;
+  contentJson?: any;
   createdAt: string;
 }
 
@@ -452,7 +453,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
                         <div className="command-palette-item-content">
                           <div className="command-palette-item-title">{a.title}</div>
                           {a.content && (
-                            <div className="command-palette-item-subtitle">{stripMarkdown(a.content)}</div>
+                            <div className="command-palette-item-subtitle">{a.contentJson ? plainTextFromJson(a.contentJson) : stripMarkdown(a.content)}</div>
                           )}
                         </div>
                       </div>

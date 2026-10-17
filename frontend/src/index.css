@@ -2886,6 +2886,7 @@ color: var(--color-text);
 .rte-color-wrap { position: relative; display: inline-flex; }
 .rte-color-indicator { display: inline-block; width: 10px; height: 3px; border-radius: 1px; margin-left: 1px; border: 1px solid var(--color-border); }
 .rte-color-pop { position: absolute; top: calc(100% + 6px); left: 0; z-index: 20; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); box-shadow: var(--shadow-lg); padding: var(--space-sm); width: 200px; }
+.url-dialog-actions { display: flex; align-items: center; gap: 8px; margin-top: var(--space-sm); }
 .rte-color-pop--fixed { position: fixed; top: auto; left: auto; z-index: 2000; max-height: calc(100vh - 16px); overflow-y: auto; }
 .rte-color-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
 .rte-color-swatch { width: 100%; aspect-ratio: 1; border: 1px solid var(--color-border); border-radius: var(--radius-sm); cursor: pointer; padding: 0; }

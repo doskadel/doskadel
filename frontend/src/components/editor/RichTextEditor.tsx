@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useEditor, EditorContent, useEditorState } from '@tiptap/react';
 import {
   Bold, Italic, Underline as UnderlineIcon, Strikethrough,
@@ -12,6 +12,8 @@ import {
 import { editorExtensions } from './extensions';
 import { normalizeDoc } from './normalize';
 import ColorPalette from './ColorPalette';
+import UrlDialog from './UrlDialog';
+import { makeCodeBlock, makeBlockquote } from './blocks';
 
 interface RichTextEditorProps {
   value: any;
@@ -123,17 +125,44 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
 
   if (!editor || !state) return null;
 
+  const [urlDialog, setUrlDialog] = useState<null | 'link' | 'image'>(null);
+  const [linkSel, setLinkSel] = useState<{ from: number; to: number } | null>(null);
+
   const setLink = () => {
-    const prev = editor.getAttributes('link').href || '';
-    const url = window.prompt('Ссылка (URL):', prev);
-    if (url === null) return;
-    if (url === '') { chain()?.extendMarkRange('link').unsetLink().run(); return; }
-    chain()?.extendMarkRange('link').setLink({ href: url }).run();
+    const { from, to } = editor.state.selection;
+    setLinkSel({ from, to });
+    setUrlDialog('link');
+  };
+  const addImage = () => {
+    const { from, to } = editor.state.selection;
+    setLinkSel({ from, to });
+    setUrlDialog('image');
   };
 
-  const addImage = () => {
-    const url = window.prompt('URL картинки:');
-    if (url) chain()?.setImage({ src: url }).run();
+  const chainWithSel = () => {
+    const c = editor.chain().focus();
+    if (linkSel) {
+      const max = editor.state.doc.content.size;
+      c.setTextSelection({ from: Math.min(linkSel.from, max), to: Math.min(linkSel.to, max) });
+    }
+    return c;
+  };
+
+  const handleLinkSubmit = (url: string, text: string) => {
+    if (url) {
+      const c = chainWithSel();
+      if (text) {
+        c.insertContent({ type: 'text', text, marks: [{ type: 'link', attrs: { href: url } }] }).run();
+      } else {
+        c.extendMarkRange('link').setLink({ href: url }).run();
+      }
+    }
+    setUrlDialog(null);
+  };
+
+  const handleImageSubmit = (url: string) => {
+    if (url) chainWithSel().setImage({ src: url }).run();
+    setUrlDialog(null);
   };
 
   const setVAlign = (v: 'top' | 'middle' | 'bottom') => {
@@ -161,8 +190,8 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
         <button type="button" className={btn(state.bullet)} onClick={() => chain()?.toggleBulletList().run()} title="Маркированный список"><List size={16} /></button>
         <button type="button" className={btn(state.ordered)} onClick={() => chain()?.toggleOrderedList().run()} title="Нумерованный список"><ListOrdered size={16} /></button>
         <button type="button" className={btn(state.task)} onClick={() => chain()?.toggleTaskList().run()} title="Чеклист"><ListChecks size={16} /></button>
-        <button type="button" className={btn(state.quote)} onClick={() => chain()?.toggleBlockquote().run()} title="Цитата"><Quote size={16} /></button>
-        <button type="button" className={btn(state.codeBlock)} onClick={() => chain()?.toggleCodeBlock().run()} title="Блок кода"><Code size={16} /></button>
+        <button type="button" className={btn(state.quote)} onClick={() => makeBlockquote(editor)} title="Цитата"><Quote size={16} /></button>
+        <button type="button" className={btn(state.codeBlock)} onClick={() => makeCodeBlock(editor)} title="Блок кода"><Code size={16} /></button>
         <button type="button" className={btn(false)} onClick={() => chain()?.setHorizontalRule().run()} title="Разделитель"><Minus size={16} /></button>
 
         <span className="rte-sep" />
@@ -224,6 +253,30 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
       )}
 
       <EditorContent editor={editor} className="rte-editor" />
+
+      <UrlDialog
+        open={urlDialog === 'link'}
+        onClose={() => setUrlDialog(null)}
+        title="Ссылка"
+        showText
+        initialUrl={editor.getAttributes('link').href || ''}
+        urlLabel="Адрес ссылки"
+        textLabel="Текст ссылки"
+        allowRemove={editor.isActive('link')}
+        submitLabel="Вставить"
+        onSubmit={handleLinkSubmit}
+        onRemove={() => { chainWithSel().extendMarkRange('link').unsetLink().run(); setUrlDialog(null); }}
+      />
+      <UrlDialog
+        open={urlDialog === 'image'}
+        onClose={() => setUrlDialog(null)}
+        title="Картинка по ссылке"
+        initialUrl=""
+        urlLabel="Адрес картинки"
+        urlPlaceholder="https://.../image.png"
+        submitLabel="Вставить"
+        onSubmit={handleImageSubmit}
+      />
     </div>
   );
 };

@@ -11,12 +11,13 @@ import { useConfirm } from './ConfirmProvider';
 import { useToast } from './Toast';
 import SwipeableRow from './SwipeableRow';
 import RichTextEditor from './editor/RichTextEditor';
-import { stripMarkdown } from '../utils/markdown';
+import { stripMarkdown, plainTextFromJson } from '../utils/markdown';
 
 interface Article {
   _id: string;
   title: string;
   content: string;
+  contentJson?: any;
   createdAt: string;
 }
 
@@ -303,7 +304,7 @@ const Knowledge: React.FC = () => {
               }}
             >
               <h3 className="article-card-title">{article.title}</h3>
-              <p className="article-card-description">{stripMarkdown(article.content)}</p>
+              <p className="article-card-description">{article.contentJson ? plainTextFromJson(article.contentJson) : stripMarkdown(article.content)}</p>
               <div className="article-card-meta">
                 Создано: {new Date(article.createdAt).toLocaleDateString('ru-RU')}
               </div>
