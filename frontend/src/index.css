@@ -3047,12 +3047,9 @@ color: var(--color-text);
   background: var(--color-surface);
   color: var(--color-text);
 }
-.rte-collapse-btn { display: none; }
-@media (max-width: 640px) {
-  .rte-collapse-btn { display: inline-flex; align-items: center; justify-content: center; margin-left: auto; border: none; background: transparent; color: var(--color-text-muted); cursor: pointer; padding: 4px 8px; font-size: 14px; }
-  .rte-toolbar--collapsed { flex-wrap: nowrap; }
-  .rte-toolbar--collapsed > *:not(.rte-collapse-btn) { display: none !important; }
-}
+.rte-collapse-btn { display: inline-flex; align-items: center; justify-content: center; margin-left: auto; border: none; background: transparent; color: var(--color-text-muted); cursor: pointer; padding: 4px 8px; font-size: 14px; }
+.rte-toolbar--collapsed { flex-wrap: nowrap; }
+.rte-toolbar--collapsed > *:not(.rte-collapse-btn) { display: none !important; }
 .rte-btn {
   display: inline-flex; align-items: center; gap: 4px;
   border: none; background: transparent; color: var(--color-text-muted);
