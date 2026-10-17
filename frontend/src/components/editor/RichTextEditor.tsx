@@ -424,6 +424,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
           <button type="button" className={btn((state as any).vAlign === 'top')} onClick={() => setVAlign('top')} title="Сверху" aria-label="Выровнять сверху"><AlignVerticalJustifyStart size={15} /></button>
           <button type="button" className={btn((state as any).vAlign === 'middle')} onClick={() => setVAlign('middle')} title="По центру" aria-label="Выровнять по центру"><AlignVerticalJustifyCenter size={15} /></button>
           <button type="button" className={btn((state as any).vAlign === 'bottom')} onClick={() => setVAlign('bottom')} title="Снизу" aria-label="Выровнять снизу"><AlignVerticalJustifyEnd size={15} /></button>
+          <span className="rte-sep" />
           <button type="button" className="rte-btn rte-btn--danger" onClick={() => chain()?.deleteTable().run()} title="Удалить таблицу"><Trash2 size={15} /></button>
         </div>
       )}
