@@ -37,6 +37,7 @@ interface RichTextRendererProps {
   contentJson?: any;
   markdown?: string;
   className?: string;
+  onToggleCheck?: (index: number, checked: boolean) => void;
 }
 
 const COPY_ICON = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
@@ -75,7 +76,9 @@ const guessLang = (text: string): string => {
  * - contentJson -> generateHTML + DOMPurify + подсветка кода и шапка с копированием;
  * - иначе Markdown.
  */
-const RichTextRenderer: React.FC<RichTextRendererProps> = ({ contentJson, markdown, className }) => {
+const RichTextRenderer: React.FC<RichTextRendererProps> = ({ contentJson, markdown, className, onToggleCheck }) => {
+  const onToggleCheckRef = React.useRef(onToggleCheck);
+  onToggleCheckRef.current = onToggleCheck;
   const ref = useRef<HTMLDivElement>(null);
   const [html, setHtml] = useState('');
 
@@ -143,7 +146,24 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({ contentJson, markdo
       roots.push(r);
     });
 
-    return () => { roots.forEach((r) => r.unmount()); };
+    // Чеклисты: клик по чекбоксу -> колбэк по индексу (если есть обработчик)
+    const boxes = root.querySelectorAll('ul[data-type="taskList"] input[type="checkbox"]') as NodeListOf<HTMLInputElement>;
+    const onBoxClick = (e: Event) => {
+      const cb = e.target as HTMLInputElement;
+      if (cb.type !== 'checkbox' || !onToggleCheckRef.current) return;
+      const all = Array.from(root.querySelectorAll('ul[data-type="taskList"] li[data-type="taskItem"]'));
+      const li = cb.closest('li[data-type="taskItem"]');
+      const idx = li ? all.indexOf(li) : -1;
+      if (idx < 0) return;
+      e.preventDefault();
+      onToggleCheckRef.current(idx, !cb.checked);
+    };
+    boxes.forEach((b) => b.addEventListener('click', onBoxClick));
+
+    return () => {
+      boxes.forEach((b) => b.removeEventListener('click', onBoxClick));
+      roots.forEach((r) => r.unmount());
+    };
   }, [html]);
 
   const onClick = (e: React.MouseEvent) => {

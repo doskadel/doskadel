@@ -57,6 +57,7 @@ const ArticleModal: React.FC<ArticleModalProps> = ({ articleId, onClose, onUpdat
         setEditContentJson={detail.setEditContentJson}
         onSave={detail.saveEdit}
         onCancel={detail.requestCancelEdit}
+        onChecklistSaved={onUpdate}
       />
     </Modal>
   );

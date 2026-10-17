@@ -8,6 +8,7 @@ import AttachmentBlock from '../attachments/AttachmentBlock';
 import AttachmentViewer from '../attachments/AttachmentViewer';
 import { useToast } from '../Toast';
 import { useConfirm } from '../ConfirmProvider';
+import { toggleChecklistItem } from '../editor/normalize';
 
 interface Props {
   ownerType: 'task' | 'article';
@@ -157,7 +158,19 @@ const CommentNode: React.FC<{
           <CommentEditor ownerType={ownerType} ownerId={ownerId} initialJson={c.contentJson} initialMarkdown={c.content} onSubmit={saveEdit} onCancel={() => setEditing(false)} submitLabel="Сохранить" />
         ) : (
           <>
-            {c.contentJson ? <RichTextRenderer contentJson={c.contentJson} markdown={c.content} className="md-content" /> : <p className="comment-text">{c.content}</p>}
+            {c.contentJson ? (
+              <RichTextRenderer
+                contentJson={c.contentJson}
+                markdown={c.content}
+                className="md-content"
+                onToggleCheck={(idx, checked) => {
+                  const next = toggleChecklistItem(c.contentJson, idx, checked);
+                  updateComment(c._id, { contentJson: next, content: c.content })
+                    .then(() => onChanged())
+                    .catch(() => {});
+                }}
+              />
+            ) : <p className="comment-text">{c.content}</p>}
             {c.attachments?.length > 0 && (
               <div className="comment-atts">
                 {c.attachments.map((a) => (

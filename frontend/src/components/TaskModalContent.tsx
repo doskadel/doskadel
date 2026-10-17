@@ -9,7 +9,8 @@ import RecurrencePicker from './RecurrencePicker';
 import ClearableField from './ClearableField';
 import RichTextEditor from './editor/RichTextEditor';
 import RichTextRenderer from './editor/RichTextRenderer';
-import { removeAttachmentFromJson } from './editor/normalize';
+import { removeAttachmentFromJson, toggleChecklistItem } from './editor/normalize';
+import api from '../utils/api';
 import AttachmentBlock from './attachments/AttachmentBlock';
 import { uploadAttachment, notifyAttachmentsChanged } from '../utils/attachments';
 import TagSelector from './tags/TagSelector';
@@ -45,6 +46,7 @@ interface TaskModalContentProps {
   onQuickChangeStatus: (statusId: string) => void;
   onQuickAction?: (action: 'done' | 'skip', originalDate: string) => void;
   pendingCount?: number;
+  onChecklistSaved?: () => void;
 }
 
 const Field: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
@@ -59,7 +61,7 @@ const TaskModalContent: React.FC<TaskModalContentProps> = (props) => {
     task, loading, error, statuses, isEditing,
     editTitle, editDescription, editDescriptionJson, editTagIds, editStatusId, editPriority, editDueDate, editRecurrence, saving,
     setEditTitle, setEditDescription, setEditDescriptionJson, setEditTagIds, setEditStatusId, setEditPriority, setEditDueDate, setEditRecurrence,
-    onSave, onCancel, onQuickChangeStatus, onQuickAction, pendingCount = 0,
+    onSave, onCancel, onQuickChangeStatus, onQuickAction, pendingCount = 0, onChecklistSaved,
   } = props;
 
   if (loading) return <p>Загрузка...</p>;
@@ -90,7 +92,18 @@ const TaskModalContent: React.FC<TaskModalContentProps> = (props) => {
     />
   ) : (
     (task.descriptionJson || task.description) ? (
-      <RichTextRenderer contentJson={task.descriptionJson} markdown={task.description} className="md-content" />
+      <RichTextRenderer
+        contentJson={task.descriptionJson}
+        markdown={task.description}
+        className="md-content"
+        onToggleCheck={(idx, checked) => {
+          if (!task.descriptionJson) return;
+          const next = toggleChecklistItem(task.descriptionJson, idx, checked);
+          api.put(`/api/tasks/${task._id}`, { descriptionJson: next, descriptionFormat: 'json' })
+            .then(() => onChecklistSaved?.())
+            .catch(() => {});
+        }}
+      />
     ) : (
       <p style={{ color: 'var(--color-text-muted)', fontStyle: 'italic', margin: 0, textAlign: 'center' }}>Нет описания</p>
     )

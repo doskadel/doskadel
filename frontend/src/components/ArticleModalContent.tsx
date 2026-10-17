@@ -2,7 +2,8 @@ import React from 'react';
 import { Article } from '../hooks/useArticleDetail';
 import RichTextEditor from './editor/RichTextEditor';
 import RichTextRenderer from './editor/RichTextRenderer';
-import { removeAttachmentFromJson } from './editor/normalize';
+import { removeAttachmentFromJson, toggleChecklistItem } from './editor/normalize';
+import api from '../utils/api';
 import TagSelector from './tags/TagSelector';
 import LinkedEntities from './links/LinkedEntities';
 import CommentSection from './comments/CommentSection';
@@ -26,6 +27,7 @@ interface ArticleModalContentProps {
   setEditTagIds: (v: string[]) => void;
   onSave: () => void;
   onCancel: () => void;
+  onChecklistSaved?: () => void;
 }
 
 const Field: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
@@ -37,7 +39,7 @@ const Field: React.FC<{ label: string; children: React.ReactNode }> = ({ label, 
 
 const ArticleModalContent: React.FC<ArticleModalContentProps> = ({
   article, loading, error, isEditing, editTitle, editContent, editContentJson, editTagIds, saving,
-  setEditTitle, setEditContent, setEditContentJson, setEditTagIds, onSave, onCancel,
+  setEditTitle, setEditContent, setEditContentJson, setEditTagIds, onSave, onCancel, onChecklistSaved,
 }) => {
   if (loading) return <p>Загрузка...</p>;
   if (error) return <p style={{ color: 'var(--color-danger)' }}>{error}</p>;
@@ -62,7 +64,17 @@ const ArticleModalContent: React.FC<ArticleModalContentProps> = ({
       }}
     />
   ) : (
-    <RichTextRenderer contentJson={article.contentJson} markdown={article.content} />
+    <RichTextRenderer
+      contentJson={article.contentJson}
+      markdown={article.content}
+      onToggleCheck={(idx, checked) => {
+        if (!article.contentJson) return;
+        const next = toggleChecklistItem(article.contentJson, idx, checked);
+        api.put(`/api/articles/${article._id}`, { contentJson: next })
+          .then(() => onChecklistSaved?.())
+          .catch(() => {});
+      }}
+    />
   );
 
   const extras = (
