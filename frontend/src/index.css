@@ -2010,9 +2010,8 @@ color: var(--color-text);
     overflow-y: auto;
     min-height: 0;
   }
-  /* Редактирование (внутри форма): фиксируем, скроллится редактор */
-  .modal-content--article .modal-body > .form,
-  .modal-content--task .modal-body > .form {
+  /* Редактирование статьи: фиксируем, скроллится редактор. Задача — обычный скролл body. */
+  .modal-content--article .modal-body > .form {
     overflow: hidden;
   }
   .modal-content--article .modal-body > .form {
