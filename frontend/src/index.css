@@ -2003,10 +2003,17 @@ color: var(--color-text);
   }
 
   /* Статья на мобиле: модалка фиксирована, скроллится только редактор внутри. */
-  .modal-content--article .modal-body {
-    overflow: hidden;
+  .modal-content--article .modal-body,
+  .modal-content--task .modal-body {
     display: flex;
     flex-direction: column;
+    overflow-y: auto;
+    min-height: 0;
+  }
+  /* Редактирование (внутри форма): фиксируем, скроллится редактор */
+  .modal-content--article .modal-body > .form,
+  .modal-content--task .modal-body > .form {
+    overflow: hidden;
   }
   .modal-content--article .modal-body > .form {
     flex: 1;
