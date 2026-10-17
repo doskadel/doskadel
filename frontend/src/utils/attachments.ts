@@ -129,6 +129,12 @@ export const parseAttachmentId = (src?: string | null): string | null => {
   return m ? m[1] : null;
 };
 
+// Простое событие: после загрузки/удаления вложения из другого места (редактор) блок списка обновляется.
+type AttListener = () => void;
+const attListeners = new Set<AttListener>();
+export const onAttachmentsChanged = (fn: AttListener): (() => void) => { attListeners.add(fn); return () => { attListeners.delete(fn); }; };
+export const notifyAttachmentsChanged = () => { attListeners.forEach((fn) => { try { fn(); } catch {} }); };
+
 export const formatBytes = (n: number): string => {
   if (n < 1024) return `${n} Б`;
   if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} КБ`;

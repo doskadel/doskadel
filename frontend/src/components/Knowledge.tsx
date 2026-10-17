@@ -44,7 +44,7 @@ const Knowledge: React.FC = () => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [contentJson, setContentJson] = useState<any>(null);
-  const [pendingAttachmentIds, setPendingAttachmentIds] = useState<string[]>([]);
+  const [pendingAttachments, setPendingAttachments] = useState<import('../utils/attachments').AttachmentMeta[]>([]);
 
   const [searchInput, setSearchInput] = useState(q);
 
@@ -121,7 +121,7 @@ const Knowledge: React.FC = () => {
     setTitle('');
     setContent('');
     setContentJson(null);
-    setPendingAttachmentIds([]);
+    setPendingAttachments([]);
   };
 
   const isCreateFormDirty = (): boolean => {
@@ -164,8 +164,8 @@ const Knowledge: React.FC = () => {
     try {
       const created = await api.post('/api/articles', { title, content, contentJson });
       const newId = created?.data?.article?._id;
-      if (newId && pendingAttachmentIds.length) {
-        try { await attachToOwner('article', newId, pendingAttachmentIds); } catch (e) { console.error('attach failed', e); }
+      if (newId && pendingAttachments.length) {
+        try { await attachToOwner('article', newId, pendingAttachments.map((a) => a._id)); } catch (e) { console.error('attach failed', e); }
       }
       resetCreateForm();
       setCreateOpen(false);
@@ -260,7 +260,7 @@ const Knowledge: React.FC = () => {
             onUploadFile={async (file) => {
               try {
                 const att = await uploadAttachment(file, {});
-                setPendingAttachmentIds((prev) => [...prev, att._id]);
+                setPendingAttachments((prev) => [...prev, att]);
                 return { id: att._id, filename: att.filename, mime: att.mime };
               } catch { return null; }
             }}
@@ -268,8 +268,8 @@ const Knowledge: React.FC = () => {
           <AttachmentBlock
             ownerType="article"
             ownerId={null}
-            pendingIds={pendingAttachmentIds}
-            onPendingChange={setPendingAttachmentIds}
+            pendingItems={pendingAttachments}
+            onPendingChange={setPendingAttachments}
           />
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: 'var(--space-sm)' }}>
             <button

@@ -141,7 +141,7 @@ const Tasks: React.FC = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [descriptionJson, setDescriptionJson] = useState<any>(null);
-  const [pendingAttachmentIds, setPendingAttachmentIds] = useState<string[]>([]);
+  const [pendingAttachments, setPendingAttachments] = useState<import('../utils/attachments').AttachmentMeta[]>([]);
   const [priority, setPriority] = useState<number | ''>('');
   const [dueDate, setDueDate] = useState('');
   const [isRecurring, setIsRecurring] = useState(false);
@@ -256,7 +256,7 @@ const Tasks: React.FC = () => {
     setTitle('');
     setDescription('');
     setDescriptionJson(null);
-    setPendingAttachmentIds([]);
+    setPendingAttachments([]);
     setPriority('');
     setDueDate('');
     setIsRecurring(false);
@@ -315,8 +315,8 @@ const Tasks: React.FC = () => {
 
       const created = await api.post('/api/tasks', payload);
       const newId = created?.data?.task?._id;
-      if (newId && pendingAttachmentIds.length) {
-        try { await attachToOwner('task', newId, pendingAttachmentIds); } catch (e) { console.error('attach failed', e); }
+      if (newId && pendingAttachments.length) {
+        try { await attachToOwner('task', newId, pendingAttachments.map((a) => a._id)); } catch (e) { console.error('attach failed', e); }
       }
       resetCreateForm();
       setCreateOpen(false);
@@ -556,7 +556,7 @@ const Tasks: React.FC = () => {
             onUploadFile={async (file) => {
               try {
                 const att = await uploadAttachment(file, {});
-                setPendingAttachmentIds((prev) => [...prev, att._id]);
+                setPendingAttachments((prev) => [...prev, att]);
                 return { id: att._id, filename: att.filename, mime: att.mime };
               } catch { return null; }
             }}
@@ -564,8 +564,8 @@ const Tasks: React.FC = () => {
           <AttachmentBlock
             ownerType="task"
             ownerId={null}
-            pendingIds={pendingAttachmentIds}
-            onPendingChange={setPendingAttachmentIds}
+            pendingItems={pendingAttachments}
+            onPendingChange={setPendingAttachments}
           />
           <div className="task-fields-grid">
             <div className="task-col">

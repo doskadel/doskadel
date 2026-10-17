@@ -72,10 +72,18 @@ const uploadAttachment = async (req, res) => {
       return res.status(413).json({ success: false, message: 'Файл больше лимита' });
     }
 
-    // Определяем MIME по сигнатуре, не доверяем клиенту.
+    // Определяем MIME по сигнатуре (не доверяем клиенту), fallback по расширению для текстовых.
     const detected = await FileType.fromBuffer(req.file.buffer);
-    const mime = detected?.mime || 'application/octet-stream';
-    const ext = detected?.ext || 'bin';
+    const origExt = (path.extname(req.file.originalname || '').replace('.', '') || '').toLowerCase();
+    const EXT_MIME = { txt: 'text/plain', md: 'text/markdown', csv: 'text/csv', json: 'application/json' };
+    let mime = detected?.mime;
+    let ext = detected?.ext;
+    if (!mime && EXT_MIME[origExt]) {
+      mime = EXT_MIME[origExt];
+      ext = origExt;
+    }
+    if (!mime) mime = 'application/octet-stream';
+    if (!ext) ext = origExt || 'bin';
     if (!ALLOWED.has(mime)) {
       return res.status(415).json({ success: false, message: 'Тип файла не разрешён' });
     }

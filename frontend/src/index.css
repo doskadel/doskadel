@@ -2044,15 +2044,18 @@ color: var(--color-text);
 }
 
 /* ==================== ATTACHMENTS ==================== */
-.att-block { margin-top: var(--space-lg); border-top: 1px solid var(--color-border); padding-top: var(--space-md); }
+.att-block { margin-top: var(--space-lg); padding-top: var(--space-md); border-top: 1px solid var(--color-border); }
+/* Отделяем блок вложений от мета-информации ниже */
+.att-block + div, .att-block ~ .article-meta, .att-block ~ .task-meta { border-top: 1px solid var(--color-border); padding-top: var(--space-md); }
 .att-block-head { display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-sm); }
 .att-block-title { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; color: var(--color-text); }
 .att-add-btn { margin-left: auto; border: 1px solid var(--color-border); background: var(--color-surface-alt); color: var(--color-text); border-radius: var(--radius-md); padding: 6px 12px; cursor: pointer; font-family: inherit; }
 .att-add-btn:hover { background: var(--color-surface); }
 .att-add-btn:disabled { opacity: 0.6; cursor: default; }
 .att-empty { color: var(--color-text-muted); font-style: italic; margin: 4px 0; }
-.att-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
-.att-item { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface-alt); }
+.att-list { list-style: none; padding: 0 0 6px 0; margin: 0; display: flex; flex-direction: row; flex-wrap: nowrap; gap: 8px; overflow-x: auto; overscroll-behavior-x: contain; }
+.att-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface-alt); flex: 0 0 auto; max-width: 260px; min-width: 160px; }
+.att-item .att-meta { min-width: 0; }
 .att-icon { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: var(--radius-sm); background: var(--color-surface); color: var(--color-text-muted); flex-shrink: 0; }
 .att-thumb { width: 40px; height: 40px; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--color-border); background: var(--color-surface); padding: 0; cursor: zoom-in; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; }
 .att-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -2080,6 +2083,10 @@ color: var(--color-text);
 .attachment-chip:hover { background: color-mix(in srgb, var(--color-primary) 20%, transparent); }
 .attachment-chip--deleted { color: var(--color-text-muted); background: var(--color-surface-alt); border-color: var(--color-border); text-decoration: line-through; cursor: default; }
 .rte-render img[src^="blob:"] { max-width: 100%; height: auto; }
+.att-inline-img--selected { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+.att-resize-handle { position: absolute; right: -6px; bottom: -6px; width: 14px; height: 14px; border-radius: 3px; background: var(--color-primary); border: 2px solid var(--color-surface); cursor: nwse-resize; display: none; }
+.att-inline-img--selected .att-resize-handle, .att-inline-img:hover .att-resize-handle { display: block; }
+.att-inline-img { line-height: 0; }
 
 /* ==================== ICON BUTTON ==================== */
 .icon-button {

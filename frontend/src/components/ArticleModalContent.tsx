@@ -3,7 +3,7 @@ import { Article } from '../hooks/useArticleDetail';
 import RichTextEditor from './editor/RichTextEditor';
 import RichTextRenderer from './editor/RichTextRenderer';
 import AttachmentBlock from './attachments/AttachmentBlock';
-import { uploadAttachment } from '../utils/attachments';
+import { uploadAttachment, notifyAttachmentsChanged } from '../utils/attachments';
 
 interface ArticleModalContentProps {
   article: Article | null;
@@ -70,11 +70,12 @@ const ArticleModalContent: React.FC<ArticleModalContentProps> = ({
           onUploadFile={async (file) => {
             try {
               const att = await uploadAttachment(file, { ownerType: 'article', ownerId: article!._id });
+              notifyAttachmentsChanged();
               return { id: att._id, filename: att.filename, mime: att.mime };
             } catch { return null; }
           }}
         />
-        <AttachmentBlock ownerType="article" ownerId={article!._id} pendingIds={[]} onPendingChange={() => {}} />
+        <AttachmentBlock ownerType="article" ownerId={article!._id} />
         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
           <button
             type="button"
@@ -104,7 +105,7 @@ const ArticleModalContent: React.FC<ArticleModalContentProps> = ({
         <RichTextRenderer contentJson={article.contentJson} markdown={article.content} />
       </div>
 
-      <AttachmentBlock ownerType="article" ownerId={article._id} pendingIds={[]} onPendingChange={() => {}} readOnly />
+      <AttachmentBlock ownerType="article" ownerId={article._id} readOnly />
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-md)' }}>
         <div>

@@ -6,23 +6,62 @@ import { useAttachmentUrl, parseAttachmentId } from '../../utils/attachments';
 import { FileText } from 'lucide-react';
 
 /** Картинка с src='attachment:<id>' — грузим blob через хук (Authorization). */
-const AttachmentImage: React.FC<NodeViewProps> = ({ node }) => {
+const AttachmentImage: React.FC<NodeViewProps> = ({ node, updateAttributes, selected }) => {
   const src: string = node.attrs.src || '';
   const attId = parseAttachmentId(src);
   const { url, loading, error } = useAttachmentUrl(attId);
+  const width: number | null = node.attrs.width || null;
+  const imgRef = React.useRef<HTMLImageElement>(null);
+  const startRef = React.useRef<{ x: number; w: number } | null>(null);
+
+  const onResizeDown = (e: React.PointerEvent) => {
+    e.preventDefault();
+    const cur = imgRef.current?.getBoundingClientRect().width || width || 300;
+    startRef.current = { x: e.clientX, w: cur };
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+  };
+  const onResizeMove = (e: React.PointerEvent) => {
+    if (!startRef.current) return;
+    const dx = e.clientX - startRef.current.x;
+    const next = Math.max(40, Math.round(startRef.current.w + dx));
+    updateAttributes({ width: next });
+  };
+  const onResizeUp = () => { startRef.current = null; };
+
+  const style = width ? { width: `${width}px`, maxWidth: '100%' } : undefined;
   return (
-    <NodeViewWrapper as="span" className="att-inline-img" style={{ display: 'inline-block' }}>
+    <NodeViewWrapper as="span" className={'att-inline-img' + (selected ? ' att-inline-img--selected' : '')} style={{ display: 'inline-block', position: 'relative' }}>
       {attId ? (
-        url ? <img src={url} alt={node.attrs.alt || ''} draggable={false} />
+        url ? <img ref={imgRef} src={url} alt={node.attrs.alt || ''} draggable={false} style={style} />
           : <span className="att-inline-ph">{loading ? '…' : (error ? '⚠ файл недоступен' : '')}</span>
       ) : (
-        <img src={src} alt={node.attrs.alt || ''} draggable={false} />
+        <img ref={imgRef} src={src} alt={node.attrs.alt || ''} draggable={false} style={style} />
       )}
+      <span
+        className="att-resize-handle"
+        onPointerDown={onResizeDown}
+        onPointerMove={onResizeMove}
+        onPointerUp={onResizeUp}
+        title="Изменить размер"
+      />
     </NodeViewWrapper>
   );
 };
 
 export const AttachmentImageExt = Image.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      width: {
+        default: null,
+        parseHTML: (el: HTMLElement) => {
+          const w = el.getAttribute('width') || el.style.width;
+          return w ? parseInt(w, 10) || null : null;
+        },
+        renderHTML: (attrs: any) => (attrs.width ? { width: attrs.width } : {}),
+      },
+    };
+  },
   addNodeView() {
     return ReactNodeViewRenderer(AttachmentImage);
   },

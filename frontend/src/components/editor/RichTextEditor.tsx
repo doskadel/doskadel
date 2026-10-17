@@ -33,6 +33,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
   const onUploadFileRef = React.useRef(onUploadFile);
   onUploadFileRef.current = onUploadFile;
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const imgInputRef = React.useRef<HTMLInputElement>(null);
 
   // Загрузить файл и вставить узел в позицию (картинка -> Image, иначе chip).
   const insertFileAt = async (file: File, editor: any, pos?: number) => {
@@ -223,6 +224,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
     setUrlDialog('link');
   };
   const addImage = () => {
+    if (onUploadFileRef.current) { imgInputRef.current?.click(); return; }
     const { from, to } = editor.state.selection;
     setLinkSel({ from, to });
     setUrlDialog('image');
@@ -317,7 +319,20 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
 
         <span className="rte-sep" />
         <button type="button" className={btn(state.link)} onClick={setLink} title="Ссылка"><LinkIcon size={16} /></button>
-        <button type="button" className={btn(false)} onClick={addImage} title="Картинка по ссылке"><ImageIcon size={16} /></button>
+        <button type="button" className={btn(false)} onClick={addImage} title={onUploadFile ? 'Вставить картинку (файл)' : 'Картинка по ссылке'}><ImageIcon size={16} /></button>
+        <input
+          ref={imgInputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          style={{ display: 'none' }}
+          onChange={(e) => {
+            if (e.target.files && e.target.files.length) {
+              Array.from(e.target.files).forEach((f) => insertFileAt(f, editor));
+            }
+            e.target.value = '';
+          }}
+        />
         {onUploadFile && (
           <button type="button" className={btn(false)} onClick={() => fileInputRef.current?.click()} title="Прикрепить файл"><PaperclipIcon size={16} /></button>
         )}

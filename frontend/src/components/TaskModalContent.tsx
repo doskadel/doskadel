@@ -10,7 +10,7 @@ import ClearableField from './ClearableField';
 import RichTextEditor from './editor/RichTextEditor';
 import RichTextRenderer from './editor/RichTextRenderer';
 import AttachmentBlock from './attachments/AttachmentBlock';
-import { uploadAttachment } from '../utils/attachments';
+import { uploadAttachment, notifyAttachmentsChanged } from '../utils/attachments';
 
 interface TaskModalContentProps {
   task: Task | null;
@@ -93,11 +93,12 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
           onUploadFile={async (file) => {
             try {
               const att = await uploadAttachment(file, { ownerType: 'task', ownerId: task!._id });
+              notifyAttachmentsChanged();
               return { id: att._id, filename: att.filename, mime: att.mime };
             } catch { return null; }
           }}
         />
-        <AttachmentBlock ownerType="task" ownerId={task!._id} pendingIds={[]} onPendingChange={() => {}} />
+        <AttachmentBlock ownerType="task" ownerId={task!._id} />
         <div className="task-fields-grid">
           <div className="task-col">
             <div className="task-field" style={{ maxWidth: 'none' }}>
@@ -198,7 +199,7 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
         )}
       </div>
 
-      <AttachmentBlock ownerType="task" ownerId={task._id} pendingIds={[]} onPendingChange={() => {}} readOnly />
+      <AttachmentBlock ownerType="task" ownerId={task._id} readOnly />
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-md)' }}>
         <div>

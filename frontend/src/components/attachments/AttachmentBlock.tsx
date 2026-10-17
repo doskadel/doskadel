@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Paperclip, Trash2, FileText, FileArchive, FileSpreadsheet, Image as ImageIcon, File as FileIcon, Download } from 'lucide-react';
 import {
-  AttachmentMeta, listAttachments, uploadAttachment, deleteAttachment, useAttachmentUrl, formatBytes, getAttachmentsConfig, AttachmentConfig,
+  AttachmentMeta, listAttachments, uploadAttachment, deleteAttachment, useAttachmentUrl, formatBytes, getAttachmentsConfig, AttachmentConfig, onAttachmentsChanged,
 } from '../../utils/attachments';
 import { useToast } from '../Toast';
 import { useConfirm } from '../ConfirmProvider';
@@ -9,8 +9,8 @@ import { useConfirm } from '../ConfirmProvider';
 interface Props {
   ownerType: 'article' | 'task';
   ownerId: string | null; // null -> pending-загрузка (черновик)
-  pendingIds: string[]; // загруженные до создания сущности
-  onPendingChange: (ids: string[]) => void;
+  pendingItems?: AttachmentMeta[]; // загруженные до создания сущности (объекты)
+  onPendingChange?: (items: AttachmentMeta[]) => void;
   onUploaded?: (att: AttachmentMeta) => void; // для вставки в текст
   readOnly?: boolean;
 }
@@ -40,11 +40,16 @@ const AttachmentThumb: React.FC<{ att: AttachmentMeta; onOpen: (id: string) => v
   return null;
 };
 
-const AttachmentBlock: React.FC<Props> = ({ ownerType, ownerId, pendingIds, onPendingChange, onUploaded, readOnly }) => {
+const AttachmentBlock: React.FC<Props> = ({ ownerType, ownerId, pendingItems = [], onPendingChange, onUploaded, readOnly }) => {
   const { toast } = useToast();
   const confirm = useConfirm();
   const [items, setItems] = useState<AttachmentMeta[]>([]);
-  const [pending, setPending] = useState<AttachmentMeta[]>([]);
+  // В pending-режиме источник — pendingItems из родителя (могут добавляться из редактора).
+  const pending = ownerId ? [] : pendingItems;
+  const setPending = (updater: AttachmentMeta[] | ((prev: AttachmentMeta[]) => AttachmentMeta[])) => {
+    const next = typeof updater === 'function' ? (updater as any)(pendingItems) : updater;
+    onPendingChange?.(next);
+  };
   const [progress, setProgress] = useState<Record<string, number>>({});
   const [uploading, setUploading] = useState(false);
   const [config, setConfig] = useState<AttachmentConfig | null>(null);
@@ -60,12 +65,12 @@ const AttachmentBlock: React.FC<Props> = ({ ownerType, ownerId, pendingIds, onPe
 
   useEffect(() => { refresh(); /* eslint-disable-next-line */ }, [ownerType, ownerId]);
 
-  // Синхронизация pending-списка (только что загруженные до создания)
+  // Обновление, когда вложение загружено из редактора (onUploadFile) и т.п.
   useEffect(() => {
-    if (ownerId) return;
-    // при отсутствии ownerId показываем pending, загруженные в этой сессии
-    setPending((prev) => prev);
-  }, [ownerId]);
+    const unsub = onAttachmentsChanged(() => refresh());
+    return () => { unsub(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ownerType, ownerId]);
 
   const doUpload = async (files: FileList | File[]) => {
     const arr = Array.from(files);
@@ -86,7 +91,7 @@ const AttachmentBlock: React.FC<Props> = ({ ownerType, ownerId, pendingIds, onPe
         );
         setProgress((p) => { const c = { ...p }; delete c[key]; return c; });
         if (ownerId) setItems((prev) => [...prev, att]);
-        else { setPending((prev) => [...prev, att]); onPendingChange([...pendingIds, att._id]); }
+        else { setPending((prev) => [...prev, att]); }
         onUploaded?.(att);
       } catch (err: any) {
         setProgress((p) => { const c = { ...p }; delete c[key]; return c; });
@@ -104,7 +109,7 @@ const AttachmentBlock: React.FC<Props> = ({ ownerType, ownerId, pendingIds, onPe
     try {
       await deleteAttachment(att._id);
       if (ownerId) setItems((prev) => prev.filter((a) => a._id !== att._id));
-      else { setPending((prev) => prev.filter((a) => a._id !== att._id)); onPendingChange(pendingIds.filter((id) => id !== att._id)); }
+      else { setPending((prev) => prev.filter((a) => a._id !== att._id)); }
       toast('Файл удалён', 'success');
     } catch { toast('Не удалось удалить файл', 'error'); }
   };
