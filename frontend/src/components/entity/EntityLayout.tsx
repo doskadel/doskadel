@@ -6,6 +6,7 @@ interface Props {
   extras?: React.ReactNode;
   aside: React.ReactNode;
   asideTitle?: string;
+  footer?: React.ReactNode;
 }
 
 /**
@@ -13,7 +14,7 @@ interface Props {
  * Десктоп: head/body/extras слева, aside справа (300px, sticky).
  * Мобила: head, aside (свёрнутый «Свойства»), body, extras.
  */
-const EntityLayout: React.FC<Props> = ({ head, body, extras, aside, asideTitle = 'Свойства' }) => {
+const EntityLayout: React.FC<Props> = ({ head, body, extras, aside, asideTitle = 'Свойства', footer }) => {
   const [asideOpen, setAsideOpen] = React.useState(false);
   return (
     <div className="entity-layout">
@@ -28,6 +29,7 @@ const EntityLayout: React.FC<Props> = ({ head, body, extras, aside, asideTitle =
           {aside}
         </div>
       </aside>
+      {footer && <div className="entity-footer">{footer}</div>}
     </div>
   );
 };

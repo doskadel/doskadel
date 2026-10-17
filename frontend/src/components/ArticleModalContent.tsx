@@ -81,10 +81,6 @@ const ArticleModalContent: React.FC<ArticleModalContentProps> = ({
   const aside = isEditing ? (
     <>
       <Field label="Теги"><TagSelector value={editTagIds} onChange={setEditTagIds} /></Field>
-      <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
-        <button type="button" className="button" onClick={onSave} disabled={saving || !editTitle.trim()} style={{ flex: 1 }}>{saving ? '…' : 'Сохранить'}</button>
-        <button type="button" className="button" onClick={onCancel} disabled={saving} style={{ flex: 1, backgroundColor: 'var(--color-text-muted)' }}>Отмена</button>
-      </div>
     </>
   ) : (
     <>
@@ -94,7 +90,14 @@ const ArticleModalContent: React.FC<ArticleModalContentProps> = ({
     </>
   );
 
-  return <EntityLayout head={head} body={body} extras={extras} aside={aside} asideTitle="Информация о статье" />;
+  const footer = isEditing ? (
+    <>
+      <button type="button" className="button" onClick={onCancel} disabled={saving} style={{ backgroundColor: 'var(--color-text-muted)' }}>Отмена</button>
+      <button type="button" className="button" onClick={onSave} disabled={saving || !editTitle.trim()}>{saving ? 'Сохранение…' : 'Сохранить'}</button>
+    </>
+  ) : null;
+
+  return <EntityLayout head={head} body={body} extras={extras} aside={aside} asideTitle="Информация о статье" footer={footer} />;
 };
 
 export default ArticleModalContent;
