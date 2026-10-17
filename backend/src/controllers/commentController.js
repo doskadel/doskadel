@@ -149,15 +149,22 @@ const deleteComment = async (req, res) => {
     const isAuthor = String(comment.authorId) === String(req.user._id);
     if (!isAuthor && !canByMembership(req.membership, 'delete')) return res.status(403).json({ success: false, message: 'Forbidden' });
 
-    const hasReplies = !!(await Comment.exists({ workspaceId: req.workspaceId, parentId: comment._id }));
-    comment.deletedAt = new Date();
-    if (hasReplies) { comment.content = ''; comment.contentJson = null; }
-    await comment.save();
+    // Собираем всё поддерево (родитель + все потомки любого уровня).
+    const toDelete = [comment._id];
+    let frontier = [comment._id];
+    while (frontier.length) {
+      const kids = await Comment.find({ workspaceId: req.workspaceId, parentId: { $in: frontier }, deletedAt: null }).select('_id').lean();
+      const kidIds = kids.map((k) => k._id);
+      if (!kidIds.length) break;
+      toDelete.push(...kidIds);
+      frontier = kidIds;
+    }
 
-    // Вложения этого комментария — удаляются из общего блока (soft delete).
-    await Attachment.updateMany({ workspaceId: req.workspaceId, commentId: comment._id, deletedAt: null }, { $set: { deletedAt: new Date() } });
+    const now = new Date();
+    await Comment.updateMany({ _id: { $in: toDelete }, workspaceId: req.workspaceId }, { $set: { deletedAt: now, content: '', contentJson: null } });
+    await Attachment.updateMany({ workspaceId: req.workspaceId, commentId: { $in: toDelete }, deletedAt: null }, { $set: { deletedAt: now } });
 
-    await incOwnerCount(comment.ownerType, comment.ownerId, req.workspaceId, -1);
+    await incOwnerCount(comment.ownerType, comment.ownerId, req.workspaceId, -toDelete.length);
     res.json({ success: true });
   } catch (e) {
     console.error('deleteComment error:', e);
