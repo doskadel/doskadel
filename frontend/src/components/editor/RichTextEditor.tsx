@@ -25,11 +25,12 @@ interface RichTextEditorProps {
   placeholder?: string;
   /** Загрузка файла (вложения): возвращает метаданные или null при ошибке. */
   onUploadFile?: (file: File) => Promise<{ id: string; filename: string; mime: string } | null>;
+  minimal?: boolean;
 }
 
 const btn = (active: boolean) => 'rte-btn' + (active ? ' rte-btn--active' : '');
 
-const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initialMarkdown, placeholder, onUploadFile }) => {
+const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initialMarkdown, placeholder, onUploadFile, minimal }) => {
   const onUploadFileRef = React.useRef(onUploadFile);
   onUploadFileRef.current = onUploadFile;
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -319,11 +320,14 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
           <span className="rte-collapse-label">{toolbarCollapsed ? 'Показать' : 'Скрыть'}</span>
         </button>
         <div className="rte-toolbar-items">
-        <button type="button" className={btn(state.h1)} onClick={() => chain()?.toggleHeading({ level: 1 }).run()} title="Заголовок 1"><Heading1 size={16} /></button>
-        <button type="button" className={btn(state.h2)} onClick={() => chain()?.toggleHeading({ level: 2 }).run()} title="Заголовок 2"><Heading2 size={16} /></button>
-        <button type="button" className={btn(state.h3)} onClick={() => chain()?.toggleHeading({ level: 3 }).run()} title="Заголовок 3"><Heading3 size={16} /></button>
-
-        <span className="rte-sep" />
+        {!minimal && (
+          <>
+            <button type="button" className={btn(state.h1)} onClick={() => chain()?.toggleHeading({ level: 1 }).run()} title="Заголовок 1"><Heading1 size={16} /></button>
+            <button type="button" className={btn(state.h2)} onClick={() => chain()?.toggleHeading({ level: 2 }).run()} title="Заголовок 2"><Heading2 size={16} /></button>
+            <button type="button" className={btn(state.h3)} onClick={() => chain()?.toggleHeading({ level: 3 }).run()} title="Заголовок 3"><Heading3 size={16} /></button>
+            <span className="rte-sep" />
+          </>
+        )}
         <button type="button" className={btn(state.isBold)} onClick={() => chain()?.toggleBold().run()} title="Жирный"><Bold size={16} /></button>
         <button type="button" className={btn(state.isItalic)} onClick={() => chain()?.toggleItalic().run()} title="Курсив"><Italic size={16} /></button>
         <button type="button" className={btn(state.isUnderline)} onClick={() => chain()?.toggleUnderline().run()} title="Подчёркнутый"><UnderlineIcon size={16} /></button>
@@ -337,15 +341,17 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
         <button type="button" className={btn(state.task)} onClick={() => chain()?.toggleTaskList().run()} title="Чеклист"><ListChecks size={16} /></button>
         <button type="button" className={btn(state.quote)} onClick={() => makeBlockquote(editor)} title="Цитата"><Quote size={16} /></button>
         <button type="button" className={btn(state.codeBlock)} onClick={() => makeCodeBlock(editor)} title="Блок кода"><Code size={16} /></button>
-        <button type="button" className={btn(false)} onClick={() => chain()?.setHorizontalRule().run()} title="Разделитель"><Minus size={16} /></button>
-
-        <span className="rte-sep" />
-        <button type="button" className={btn(state.alignLeft)} onClick={() => chain()?.setTextAlign('left').run()} title="По левому краю"><AlignLeft size={16} /></button>
-        <button type="button" className={btn(state.alignCenter)} onClick={() => chain()?.setTextAlign('center').run()} title="По центру"><AlignCenter size={16} /></button>
-        <button type="button" className={btn(state.alignRight)} onClick={() => chain()?.setTextAlign('right').run()} title="По правому краю"><AlignRight size={16} /></button>
-
-        <span className="rte-sep" />
-        <select
+        {!minimal && (
+          <>
+            <button type="button" className={btn(false)} onClick={() => chain()?.setHorizontalRule().run()} title="Разделитель"><Minus size={16} /></button>
+            <span className="rte-sep" />
+            <button type="button" className={btn(state.alignLeft)} onClick={() => chain()?.setTextAlign('left').run()} title="По левому краю"><AlignLeft size={16} /></button>
+            <button type="button" className={btn(state.alignCenter)} onClick={() => chain()?.setTextAlign('center').run()} title="По центру"><AlignCenter size={16} /></button>
+            <button type="button" className={btn(state.alignRight)} onClick={() => chain()?.setTextAlign('right').run()} title="По правому краю"><AlignRight size={16} /></button>
+            <span className="rte-sep" />
+          </>
+        )}
+        {!minimal && (<select
           className="rte-select"
           title="Межстрочный интервал"
           aria-label="Межстрочный интервал"
@@ -369,12 +375,12 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
           <option value="1.5">1.5</option>
           <option value="1.75">1.75</option>
           <option value="2">2.0</option>
-        </select>
+        </select>)}
 
-        <span className="rte-sep" />
-        <button type="button" className={btn(state.link)} onClick={setLink} title="Ссылка"><LinkIcon size={16} /></button>
-        <button type="button" className={btn(false)} onClick={addImage} title={onUploadFile ? 'Вставить картинку (файл)' : 'Картинка по ссылке'}><ImageIcon size={16} /></button>
-        <input
+        {!minimal && (<span className="rte-sep" />)}
+        {!minimal && (<button type="button" className={btn(state.link)} onClick={setLink} title="Ссылка"><LinkIcon size={16} /></button>)}
+        {!minimal && (<button type="button" className={btn(false)} onClick={addImage} title={onUploadFile ? 'Вставить картинку (файл)' : 'Картинка по ссылке'}><ImageIcon size={16} /></button>)}
+        {!minimal && (<input
           ref={imgInputRef}
           type="file"
           accept="image/*"
@@ -386,7 +392,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
             }
             e.target.value = '';
           }}
-        />
+        />)}
         {onUploadFile && (
           <button type="button" className={btn(false)} onClick={() => { captureCursor(); fileInputRef.current?.click(); }} title="Прикрепить файл"><PaperclipIcon size={16} /></button>
         )}
@@ -402,12 +408,12 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
             e.target.value = '';
           }}
         />
-        <button
+        {!minimal && (<button
           type="button"
           className={btn(state.inTable)}
           onClick={() => chain()?.insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
           title="Вставить таблицу"
-        ><TableIcon size={16} /></button>
+        ><TableIcon size={16} /></button>)}
         </div>
       </div>
 

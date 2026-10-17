@@ -81,6 +81,7 @@ const CommentEditor: React.FC<{
     <div className="comment-editor" ref={rootRef}>
       <RichTextEditor
         key={resetKey}
+        minimal
         value={json}
         initialMarkdown={!json ? initialMarkdown : undefined}
         onChange={(j, m) => { setJson(j); setMd(m); }}
