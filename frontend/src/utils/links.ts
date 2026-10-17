@@ -6,6 +6,7 @@ export interface LinkedEntity {
   id: string;
   title: string;
   statusId?: string | null;
+  statusName?: string | null;
   priority?: number | null;
 }
 

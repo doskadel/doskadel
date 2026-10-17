@@ -55,6 +55,7 @@ const LinkedEntities: React.FC<Props> = ({ ownerType, ownerId, onOpen, readOnly 
               <button type="button" className="linked-open" onClick={() => onOpen?.(l.type, l.id)}>
                 <span className={'linked-badge linked-badge--' + l.type}>{l.type === 'task' ? 'Задача' : 'Статья'}</span>
                 <span className="linked-name">{l.title}</span>
+                {l.statusName && <span className="linked-status">{l.statusName}</span>}
               </button>
               {!readOnly && (
                 <button type="button" className="att-del" onClick={() => remove(l.linkId)} title="Удалить связь"><X size={14} /></button>

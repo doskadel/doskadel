@@ -101,12 +101,19 @@ const listLinks = async (req, res) => {
         : { _id: otherId, workspaceId: req.workspaceId };
       const ent = await Model.findOne(q).select('_id title statusId priority deletedAt').lean();
       if (!ent) continue;
+      let statusName = null;
+      if (ent.statusId) {
+        const Status = require('../models/Status');
+        const st = await Status.findById(ent.statusId).select('name').lean();
+        statusName = st?.name || null;
+      }
       out.push({
         linkId: l._id,
         type: otherType,
         id: ent._id,
         title: ent.title,
         statusId: ent.statusId || null,
+        statusName,
         priority: ent.priority ?? null,
       });
     }
