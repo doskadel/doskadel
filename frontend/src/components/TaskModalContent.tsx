@@ -72,9 +72,7 @@ const TaskModalContent: React.FC<TaskModalContentProps> = (props) => {
 
   const head = isEditing ? (
     <input type="text" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="input" placeholder="Название" required />
-  ) : (
-    <h2 className="page-title" style={{ margin: 0 }}>{task.title}</h2>
-  );
+  ) : null;
 
   const body = isEditing ? (
     <RichTextEditor

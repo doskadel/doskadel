@@ -45,9 +45,7 @@ const ArticleModalContent: React.FC<ArticleModalContentProps> = ({
 
   const head = isEditing ? (
     <input type="text" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="input" placeholder="Заголовок" required />
-  ) : (
-    <h1 className="article-view-title" style={{ margin: 0 }}>{article.title}</h1>
-  );
+  ) : null;
 
   const body = isEditing ? (
     <RichTextEditor
