@@ -1788,6 +1788,15 @@ color: var(--color-text);
   padding-bottom: var(--space-2xl, 48px);
 }
 
+/* Большая модалка задачи (редактор описания): как статья */
+.modal-content--task {
+  max-width: min(1400px, calc(100vw - 64px));
+  max-height: 94vh;
+}
+.modal-content--task .modal-body {
+  padding-bottom: var(--space-2xl, 48px);
+}
+
 .modal-header {
   display: flex;
   justify-content: space-between;
@@ -1939,12 +1948,14 @@ color: var(--color-text);
   }
 
   /* Статья на мобиле: модалка фиксирована, скроллится только редактор внутри. */
-  .modal-content--article .modal-body {
+  .modal-content--article .modal-body,
+  .modal-content--task .modal-body {
     overflow: hidden;
     display: flex;
     flex-direction: column;
   }
-  .modal-content--article .modal-body > .form {
+  .modal-content--article .modal-body > .form,
+  .modal-content--task .modal-body > .form {
     flex: 1;
     min-height: 0;
     display: flex;

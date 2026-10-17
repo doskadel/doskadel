@@ -55,7 +55,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ taskId, statuses, onClose, onUpda
 
   return (
     <>
-      <Modal open={!!taskId} onClose={handleClose} title={modalTitle} wide rightRail={rail}>
+      <Modal open={!!taskId} onClose={handleClose} title={modalTitle} wide className="modal-content--task" rightRail={rail}>
         <TaskModalContent
           task={detail.task}
           loading={detail.loading}
