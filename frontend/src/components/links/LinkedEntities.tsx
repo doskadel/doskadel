@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Link2, X, Plus, Search } from 'lucide-react';
-import api from '../../utils/api';
+import { Link2, X } from 'lucide-react';
 import { LinkedEntity, listLinks, createLink, deleteLink } from '../../utils/links';
 import { useToast } from '../Toast';
+import LinkSearchModal from './LinkSearchModal';
 
 interface Props {
   ownerType: 'task' | 'article';
@@ -14,33 +14,17 @@ interface Props {
 const LinkedEntities: React.FC<Props> = ({ ownerType, ownerId, onOpen, readOnly }) => {
   const { toast } = useToast();
   const [items, setItems] = useState<LinkedEntity[]>([]);
-  const [adding, setAdding] = useState(false);
-  const [q, setQ] = useState('');
-  const [results, setResults] = useState<{ type: 'task' | 'article'; id: string; title: string }[]>([]);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const targetType = ownerType === 'task' ? 'article' : 'task';
 
   const refresh = () => listLinks(ownerType, ownerId).then(setItems).catch(() => {});
   useEffect(() => { refresh(); /* eslint-disable-next-line */ }, [ownerType, ownerId]);
 
-  useEffect(() => {
-    if (!adding || q.trim().length < 2) { setResults([]); return; }
-    const t = setTimeout(async () => {
-      try {
-        const r = await api.get('/api/search', { params: { q: q.trim() } });
-        const tasks = (r.data.results?.tasks || []).map((x: any) => ({ type: 'task' as const, id: x._id, title: x.title }));
-        const articles = (r.data.results?.articles || []).map((x: any) => ({ type: 'article' as const, id: x._id, title: x.title }));
-        const all = targetType === 'task' ? tasks : articles;
-        setResults(all.filter((x: any) => x.id !== ownerId).slice(0, 10));
-      } catch { setResults([]); }
-    }, 300);
-    return () => clearTimeout(t);
-  }, [q, adding, targetType, ownerId]);
-
-  const add = async (id: string, type: 'task' | 'article') => {
+  const add = async (type: 'task' | 'article', id: string) => {
     try {
       await createLink(ownerType, ownerId, type, id);
-      setAdding(false); setQ(''); setResults([]);
+      setSearchOpen(false);
       refresh();
     } catch (e: any) {
       const s = e?.response?.status;
@@ -58,25 +42,9 @@ const LinkedEntities: React.FC<Props> = ({ ownerType, ownerId, onOpen, readOnly 
       <div className="linked-head">
         <span className="linked-title"><Link2 size={16} /> Связи</span>
         {!readOnly && (
-          <button type="button" className="att-add-btn" onClick={() => setAdding((v) => !v)}>
-            {adding ? 'Отмена' : 'Связать'}
-          </button>
+          <button type="button" className="att-add-btn" onClick={() => setSearchOpen(true)}>Связать</button>
         )}
       </div>
-
-      {adding && (
-        <div className="linked-add">
-          <div className="linked-search">
-            <Search size={14} />
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={targetType === 'task' ? 'Найти задачу…' : 'Найти статью…'} autoFocus />
-          </div>
-          {results.map((r) => (
-            <button key={r.id} type="button" className="linked-result" onClick={() => add(r.id, r.type)}>
-              <Plus size={13} /> {r.title}
-            </button>
-          ))}
-        </div>
-      )}
 
       {items.length === 0 ? (
         <p className="att-empty">Нет связей</p>
@@ -95,6 +63,14 @@ const LinkedEntities: React.FC<Props> = ({ ownerType, ownerId, onOpen, readOnly 
           ))}
         </ul>
       )}
+
+      <LinkSearchModal
+        open={searchOpen}
+        targetType={targetType}
+        excludeId={ownerId}
+        onClose={() => setSearchOpen(false)}
+        onPick={add}
+      />
     </div>
   );
 };
