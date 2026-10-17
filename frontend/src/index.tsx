@@ -21,4 +21,8 @@ root.render(
 );
 
 // Регистрация Service Worker (PWA + Web Push)
-serviceWorkerRegistration.register();
+if (process.env.NODE_ENV === 'production') {
+  serviceWorkerRegistration.register();
+} else {
+  serviceWorkerRegistration.unregister();
+}

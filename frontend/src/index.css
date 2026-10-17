@@ -2086,10 +2086,10 @@ color: var(--color-text);
 .comment-collapsed-input { width: 100%; text-align: left; padding: 10px 12px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-input); color: var(--color-text-muted); font-family: inherit; font-size: 14px; cursor: text; margin-bottom: var(--space-md); }
 .comment-collapsed-input:hover { border-color: var(--color-primary); }
 .comment-editor-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
-.comment-list { display: flex; flex-direction: column; gap: var(--space-lg, 24px); }
+.comment-list { display: flex; flex-direction: column; gap: 0; }
 .comment-item { border-left: 2px solid var(--color-border); padding-left: var(--space-md); margin-bottom: var(--space-sm); }
-.comment-list > .comment-item:not(:first-child) { border-top: 1px solid var(--color-border-strong, var(--color-text-muted)); padding-top: var(--space-xl, 32px); margin-top: var(--space-xl, 32px); }
-.comment-replies > .comment-item:not(:first-child) { border-top: 1px solid var(--color-border-strong, var(--color-text-muted)); padding-top: var(--space-lg, 24px); margin-top: var(--space-lg, 24px); }
+.comment-item + .comment-item { position: relative; margin-top: 16px !important; padding-top: 16px !important; border-top: none !important; }
+.comment-item + .comment-item::before { content: ''; position: absolute; top: 0; left: 0; right: 15%; height: 1px; background: color-mix(in srgb, var(--color-border-strong) 55%, transparent); }
 @media (max-width: 640px) {
   .comment-item { padding-left: var(--space-sm); }
   .comment-replies { margin-left: 0; }
@@ -2107,7 +2107,7 @@ color: var(--color-text);
 .comment-actions { display: inline-flex; gap: 4px; }
 .comment-actions button { border: none; background: transparent; color: var(--color-text-muted); cursor: pointer; padding: 2px; border-radius: var(--radius-sm); }
 .comment-actions button:hover { color: var(--color-primary); background: var(--color-surface-alt); }
-.comment-replies { margin-top: var(--space-sm); margin-left: var(--space-lg); display: flex; flex-direction: column; gap: var(--space-sm); }
+.comment-replies { margin-top: 0; margin-left: var(--space-lg); display: flex; flex-direction: column; gap: 0; }
 .comment-reply-inline { margin-top: var(--space-sm); padding: var(--space-sm); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface-alt); }
 .comment-reply-box { margin-top: var(--space-md); padding: var(--space-sm); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface-alt); }
 .comment-reply-head { display: flex; align-items: center; justify-content: space-between; font-size: 13px; color: var(--color-text-muted); margin-bottom: 6px; }
