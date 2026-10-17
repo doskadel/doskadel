@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { MessageSquare, Reply, Pencil, Trash2, Send, X } from 'lucide-react';
 import { CommentItem, listComments, createComment, updateComment, deleteComment } from '../../utils/comments';
-import { uploadAttachment, AttachmentMeta } from '../../utils/attachments';
+import { uploadAttachment, AttachmentMeta, notifyAttachmentsChanged } from '../../utils/attachments';
 import RichTextEditor from '../editor/RichTextEditor';
 import RichTextRenderer from '../editor/RichTextRenderer';
 import AttachmentBlock from '../attachments/AttachmentBlock';
@@ -15,12 +15,14 @@ interface Props {
 }
 
 const CommentEditor: React.FC<{
+  ownerType: 'task' | 'article';
+  ownerId: string;
   initialJson?: any;
   initialMarkdown?: string;
   onSubmit: (json: any, md: string, pending: AttachmentMeta[]) => Promise<void>;
   onCancel?: () => void;
   submitLabel?: string;
-}> = ({ initialJson, initialMarkdown, onSubmit, onCancel, submitLabel = 'Отправить' }) => {
+}> = ({ ownerType, ownerId, initialJson, initialMarkdown, onSubmit, onCancel, submitLabel = 'Отправить' }) => {
   const [json, setJson] = useState<any>(initialJson || null);
   const [md, setMd] = useState<string>(initialMarkdown || '');
   const [pending, setPending] = useState<AttachmentMeta[]>([]);
@@ -29,7 +31,7 @@ const CommentEditor: React.FC<{
   const submit = async () => {
     if (!json && !md.trim() && pending.length === 0) return;
     setBusy(true);
-    try { await onSubmit(json, md, pending); } finally { setBusy(false); }
+    try { await onSubmit(json, md, pending); setPending([]); setJson(null); setMd(''); } finally { setBusy(false); }
   };
 
   return (
@@ -40,11 +42,22 @@ const CommentEditor: React.FC<{
         onChange={(j, m) => { setJson(j); setMd(m); }}
         placeholder="Комментарий…"
         onUploadFile={async (file) => {
-          try { const a = await uploadAttachment(file, {}); return { id: a._id, filename: a.filename, mime: a.mime }; }
-          catch { return null; }
+          try {
+            // Файл комментария — вложение owner (Jira-style), метка commentId при отправке.
+            const a = await uploadAttachment(file, { ownerType, ownerId });
+            setPending((prev) => [...prev, a]);
+            notifyAttachmentsChanged();
+            return { id: a._id, filename: a.filename, mime: a.mime };
+          } catch { return null; }
         }}
       />
-      <AttachmentBlock ownerType="comment" ownerId={null} pendingItems={pending} onPendingChange={setPending} />
+      {pending.length > 0 && (
+        <div className="comment-pending-atts">
+          {pending.map((p) => (
+            <span key={p._id} className="att-chip">{p.filename}</span>
+          ))}
+        </div>
+      )}
       <div className="comment-editor-actions">
         {onCancel && <button type="button" className="button" onClick={onCancel} style={{ backgroundColor: 'var(--color-text-muted)' }}>Отмена</button>}
         <button type="button" className="button" onClick={submit} disabled={busy}>{busy ? '…' : submitLabel}</button>
@@ -56,9 +69,11 @@ const CommentEditor: React.FC<{
 const CommentNode: React.FC<{
   c: CommentItem;
   replies: CommentItem[];
+  ownerType: 'task' | 'article';
+  ownerId: string;
   onReply: (c: CommentItem) => void;
   onChanged: () => void;
-}> = ({ c, replies, onReply, onChanged }) => {
+}> = ({ c, replies, ownerType, ownerId, onReply, onChanged }) => {
   const { toast } = useToast();
   const confirm = useConfirm();
   const [editing, setEditing] = useState(false);
@@ -80,7 +95,7 @@ const CommentNode: React.FC<{
         {c.deleted ? (
           <p className="comment-deleted">Комментарий удалён</p>
         ) : editing ? (
-          <CommentEditor initialJson={c.contentJson} initialMarkdown={c.content} onSubmit={saveEdit} onCancel={() => setEditing(false)} submitLabel="Сохранить" />
+          <CommentEditor ownerType={ownerType} ownerId={ownerId} initialJson={c.contentJson} initialMarkdown={c.content} onSubmit={saveEdit} onCancel={() => setEditing(false)} submitLabel="Сохранить" />
         ) : (
           <>
             {c.contentJson ? <RichTextRenderer contentJson={c.contentJson} markdown={c.content} className="md-content" /> : <p className="comment-text">{c.content}</p>}
@@ -107,7 +122,7 @@ const CommentNode: React.FC<{
       {viewer && <AttachmentViewer att={viewer} onClose={() => setViewer(null)} />}
       {replies.length > 0 && (
         <div className="comment-replies">
-          {replies.map((r) => <CommentNode key={r._id} c={r} replies={[]} onReply={onReply} onChanged={onChanged} />)}
+          {replies.map((r) => <CommentNode key={r._id} c={r} replies={[]} ownerType={ownerType} ownerId={ownerId} onReply={onReply} onChanged={onChanged} />)}
         </div>
       )}
     </div>
@@ -137,20 +152,20 @@ const CommentSection: React.FC<Props> = ({ ownerType, ownerId }) => {
   return (
     <div className="comment-section">
       <div className="comment-head"><MessageSquare size={16} /> Комментарии{items.length ? ` (${items.length})` : ''}</div>
-      <CommentEditor onSubmit={submit} submitLabel="Отправить" />
+      <CommentEditor ownerType={ownerType} ownerId={ownerId} onSubmit={submit} submitLabel="Отправить" />
       {loading ? <p className="att-empty">Загрузка…</p> : roots.length === 0 ? (
         <p className="att-empty">Нет комментариев</p>
       ) : (
         <div className="comment-list">
           {roots.map((c) => (
-            <CommentNode key={c._id} c={c} replies={repliesOf(c._id)} onReply={setReplyTo} onChanged={refresh} />
+            <CommentNode key={c._id} c={c} replies={repliesOf(c._id)} ownerType={ownerType} ownerId={ownerId} onReply={setReplyTo} onChanged={refresh} />
           ))}
         </div>
       )}
       {replyTo && (
         <div className="comment-reply-box">
           <div className="comment-reply-head">Ответ на комментарий <button type="button" onClick={() => setReplyTo(null)}><X size={14} /></button></div>
-          <CommentEditor onSubmit={submit} onCancel={() => setReplyTo(null)} submitLabel="Ответить" />
+          <CommentEditor ownerType={ownerType} ownerId={ownerId} onSubmit={submit} onCancel={() => setReplyTo(null)} submitLabel="Ответить" />
         </div>
       )}
     </div>

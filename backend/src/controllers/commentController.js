@@ -27,11 +27,11 @@ const listComments = async (req, res) => {
     if (!owner) return res.status(404).json({ success: false, message: 'Сущность не найдена' });
 
     const comments = await Comment.find({ workspaceId: req.workspaceId, ownerType, ownerId }).sort({ createdAt: 1 }).lean();
-    // Вложения комментариев одним запросом
+    // Вложения комментариев: принадлежат owner, помечены commentId (Jira-style).
     const ids = comments.map((c) => c._id);
-    const atts = await Attachment.find({ workspaceId: req.workspaceId, ownerType: 'comment', ownerId: { $in: ids }, deletedAt: null, status: 'ready' }).lean();
+    const atts = await Attachment.find({ workspaceId: req.workspaceId, commentId: { $in: ids }, deletedAt: null, status: 'ready' }).lean();
     const attByComment = {};
-    atts.forEach((a) => { (attByComment[String(a.ownerId)] = attByComment[String(a.ownerId)] || []).push({ _id: a._id, filename: a.filename, mime: a.mime, size: a.size }); });
+    atts.forEach((a) => { (attByComment[String(a.commentId)] = attByComment[String(a.commentId)] || []).push({ _id: a._id, filename: a.filename, mime: a.mime, size: a.size }); });
 
     const out = comments.map((c) => ({
       _id: c._id,
@@ -93,11 +93,11 @@ const createComment = async (req, res) => {
       ...body,
     });
 
-    // Привязка pending-вложений к комментарию
+    // Jira-style: вложения комментария принадлежат owner (task/article), помечены commentId.
     if (Array.isArray(req.body.attachments) && req.body.attachments.length) {
       await Attachment.updateMany(
         { _id: { $in: req.body.attachments }, workspaceId: req.workspaceId, uploadedBy: req.user._id, deletedAt: null, $or: [{ ownerId: null }, { ownerId: { $exists: false } }] },
-        { $set: { ownerType: 'comment', ownerId: comment._id } }
+        { $set: { ownerType, ownerId, commentId: comment._id } }
       );
     }
 
@@ -148,8 +148,8 @@ const deleteComment = async (req, res) => {
     if (hasReplies) { comment.content = ''; comment.contentJson = null; }
     await comment.save();
 
-    // Вложения комментария — soft delete
-    await Attachment.updateMany({ workspaceId: req.workspaceId, ownerType: 'comment', ownerId: comment._id, deletedAt: null }, { $set: { deletedAt: new Date() } });
+    // Вложения этого комментария — удаляются из общего блока (soft delete).
+    await Attachment.updateMany({ workspaceId: req.workspaceId, commentId: comment._id, deletedAt: null }, { $set: { deletedAt: new Date() } });
 
     await incOwnerCount(comment.ownerType, comment.ownerId, req.workspaceId, -1);
     res.json({ success: true });

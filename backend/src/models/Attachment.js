@@ -23,6 +23,9 @@ const attachmentSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     default: null,
   },
+  // Если файл пришёл из комментария (Jira-style): вложение принадлежит owner (task/article),
+  // но помечено commentId; удаление комментария удаляет его вложения.
+  commentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Comment', default: null },
   key: {
     type: String,
     required: true,
