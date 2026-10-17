@@ -2077,6 +2077,14 @@ color: var(--color-text);
 .att-viewer-close { position: absolute; top: 16px; right: 20px; background: rgba(0,0,0,0.4); color: #fff; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 24px; cursor: pointer; }
 .att-viewer-tools { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); }
 .att-viewer-tools button { background: rgba(0,0,0,0.5); color: #fff; border: 1px solid rgba(255,255,255,0.3); border-radius: var(--radius-md); padding: 6px 14px; cursor: pointer; }
+.att-viewer-head { position: absolute; top: 16px; left: 20px; right: 76px; display: flex; align-items: center; gap: 12px; color: #fff; }
+.att-viewer-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.att-viewer-dl { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); border-radius: var(--radius-md); padding: 4px 12px; cursor: pointer; flex-shrink: 0; }
+.att-viewer-pdf { width: 84vw; height: 82vh; border: none; background: #fff; border-radius: var(--radius-md); }
+.att-viewer-text { max-width: 84vw; max-height: 78vh; overflow: auto; background: var(--color-surface); color: var(--color-text); padding: 16px; border-radius: var(--radius-md); font-family: ui-monospace, monospace; font-size: 13px; white-space: pre-wrap; word-break: break-word; margin: 0; }
+.att-viewer-fallback { color: #fff; text-align: center; display: flex; flex-direction: column; gap: 12px; align-items: center; }
+.att-item { cursor: pointer; }
+.att-item:hover { border-color: var(--color-primary); }
 
 /* Чип вложения в тексте (не-картинка) */
 .attachment-chip { display: inline-flex; align-items: center; gap: 4px; padding: 1px 6px; border-radius: var(--radius-sm); background: color-mix(in srgb, var(--color-primary) 12%, transparent); color: var(--color-primary); text-decoration: none; cursor: pointer; border: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent); font-size: 0.95em; }

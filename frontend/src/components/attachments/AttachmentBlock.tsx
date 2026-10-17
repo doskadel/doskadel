@@ -53,7 +53,7 @@ const AttachmentBlock: React.FC<Props> = ({ ownerType, ownerId, pendingItems = [
   const [progress, setProgress] = useState<Record<string, number>>({});
   const [uploading, setUploading] = useState(false);
   const [config, setConfig] = useState<AttachmentConfig | null>(null);
-  const [viewer, setViewer] = useState<string | null>(null);
+  const [viewer, setViewer] = useState<AttachmentMeta | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { getAttachmentsConfig().then(setConfig).catch(() => {}); }, []);
@@ -69,7 +69,6 @@ const AttachmentBlock: React.FC<Props> = ({ ownerType, ownerId, pendingItems = [
   useEffect(() => {
     const unsub = onAttachmentsChanged(() => refresh());
     return () => { unsub(); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ownerType, ownerId]);
 
   const doUpload = async (files: FileList | File[]) => {
@@ -145,30 +144,34 @@ const AttachmentBlock: React.FC<Props> = ({ ownerType, ownerId, pendingItems = [
       ) : (
         <ul className="att-list">
           {list.map((att) => (
-            <li key={att._id} className="att-item">
-              {isImage(att.mime) ? <AttachmentThumb att={att} onOpen={setViewer} /> : <span className="att-icon">{fileIcon(att.mime)}</span>}
+            <li key={att._id} className="att-item" onClick={() => setViewer(att)} title={`Открыть ${att.filename}`}>
+              {isImage(att.mime) ? <AttachmentThumb att={att} onOpen={() => setViewer(att)} /> : <span className="att-icon">{fileIcon(att.mime)}</span>}
               <div className="att-meta">
                 <span className="att-name" title={att.filename}>{att.filename}</span>
                 <span className="att-sub">{att.mime.split('/')[1]?.toUpperCase() || att.mime} · {formatBytes(att.size)}</span>
               </div>
               {!readOnly && (
-                <button type="button" className="att-del" onClick={() => remove(att)} title="Удалить"><Trash2 size={15} /></button>
+                <button type="button" className="att-del" onClick={(e) => { e.stopPropagation(); remove(att); }} title="Удалить"><Trash2 size={15} /></button>
               )}
             </li>
           ))}
         </ul>
       )}
 
-      {viewer && <ImageViewer id={viewer} onClose={() => setViewer(null)} />}
+      {viewer && <AttachmentViewer att={viewer} onClose={() => setViewer(null)} />}
     </div>
   );
 };
 
-// Простой просмотр картинки с zoom/pan
-export const ImageViewer: React.FC<{ id: string; onClose: () => void }> = ({ id, onClose }) => {
-  const { url, loading, error } = useAttachmentUrl(id);
+const isTextLike = (mime: string) => mime.startsWith('text/') || mime === 'application/json' || mime === 'application/xml';
+const isPdf = (mime: string) => mime === 'application/pdf';
+
+/** Универсальный просмотр вложения: картинки (zoom/pan), pdf (iframe), текст (pre), прочее (скачать). */
+export const AttachmentViewer: React.FC<{ att: AttachmentMeta; onClose: () => void }> = ({ att, onClose }) => {
+  const { url, loading, error } = useAttachmentUrl(att._id);
   const [scale, setScale] = useState(1);
   const [pos, setPos] = useState({ x: 0, y: 0 });
+  const [text, setText] = useState<string | null>(null);
   const drag = useRef<{ x: number; y: number; px: number; py: number } | null>(null);
 
   useEffect(() => {
@@ -177,28 +180,67 @@ export const ImageViewer: React.FC<{ id: string; onClose: () => void }> = ({ id,
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
 
+  const textLike = isTextLike(att.mime);
+  useEffect(() => {
+    if (!url || !textLike) return;
+    let active = true;
+    fetch(url).then((r) => r.text()).then((t) => { if (active) setText(t.slice(0, 200000)); }).catch(() => {});
+    return () => { active = false; };
+  }, [url, textLike]);
+
+  const download = () => {
+    if (!url) return;
+    const a = document.createElement('a');
+    a.href = url; a.download = att.filename || 'file'; document.body.appendChild(a); a.click(); a.remove();
+  };
+
+  const renderBody = () => {
+    if (loading) return <span className="att-viewer-hint">Загрузка…</span>;
+    if (error) return <span className="att-viewer-hint">Не удалось загрузить</span>;
+    if (!url) return null;
+    if (isImage(att.mime)) {
+      return (
+        <img
+          src={url}
+          alt={att.filename}
+          draggable={false}
+          style={{ transform: `translate(${pos.x}px, ${pos.y}px) scale(${scale})`, cursor: scale > 1 ? 'grab' : 'default' }}
+          onWheel={(e) => { e.preventDefault(); setScale((s) => Math.min(5, Math.max(0.5, s + (e.deltaY < 0 ? 0.2 : -0.2)))); }}
+          onPointerDown={(e) => { if (scale <= 1) return; drag.current = { x: e.clientX, y: e.clientY, px: pos.x, py: pos.y }; (e.target as HTMLElement).setPointerCapture(e.pointerId); }}
+          onPointerMove={(e) => { if (!drag.current) return; setPos({ x: drag.current.px + (e.clientX - drag.current.x), y: drag.current.py + (e.clientY - drag.current.y) }); }}
+          onPointerUp={() => { drag.current = null; }}
+        />
+      );
+    }
+    if (isPdf(att.mime)) {
+      return <iframe title={att.filename} src={url} className="att-viewer-pdf" />;
+    }
+    if (textLike) {
+      return <pre className="att-viewer-text">{text ?? 'Загрузка…'}</pre>;
+    }
+    return (
+      <div className="att-viewer-fallback">
+        <p>Предпросмотр для этого типа недоступен.</p>
+        <button type="button" className="button" onClick={download}>Скачать {att.filename}</button>
+      </div>
+    );
+  };
+
   return (
     <div className="att-viewer" onClick={onClose}>
       <button type="button" className="att-viewer-close" onClick={onClose} aria-label="Закрыть">×</button>
+      <div className="att-viewer-head" onClick={(e) => e.stopPropagation()}>
+        <span className="att-viewer-title">{att.filename}</span>
+        <button type="button" className="att-viewer-dl" onClick={download} title="Скачать">Скачать</button>
+      </div>
       <div className="att-viewer-stage" onClick={(e) => e.stopPropagation()}>
-        {loading && <span className="att-viewer-hint">Загрузка…</span>}
-        {error && <span className="att-viewer-hint">Не удалось загрузить</span>}
-        {url && (
-          <img
-            src={url}
-            alt=""
-            draggable={false}
-            style={{ transform: `translate(${pos.x}px, ${pos.y}px) scale(${scale})`, cursor: scale > 1 ? 'grab' : 'default' }}
-            onWheel={(e) => { e.preventDefault(); setScale((s) => Math.min(5, Math.max(0.5, s + (e.deltaY < 0 ? 0.2 : -0.2)))); }}
-            onPointerDown={(e) => { if (scale <= 1) return; drag.current = { x: e.clientX, y: e.clientY, px: pos.x, py: pos.y }; (e.target as HTMLElement).setPointerCapture(e.pointerId); }}
-            onPointerMove={(e) => { if (!drag.current) return; setPos({ x: drag.current.px + (e.clientX - drag.current.x), y: drag.current.py + (e.clientY - drag.current.y) }); }}
-            onPointerUp={() => { drag.current = null; }}
-          />
-        )}
+        {renderBody()}
       </div>
-      <div className="att-viewer-tools" onClick={(e) => e.stopPropagation()}>
-        <button type="button" onClick={() => { setScale(1); setPos({ x: 0, y: 0 }); }}>100%</button>
-      </div>
+      {isImage(att.mime) && (
+        <div className="att-viewer-tools" onClick={(e) => e.stopPropagation()}>
+          <button type="button" onClick={() => { setScale(1); setPos({ x: 0, y: 0 }); }}>100%</button>
+        </div>
+      )}
     </div>
   );
 };
