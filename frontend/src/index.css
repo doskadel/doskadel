@@ -2055,6 +2055,23 @@ color: var(--color-text);
   }
 }
 
+/* ==================== LINKS ==================== */
+.linked-block { margin-top: var(--space-lg); padding-top: var(--space-md); border-top: 1px solid var(--color-border); }
+.linked-head { display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-sm); }
+.linked-title { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+.linked-add { display: flex; flex-direction: column; gap: 4px; margin-bottom: var(--space-sm); max-width: 480px; }
+.linked-search { display: flex; align-items: center; gap: 6px; border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 6px 10px; background: var(--color-input); color: var(--color-text-muted); }
+.linked-search input { flex: 1; border: none; background: transparent; color: var(--color-text); font-family: inherit; font-size: 13px; outline: none; }
+.linked-result { display: inline-flex; align-items: center; gap: 6px; text-align: left; border: none; background: transparent; color: var(--color-text); padding: 6px 8px; border-radius: var(--radius-sm); cursor: pointer; font-family: inherit; font-size: 13px; }
+.linked-result:hover { background: var(--color-surface-alt); }
+.linked-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; }
+.linked-item { display: flex; align-items: center; gap: 8px; }
+.linked-open { display: inline-flex; align-items: center; gap: 8px; border: none; background: transparent; color: var(--color-text); cursor: pointer; font-family: inherit; font-size: 14px; padding: 4px 0; text-align: left; min-width: 0; }
+.linked-open:hover .linked-name { color: var(--color-primary); }
+.linked-badge { font-size: 10px; text-transform: uppercase; padding: 1px 6px; border-radius: 999px; border: 1px solid var(--color-border); color: var(--color-text-muted); flex-shrink: 0; }
+.linked-badge--task { color: var(--color-primary); border-color: color-mix(in srgb, var(--color-primary) 40%, transparent); }
+.linked-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
 /* ==================== TAGS ==================== */
 .tag-selector { position: relative; }
 .tag-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }

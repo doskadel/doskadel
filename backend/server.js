@@ -84,6 +84,7 @@ const startServer = async () => {
   app.use('/api/settings', require('./src/routes/settings'));
   app.use('/api/attachments', require('./src/routes/attachments'));
   app.use('/api/tags', require('./src/routes/tags'));
+  app.use('/api/links', require('./src/routes/links'));
 
   // Инициализация бакета (не роняет старт, если MinIO недоступен — ревью Клода).
   const storage = require('./src/utils/storage');

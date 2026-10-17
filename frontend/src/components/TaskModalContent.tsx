@@ -13,6 +13,7 @@ import { removeAttachmentFromJson } from './editor/normalize';
 import AttachmentBlock from './attachments/AttachmentBlock';
 import { uploadAttachment, notifyAttachmentsChanged } from '../utils/attachments';
 import TagSelector from './tags/TagSelector';
+import LinkedEntities from './links/LinkedEntities';
 
 interface TaskModalContentProps {
   task: Task | null;
@@ -113,6 +114,7 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
           <label className="input-label">Теги</label>
           <TagSelector value={editTagIds} onChange={setEditTagIds} />
         </div>
+        <LinkedEntities ownerType="task" ownerId={task!._id} onOpen={(t, id) => window.open(t === 'task' ? `/tasks?task=${id}` : `/knowledge?article=${id}`, '_blank')} />
         <div className="task-fields-grid">
           <div className="task-col">
             <div className="task-field" style={{ maxWidth: 'none' }}>
@@ -218,6 +220,7 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
       </div>
 
       <AttachmentBlock ownerType="task" ownerId={task._id} readOnly />
+      <LinkedEntities ownerType="task" ownerId={task._id} onOpen={(t, id) => window.open(t === 'task' ? `/tasks?task=${id}` : `/knowledge?article=${id}`, '_blank')} readOnly />
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-md)' }}>
         <div>

@@ -4,6 +4,7 @@ import RichTextEditor from './editor/RichTextEditor';
 import RichTextRenderer from './editor/RichTextRenderer';
 import { removeAttachmentFromJson } from './editor/normalize';
 import TagSelector from './tags/TagSelector';
+import LinkedEntities from './links/LinkedEntities';
 import AttachmentBlock from './attachments/AttachmentBlock';
 import { uploadAttachment, notifyAttachmentsChanged } from '../utils/attachments';
 
@@ -90,6 +91,7 @@ const ArticleModalContent: React.FC<ArticleModalContentProps> = ({
           <label className="input-label">Теги</label>
           <TagSelector value={editTagIds} onChange={setEditTagIds} />
         </div>
+        <LinkedEntities ownerType="article" ownerId={article!._id} onOpen={(t, id) => window.open(t === 'task' ? `/tasks?task=${id}` : `/knowledge?article=${id}`, '_blank')} />
         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
           <button
             type="button"
@@ -124,6 +126,7 @@ const ArticleModalContent: React.FC<ArticleModalContentProps> = ({
       </div>
 
       <AttachmentBlock ownerType="article" ownerId={article._id} readOnly />
+      <LinkedEntities ownerType="article" ownerId={article._id} onOpen={(t, id) => window.open(t === 'task' ? `/tasks?task=${id}` : `/knowledge?article=${id}`, '_blank')} />
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-md)' }}>
         <div>
