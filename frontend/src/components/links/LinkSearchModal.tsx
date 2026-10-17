@@ -49,7 +49,7 @@ const LinkSearchModal: React.FC<Props> = ({ open, targetType, excludeId, onClose
             ref={inputRef}
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder={targetType === 'article' ? 'Поиск статьи по названию…' : 'Поиск задачи по названию…'}
+            placeholder="Поиск…"
           />
         </div>
         <div className="link-search-results">
