@@ -18,6 +18,7 @@ import { Markdown } from 'tiptap-markdown';
 
 import { Extension, Extensions } from '@tiptap/core';
 import Gapcursor from '@tiptap/extension-gapcursor';
+import Placeholder from '@tiptap/extension-placeholder';
 
 /**
  * Единый набор расширений TipTap для DoskaDel.
@@ -33,6 +34,10 @@ export const editorExtensions: Extensions = [
   }),
   CodeBlockLowlight.configure({ lowlight }),
   Gapcursor,
+  Placeholder.configure({
+    emptyEditorClass: 'is-editor-empty',
+    emptyNodeClass: 'is-empty',
+  }),
   AttachmentImageExt,
   AttachmentChip,
   TaskList,

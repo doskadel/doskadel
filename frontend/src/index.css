@@ -3193,7 +3193,8 @@ color: var(--color-text);
   line-height: inherit;
 }
 .rte-content .ProseMirror-focused { outline: none; }
-.rte-content p.is-editor-empty:first-child::before {
+.rte-content p.is-editor-empty:first-child::before,
+.rte-content p.is-empty:first-child::before {
   content: attr(data-placeholder); color: var(--color-text-muted); float: left; height: 0; pointer-events: none;
 }
 .rte-content .tableWrapper { overflow-x: auto; margin: var(--space-md) 0; }
