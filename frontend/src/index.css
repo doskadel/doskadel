@@ -2063,7 +2063,7 @@ color: var(--color-text);
 .entity-aside { grid-area: aside; min-width: 0; }
 .entity-aside-toggle { display: flex; width: 100%; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 12px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface-alt); color: var(--color-text); font-family: inherit; font-weight: 600; cursor: pointer; }
 .entity-aside-inner { display: none; flex-direction: column; gap: var(--space-md); }
-.entity-aside-inner--open { display: flex; padding-top: var(--space-md); margin-top: var(--space-sm); border-top: 1px solid var(--color-border); }
+.entity-aside-inner--open { display: flex; padding-top: var(--space-md); padding-bottom: var(--space-md); margin-bottom: var(--space-sm); border-bottom: 1px solid var(--color-border); }
 .entity-aside-field { gap: 6px; }
 .entity-aside-field + .entity-aside-field { margin-top: var(--space-sm); }
 @media (min-width: 900px) {
