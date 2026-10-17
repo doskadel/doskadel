@@ -2088,8 +2088,8 @@ color: var(--color-text);
 .comment-editor-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
 .comment-list { display: flex; flex-direction: column; gap: var(--space-md); }
 .comment-item { border-left: 2px solid var(--color-border); padding-left: var(--space-md); margin-bottom: var(--space-sm); }
-.comment-list > .comment-item + .comment-item { border-top: 1px solid color-mix(in srgb, var(--color-border) 60%, transparent); padding-top: var(--space-md); }
-.comment-replies > .comment-item + .comment-item { border-top: 1px solid color-mix(in srgb, var(--color-border) 45%, transparent); padding-top: var(--space-sm); }
+.comment-list > .comment-item:not(:first-child) { border-top: 1px solid var(--color-border); padding-top: var(--space-lg); margin-top: var(--space-md); }
+.comment-replies > .comment-item:not(:first-child) { border-top: 1px solid var(--color-border); padding-top: var(--space-md); margin-top: var(--space-sm); }
 @media (max-width: 640px) {
   .comment-item { padding-left: var(--space-sm); }
   .comment-replies { margin-left: 0; }
