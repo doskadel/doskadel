@@ -134,7 +134,11 @@ const AttachmentBlock: React.FC<Props> = ({ ownerType, ownerId, pendingItems = [
       onDragLeave={readOnly ? undefined : (e) => { if (e.currentTarget === e.target) setDragOver(false); }}
       onDrop={onDropFiles}
     >
-      {!readOnly && <div className="att-dropzone">Перетащите файлы сюда или нажмите «Прикрепить»</div>}
+      {!readOnly && (
+        <button type="button" className="att-dropzone" onClick={() => inputRef.current?.click()} disabled={uploading}>
+          Перетащите файлы сюда или нажмите, чтобы выбрать
+        </button>
+      )}
       <div className="att-block-head">
         <span className="att-block-title"><Paperclip size={16} /> Вложения</span>
         {!readOnly && (
