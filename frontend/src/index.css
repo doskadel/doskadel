@@ -2872,6 +2872,106 @@ color: var(--color-text);
   .push-prompt { bottom: var(--space-lg); }
 }
 
+/* ==================== RICH TEXT (TipTap) ==================== */
+.rte { display: flex; flex-direction: column; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-input); overflow: hidden; }
+.rte-toolbar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 2px;
+  padding: 6px 8px; background: var(--color-surface-alt); border-bottom: 1px solid var(--color-border);
+}
+.rte-sep { width: 1px; height: 20px; background: var(--color-border); margin: 0 4px; }
+.rte-btn {
+  display: inline-flex; align-items: center; gap: 4px;
+  border: none; background: transparent; color: var(--color-text-muted);
+  cursor: pointer; padding: 5px 7px; border-radius: var(--radius-sm); font-family: inherit; font-size: 12px;
+  transition: background 0.15s, color 0.15s;
+}
+.rte-btn:hover { background: var(--color-surface); color: var(--color-text); }
+.rte-btn--active { background: color-mix(in srgb, var(--color-primary) 16%, transparent); color: var(--color-primary); }
+.rte-btn--danger { color: var(--color-danger); }
+.rte-btn--danger:hover { background: color-mix(in srgb, var(--color-danger) 14%, transparent); color: var(--color-danger); }
+.rte-table-bar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px;
+  padding: 6px 8px; background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface-alt));
+  border-bottom: 1px solid var(--color-border);
+}
+.rte-table-hint { font-size: 12px; color: var(--color-text-muted); margin-right: 4px; }
+.rte-editor { flex: 1; min-height: 0; overflow-y: auto; }
+.rte-content {
+  padding: var(--space-lg); min-height: 100%; outline: none;
+  font-size: 15px; line-height: 1.65; color: var(--color-text);
+}
+.rte-content .ProseMirror-focused { outline: none; }
+.rte-content p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder); color: var(--color-text-muted); float: left; height: 0; pointer-events: none;
+}
+.rte-content .tableWrapper { overflow-x: auto; margin: var(--space-md) 0; }
+.rte-content.md-content table,
+.rte-content table {
+  border-collapse: collapse !important;
+  table-layout: auto !important;
+  width: auto !important;
+  max-width: 100% !important;
+}
+.rte-content.md-content th, .rte-content.md-content td,
+.rte-content th, .rte-content td {
+  border: 1px solid var(--color-border);
+  padding: 6px 10px;
+  vertical-align: middle;
+  min-width: 48px;
+  max-width: 520px;
+  position: relative;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+/* Абзацы внутри ячеек — без внешних отступов (иначе текст смещён) */
+.rte-content td > p, .rte-content th > p { margin: 0; }
+/* Минимальная высота строки (чтобы вертикальное выравнивание было заметно) */
+.rte-content table tr { height: 40px; position: relative; }
+/* Зона захвата у нижней границы строки — курсор row-resize */
+.rte-content table tr::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: -3px;
+  height: 6px;
+  cursor: row-resize;
+  z-index: 3;
+}
+.rte-content th { background: var(--color-surface-alt); font-weight: 600; }
+/* По умолчанию содержимое ячейки — по центру по вертикали */
+.rte-content table th, .rte-content table td { vertical-align: middle !important; }
+/* Кастомное вертикальное выравнивание через data-valign */
+.rte-content table th[data-valign="top"], .rte-content table td[data-valign="top"] { vertical-align: top !important; }
+.rte-content table th[data-valign="middle"], .rte-content table td[data-valign="middle"] { vertical-align: middle !important; }
+.rte-content table th[data-valign="bottom"], .rte-content table td[data-valign="bottom"] { vertical-align: bottom !important; }
+/* Хендл изменения ширины столбца: полностью невидим (важен только курсор) */
+.rte-content .column-resize-handle {
+  position: absolute;
+  right: -2px;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  background: transparent;
+  border: none;
+  pointer-events: none;
+  z-index: 2;
+}
+.rte-content.resize-cursor,
+.rte-content .resize-cursor { cursor: col-resize; }
+/* Выравнивание текста в ячейках/заголовках */
+.rte-content th[style*="text-align"], .rte-content td[style*="text-align"] { text-align: inherit; }
+.rte-content .rte-align-center { text-align: center; }
+.rte-content .rte-align-right { text-align: right; }
+.rte-content .rte-align-left { text-align: left; }
+.rte-content ul[data-type="taskList"] { list-style: none; padding-left: 0; }
+.rte-content ul[data-type="taskList"] li { display: flex; align-items: flex-start; gap: 8px; }
+.rte-content ul[data-type="taskList"] li > label { margin-top: 3px; }
+.rte-content blockquote { border-left: 3px solid var(--color-border-strong); padding-left: 12px; color: var(--color-text-muted); margin: var(--space-md) 0; }
+.rte-content pre { background: var(--color-surface-alt); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-md); overflow-x: auto; }
+.rte-content code { background: var(--color-surface-alt); border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: 1px 5px; font-size: 0.9em; }
+.rte-content pre code { background: none; border: none; padding: 0; }
+.rte-content img { max-width: 100%; height: auto; border-radius: var(--radius-sm); }
+.rte-content a { color: var(--color-primary); text-decoration: underline; }
+
 /* ==================== MARKDOWN EDITOR (табы редактор/просмотр) ==================== */
 .md-editor-wrap { display: flex; flex-direction: column; gap: var(--space-sm); }
 .md-editor-tabs { display: inline-flex; gap: 4px; background: var(--color-surface-alt); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 3px; align-self: flex-start; }

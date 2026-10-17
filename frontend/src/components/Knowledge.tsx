@@ -10,7 +10,7 @@ import ArticleFilterBar from './ArticleFilterBar';
 import { useConfirm } from './ConfirmProvider';
 import { useToast } from './Toast';
 import SwipeableRow from './SwipeableRow';
-import MarkdownEditor from './MarkdownEditor';
+import RichTextEditor from './editor/RichTextEditor';
 import { stripMarkdown } from '../utils/markdown';
 
 interface Article {
@@ -40,6 +40,7 @@ const Knowledge: React.FC = () => {
   const [createOpen, setCreateOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [contentJson, setContentJson] = useState<any>(null);
 
   const [searchInput, setSearchInput] = useState(q);
 
@@ -115,6 +116,7 @@ const Knowledge: React.FC = () => {
   const resetCreateForm = () => {
     setTitle('');
     setContent('');
+    setContentJson(null);
   };
 
   const isCreateFormDirty = (): boolean => {
@@ -155,7 +157,7 @@ const Knowledge: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.post('/api/articles', { title, content });
+      await api.post('/api/articles', { title, content, contentJson });
       resetCreateForm();
       setCreateOpen(false);
       fetchArticles();
@@ -241,7 +243,12 @@ const Knowledge: React.FC = () => {
             required
             autoFocus
           />
-          <MarkdownEditor value={content} onChange={setContent} placeholder="Содержимое (поддерживается Markdown)" height={560} />
+          <RichTextEditor
+            value={contentJson}
+            initialMarkdown={content}
+            onChange={(json, md) => { setContentJson(json); setContent(md); }}
+            placeholder="Введите текст статьи..."
+          />
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: 'var(--space-sm)' }}>
             <button
               type="button"

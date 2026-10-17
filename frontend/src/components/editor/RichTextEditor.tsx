@@ -1,0 +1,166 @@
+import React, { useCallback } from 'react';
+import { useEditor, EditorContent, useEditorState } from '@tiptap/react';
+import {
+  Bold, Italic, Underline as UnderlineIcon, Strikethrough,
+  Heading1, Heading2, Heading3,
+  List, ListOrdered, ListChecks, Quote, Code, Minus,
+  Link as LinkIcon, Image as ImageIcon,
+  Table as TableIcon, Trash2, Rows3, Columns3,
+  AlignLeft, AlignCenter, AlignRight,
+  AlignVerticalJustifyStart, AlignVerticalJustifyCenter, AlignVerticalJustifyEnd,
+} from 'lucide-react';
+import { editorExtensions } from './extensions';
+
+interface RichTextEditorProps {
+  value: any;
+  onChange: (json: any, markdown: string) => void;
+  initialMarkdown?: string;
+  placeholder?: string;
+}
+
+const btn = (active: boolean) => 'rte-btn' + (active ? ' rte-btn--active' : '');
+
+const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initialMarkdown, placeholder }) => {
+  const editor = useEditor({
+    extensions: editorExtensions,
+    content: value || initialMarkdown || '',
+    onUpdate: ({ editor }) => {
+      const json = editor.getJSON();
+      // @ts-ignore — storage markdown от tiptap-markdown
+      const md = editor.storage.markdown.getMarkdown();
+      onChange(json, md);
+    },
+    editorProps: {
+      attributes: { class: 'rte-content md-content', 'data-placeholder': placeholder || 'Введите текст...' },
+      handleDOMEvents: {
+        // Запрещаем нативный drag выделенного текста внутри ячеек таблицы
+        // (иначе при выделении текст «утаскивается» в соседнюю ячейку).
+        dragstart: (_view, e) => {
+          const t = e.target as HTMLElement;
+          if (t.closest && t.closest('td,th') && t.tagName !== 'IMG') {
+            e.preventDefault();
+            return true;
+          }
+          return false;
+        },
+      },
+      handleDrop: (view, e, _slice, moved) => {
+        if (!moved) return false;
+        const p = view.posAtCoords({ left: e.clientX, top: e.clientY });
+        if (!p) return false;
+        const $p = view.state.doc.resolve(p.pos);
+        for (let d = $p.depth; d > 0; d--) {
+          const n = $p.node(d).type.name;
+          if (n === 'tableCell' || n === 'tableHeader') return true;
+        }
+        return false;
+      },
+    },
+  });
+
+  // Реактивное состояние активных узлов (ререндер при движении курсора).
+  const state = useEditorState({
+    editor,
+    selector: ({ editor }) => ({
+      isBold: editor?.isActive('bold') ?? false,
+      isItalic: editor?.isActive('italic') ?? false,
+      isUnderline: editor?.isActive('underline') ?? false,
+      isStrike: editor?.isActive('strike') ?? false,
+      h1: editor?.isActive('heading', { level: 1 }) ?? false,
+      h2: editor?.isActive('heading', { level: 2 }) ?? false,
+      h3: editor?.isActive('heading', { level: 3 }) ?? false,
+      bullet: editor?.isActive('bulletList') ?? false,
+      ordered: editor?.isActive('orderedList') ?? false,
+      task: editor?.isActive('taskList') ?? false,
+      quote: editor?.isActive('blockquote') ?? false,
+      codeBlock: editor?.isActive('codeBlock') ?? false,
+      link: editor?.isActive('link') ?? false,
+      inTable: editor?.isActive('table') ?? false,
+      alignLeft: editor?.isActive({ textAlign: 'left' }) ?? false,
+      alignCenter: editor?.isActive({ textAlign: 'center' }) ?? false,
+      alignRight: editor?.isActive({ textAlign: 'right' }) ?? false,
+      vAlign: editor?.getAttributes('tableCell').verticalAlign || editor?.getAttributes('tableHeader').verticalAlign || null,
+    }),
+  });
+
+  const chain = useCallback(() => editor?.chain().focus(), [editor]);
+
+  if (!editor || !state) return null;
+
+  const setLink = () => {
+    const prev = editor.getAttributes('link').href || '';
+    const url = window.prompt('Ссылка (URL):', prev);
+    if (url === null) return;
+    if (url === '') { chain()?.extendMarkRange('link').unsetLink().run(); return; }
+    chain()?.extendMarkRange('link').setLink({ href: url }).run();
+  };
+
+  const addImage = () => {
+    const url = window.prompt('URL картинки:');
+    if (url) chain()?.setImage({ src: url }).run();
+  };
+
+  const setVAlign = (v: 'top' | 'middle' | 'bottom') => {
+    editor.chain().focus().setCellAttribute('verticalAlign', v).run();
+  };
+
+
+
+  return (
+    <div className="rte">
+      <div className="rte-toolbar" role="toolbar">
+        <button type="button" className={btn(state.h1)} onClick={() => chain()?.toggleHeading({ level: 1 }).run()} title="Заголовок 1"><Heading1 size={16} /></button>
+        <button type="button" className={btn(state.h2)} onClick={() => chain()?.toggleHeading({ level: 2 }).run()} title="Заголовок 2"><Heading2 size={16} /></button>
+        <button type="button" className={btn(state.h3)} onClick={() => chain()?.toggleHeading({ level: 3 }).run()} title="Заголовок 3"><Heading3 size={16} /></button>
+
+        <span className="rte-sep" />
+        <button type="button" className={btn(state.isBold)} onClick={() => chain()?.toggleBold().run()} title="Жирный"><Bold size={16} /></button>
+        <button type="button" className={btn(state.isItalic)} onClick={() => chain()?.toggleItalic().run()} title="Курсив"><Italic size={16} /></button>
+        <button type="button" className={btn(state.isUnderline)} onClick={() => chain()?.toggleUnderline().run()} title="Подчёркнутый"><UnderlineIcon size={16} /></button>
+        <button type="button" className={btn(state.isStrike)} onClick={() => chain()?.toggleStrike().run()} title="Зачёркнутый"><Strikethrough size={16} /></button>
+
+        <span className="rte-sep" />
+        <button type="button" className={btn(state.bullet)} onClick={() => chain()?.toggleBulletList().run()} title="Маркированный список"><List size={16} /></button>
+        <button type="button" className={btn(state.ordered)} onClick={() => chain()?.toggleOrderedList().run()} title="Нумерованный список"><ListOrdered size={16} /></button>
+        <button type="button" className={btn(state.task)} onClick={() => chain()?.toggleTaskList().run()} title="Чеклист"><ListChecks size={16} /></button>
+        <button type="button" className={btn(state.quote)} onClick={() => chain()?.toggleBlockquote().run()} title="Цитата"><Quote size={16} /></button>
+        <button type="button" className={btn(state.codeBlock)} onClick={() => chain()?.toggleCodeBlock().run()} title="Блок кода"><Code size={16} /></button>
+        <button type="button" className={btn(false)} onClick={() => chain()?.setHorizontalRule().run()} title="Разделитель"><Minus size={16} /></button>
+
+        <span className="rte-sep" />
+        <button type="button" className={btn(state.alignLeft)} onClick={() => chain()?.setTextAlign('left').run()} title="По левому краю"><AlignLeft size={16} /></button>
+        <button type="button" className={btn(state.alignCenter)} onClick={() => chain()?.setTextAlign('center').run()} title="По центру"><AlignCenter size={16} /></button>
+        <button type="button" className={btn(state.alignRight)} onClick={() => chain()?.setTextAlign('right').run()} title="По правому краю"><AlignRight size={16} /></button>
+
+        <span className="rte-sep" />
+        <button type="button" className={btn(state.link)} onClick={setLink} title="Ссылка"><LinkIcon size={16} /></button>
+        <button type="button" className={btn(false)} onClick={addImage} title="Картинка по ссылке"><ImageIcon size={16} /></button>
+        <button
+          type="button"
+          className={btn(state.inTable)}
+          onClick={() => chain()?.insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
+          title="Вставить таблицу"
+        ><TableIcon size={16} /></button>
+      </div>
+
+      {state.inTable && (
+        <div className="rte-table-bar" role="toolbar" aria-label="Действия с таблицей">
+          <button type="button" className="rte-btn" onClick={() => chain()?.addRowAfter().run()} title="Добавить строку"><Rows3 size={15} /> +строка</button>
+          <button type="button" className="rte-btn" onClick={() => chain()?.addColumnAfter().run()} title="Добавить столбец"><Columns3 size={15} /> +столбец</button>
+          <button type="button" className="rte-btn" onClick={() => chain()?.deleteRow().run()} title="Удалить строку">−строка</button>
+          <button type="button" className="rte-btn" onClick={() => chain()?.deleteColumn().run()} title="Удалить столбец">−столбец</button>
+          <span className="rte-sep" />
+          <span className="rte-table-hint">По вертикали:</span>
+          <button type="button" className={btn((state as any).vAlign === 'top')} onClick={() => setVAlign('top')} title="Сверху" aria-label="Выровнять сверху"><AlignVerticalJustifyStart size={15} /></button>
+          <button type="button" className={btn((state as any).vAlign === 'middle')} onClick={() => setVAlign('middle')} title="По центру" aria-label="Выровнять по центру"><AlignVerticalJustifyCenter size={15} /></button>
+          <button type="button" className={btn((state as any).vAlign === 'bottom')} onClick={() => setVAlign('bottom')} title="Снизу" aria-label="Выровнять снизу"><AlignVerticalJustifyEnd size={15} /></button>
+          <button type="button" className="rte-btn rte-btn--danger" onClick={() => chain()?.deleteTable().run()} title="Удалить таблицу"><Trash2 size={15} /></button>
+        </div>
+      )}
+
+      <EditorContent editor={editor} className="rte-editor" />
+    </div>
+  );
+};
+
+export default RichTextEditor;

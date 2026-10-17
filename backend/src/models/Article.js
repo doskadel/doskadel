@@ -11,6 +11,21 @@ const articleSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  // Гибридное хранение (ADR 2026-10-16): contentJson — источник правды (JSON TipTap),
+  // content — производный Markdown (для regex-поиска и старых клиентов).
+  contentJson: {
+    type: mongoose.Schema.Types.Mixed,
+    default: null
+  },
+  format: {
+    type: String,
+    enum: ['md', 'json'],
+    default: 'md'
+  },
+  schemaVersion: {
+    type: Number,
+    default: 1
+  },
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',

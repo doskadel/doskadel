@@ -7,8 +7,13 @@ const createArticle = async (req, res) => {
   try {
     if (!canByMembership(req.membership, 'create')) return res.status(403).json({ success: false, message: 'Forbidden' });
     const { title, content } = req.body;
+    // Гибридное хранение (ADR): contentJson — источник правды, content — производный MD.
+    const contentJson = req.body.contentJson !== undefined ? req.body.contentJson : null;
+    const format = contentJson ? 'json' : 'md';
     const article = new Article({
       title, content,
+      contentJson,
+      format,
       workspaceId: req.workspaceId,
       userId: req.user._id,
       createdBy: req.user._id
@@ -132,6 +137,11 @@ const updateArticle = async (req, res) => {
     if (!canByMembership(req.membership, 'update')) return res.status(403).json({ success: false, message: 'Forbidden' });
     const updateData = {};
     ['title', 'content'].forEach((k) => { if (req.body[k] !== undefined) updateData[k] = req.body[k]; });
+    // Гибрид (ADR): при наличии contentJson — source of truth, format='json'
+    if (req.body.contentJson !== undefined) {
+      updateData.contentJson = req.body.contentJson;
+      updateData.format = req.body.contentJson ? 'json' : 'md';
+    }
     const article = await Article.findOneAndUpdate(
       { _id: req.params.id, workspaceId: req.workspaceId },
       updateData,

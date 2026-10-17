@@ -1,7 +1,7 @@
 import React from 'react';
 import { Article } from '../hooks/useArticleDetail';
-import MarkdownEditor from './MarkdownEditor';
-import MarkdownRenderer from './MarkdownRenderer';
+import RichTextEditor from './editor/RichTextEditor';
+import RichTextRenderer from './editor/RichTextRenderer';
 
 interface ArticleModalContentProps {
   article: Article | null;
@@ -11,10 +11,12 @@ interface ArticleModalContentProps {
   isEditing: boolean;
   editTitle: string;
   editContent: string;
+  editContentJson: any;
   saving: boolean;
 
   setEditTitle: (v: string) => void;
   setEditContent: (v: string) => void;
+  setEditContentJson: (v: any) => void;
 
   onSave: () => void;
   onCancel: () => void;
@@ -27,9 +29,11 @@ const ArticleModalContent: React.FC<ArticleModalContentProps> = ({
   isEditing,
   editTitle,
   editContent,
+  editContentJson,
   saving,
   setEditTitle,
   setEditContent,
+  setEditContentJson,
   onSave,
   onCancel,
 }) => {
@@ -56,7 +60,12 @@ const ArticleModalContent: React.FC<ArticleModalContentProps> = ({
           placeholder="Заголовок"
           required
         />
-        <MarkdownEditor value={editContent} onChange={setEditContent} placeholder="Содержимое (поддерживается Markdown)" height={560} />
+        <RichTextEditor
+          value={editContentJson}
+          initialMarkdown={editContent}
+          onChange={(json, md) => { setEditContentJson(json); setEditContent(md); }}
+          placeholder="Введите текст статьи..."
+        />
         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
           <button
             type="button"
@@ -71,7 +80,7 @@ const ArticleModalContent: React.FC<ArticleModalContentProps> = ({
             type="button"
             className="button"
             onClick={onSave}
-            disabled={saving || !editTitle.trim() || !editContent.trim()}
+            disabled={saving || !editTitle.trim()}
           >
             {saving ? 'Сохранение...' : 'Сохранить'}
           </button>
@@ -83,7 +92,7 @@ const ArticleModalContent: React.FC<ArticleModalContentProps> = ({
   return (
     <div>
       <div style={{ marginBottom: 'var(--space-lg)' }}>
-        <MarkdownRenderer content={article.content} />
+        <RichTextRenderer contentJson={article.contentJson} markdown={article.content} />
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-md)' }}>

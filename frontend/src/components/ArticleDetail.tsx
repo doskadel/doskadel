@@ -3,13 +3,15 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { useConfirm } from './ConfirmProvider';
 import { useToast } from './Toast';
-import MarkdownEditor from './MarkdownEditor';
-import MarkdownRenderer from './MarkdownRenderer';
+import RichTextEditor from './editor/RichTextEditor';
+import RichTextRenderer from './editor/RichTextRenderer';
 
 interface Article {
   _id: string;
   title: string;
   content: string;
+  contentJson?: any;
+  format?: 'md' | 'json';
   createdAt: string;
   updatedAt: string;
 }
@@ -27,6 +29,7 @@ const ArticleDetail: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState('');
   const [editContent, setEditContent] = useState('');
+  const [editContentJson, setEditContentJson] = useState<any>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -39,6 +42,7 @@ const ArticleDetail: React.FC = () => {
       setArticle(response.data.article);
       setEditTitle(response.data.article.title);
       setEditContent(response.data.article.content);
+      setEditContentJson(response.data.article.contentJson || null);
       setLoading(false);
     } catch (err: any) {
       console.error('Error fetching article:', err);
@@ -53,6 +57,7 @@ const ArticleDetail: React.FC = () => {
     if (!article) return;
     setEditTitle(article.title);
     setEditContent(article.content);
+    setEditContentJson(article.contentJson || null);
     setEditSnap(JSON.stringify([article.title, article.content]));
     setIsEditing(true);
   };
@@ -78,6 +83,7 @@ const ArticleDetail: React.FC = () => {
       const response = await api.put(`/api/articles/${article._id}`, {
         title: editTitle,
         content: editContent,
+        contentJson: editContentJson,
       });
       setArticle(response.data.article);
       setIsEditing(false);
@@ -127,7 +133,12 @@ const ArticleDetail: React.FC = () => {
               placeholder="Заголовок"
               required
             />
-            <MarkdownEditor value={editContent} onChange={setEditContent} placeholder="Содержимое (поддерживается Markdown)" height={560} />
+            <RichTextEditor
+              value={editContentJson}
+              initialMarkdown={editContent}
+              onChange={(json, md) => { setEditContentJson(json); setEditContent(md); }}
+              placeholder="Введите текст статьи..."
+            />
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
               <button
                 type="button"
@@ -174,7 +185,7 @@ const ArticleDetail: React.FC = () => {
           </div>
 
           <div style={{ marginBottom: 'var(--space-lg)' }}>
-            <MarkdownRenderer content={article.content} />
+            <RichTextRenderer contentJson={article.contentJson} markdown={article.content} />
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-md)', paddingTop: 'var(--space-md)', borderTop: '1px solid var(--color-border)' }}>

@@ -310,9 +310,11 @@ const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
                   isEditing={articleDetail.isEditing}
                   editTitle={articleDetail.editTitle}
                   editContent={articleDetail.editContent}
+                  editContentJson={articleDetail.editContentJson}
                   saving={articleDetail.saving}
                   setEditTitle={articleDetail.setEditTitle}
                   setEditContent={articleDetail.setEditContent}
+                  setEditContentJson={articleDetail.setEditContentJson}
                   onSave={articleDetail.saveEdit}
                   onCancel={articleDetail.requestCancelEdit}
                 />

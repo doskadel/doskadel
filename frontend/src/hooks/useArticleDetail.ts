@@ -6,6 +6,8 @@ export interface Article {
   _id: string;
   title: string;
   content: string;
+  contentJson?: any;
+  format?: 'md' | 'json';
   createdAt: string;
   updatedAt: string;
 }
@@ -19,10 +21,12 @@ export interface UseArticleDetailResult {
   isEditing: boolean;
   editTitle: string;
   editContent: string;
+  editContentJson: any;
   saving: boolean;
 
   setEditTitle: (v: string) => void;
   setEditContent: (v: string) => void;
+  setEditContentJson: (v: any) => void;
 
   startEdit: () => void;
   cancelEdit: () => void;
@@ -52,6 +56,7 @@ export const useArticleDetail = (
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState('');
   const [editContent, setEditContent] = useState('');
+  const [editContentJson, setEditContentJson] = useState<any>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -73,6 +78,7 @@ export const useArticleDetail = (
       setArticle(a);
       setEditTitle(a.title);
       setEditContent(a.content);
+      setEditContentJson(a.contentJson || null);
     } catch (err: any) {
       console.error('Error fetching article:', err);
       setError(err.response?.data?.message || 'Не удалось загрузить статью');
@@ -85,6 +91,7 @@ export const useArticleDetail = (
     if (!article) return;
     setEditTitle(article.title);
     setEditContent(article.content);
+    setEditContentJson(article.contentJson || null);
     setIsEditing(true);
   };
 
@@ -93,7 +100,7 @@ export const useArticleDetail = (
   };
 
   // Несохранённые правки: снимок полей на момент входа в редактирование
-  const editSig = JSON.stringify([editTitle, editContent]);
+  const editSig = JSON.stringify([editTitle, editContent]); // contentJson следует за content
   const [editSnap, setEditSnap] = useState('');
   useEffect(() => {
     setEditSnap(isEditing ? editSig : '');
@@ -121,6 +128,7 @@ export const useArticleDetail = (
       const response = await api.put(`/api/articles/${article._id}`, {
         title: editTitle,
         content: editContent,
+        contentJson: editContentJson,
       });
       setArticle(response.data.article);
       setIsEditing(false);
@@ -177,9 +185,11 @@ export const useArticleDetail = (
     isEditing,
     editTitle,
     editContent,
+    editContentJson,
     saving,
     setEditTitle,
     setEditContent,
+    setEditContentJson,
     startEdit,
     cancelEdit,
     isDirty,
