@@ -121,7 +121,6 @@ const AttachmentBlock: React.FC<Props> = ({ ownerType, ownerId, pendingItems = [
   const accept = config ? config.allowedMime.join(',') : undefined;
 
   const onDropFiles = (e: React.DragEvent) => {
-    if (readOnly) return;
     const files = e.dataTransfer?.files;
     if (files && files.length) { e.preventDefault(); doUpload(files); }
     setDragOver(false);
@@ -130,22 +129,15 @@ const AttachmentBlock: React.FC<Props> = ({ ownerType, ownerId, pendingItems = [
   return (
     <div
       className={'att-block' + (dragOver ? ' att-block--dragover' : '')}
-      onDragOver={readOnly ? undefined : (e) => { if (e.dataTransfer?.types?.includes('Files')) { e.preventDefault(); setDragOver(true); } }}
-      onDragLeave={readOnly ? undefined : (e) => { if (e.currentTarget === e.target) setDragOver(false); }}
+      onDragOver={(e) => { if (e.dataTransfer?.types?.includes('Files')) { e.preventDefault(); setDragOver(true); } }}
+      onDragLeave={(e) => { if (e.currentTarget === e.target) setDragOver(false); }}
       onDrop={onDropFiles}
     >
-      {!readOnly && (
-        <button type="button" className="att-dropzone" onClick={() => inputRef.current?.click()} disabled={uploading}>
-          Перетащите файлы сюда или нажмите, чтобы выбрать
-        </button>
-      )}
       <div className="att-block-head">
         <span className="att-block-title"><Paperclip size={16} /> Вложения</span>
-        {!readOnly && (
-          <button type="button" className="att-add-btn" onClick={() => inputRef.current?.click()} disabled={uploading}>
-            Прикрепить
-          </button>
-        )}
+        <button type="button" className="att-add-btn" onClick={() => inputRef.current?.click()} disabled={uploading}>
+          Прикрепить
+        </button>
         <input
           ref={inputRef}
           type="file"
@@ -155,6 +147,10 @@ const AttachmentBlock: React.FC<Props> = ({ ownerType, ownerId, pendingItems = [
           onChange={(e) => { if (e.target.files) doUpload(e.target.files); e.target.value = ''; }}
         />
       </div>
+
+      <button type="button" className="att-dropzone" onClick={() => inputRef.current?.click()} disabled={uploading}>
+        Перетащите файлы сюда или нажмите, чтобы выбрать
+      </button>
 
       {Object.entries(progress).map(([k, pct]) => (
         <div key={k} className="att-progress"><div className="att-progress-bar" style={{ width: `${pct}%` }} /><span>{pct}%</span></div>
