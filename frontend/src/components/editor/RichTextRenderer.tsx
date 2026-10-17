@@ -155,8 +155,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({ contentJson, markdo
       const li = cb.closest('li[data-type="taskItem"]');
       const idx = li ? all.indexOf(li) : -1;
       if (idx < 0) return;
-      e.preventDefault();
-      onToggleCheckRef.current(idx, !cb.checked);
+      onToggleCheckRef.current(idx, cb.checked);
     };
     boxes.forEach((b) => b.addEventListener('click', onBoxClick));
 
