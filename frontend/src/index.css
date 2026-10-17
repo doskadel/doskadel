@@ -2074,7 +2074,7 @@ color: var(--color-text);
   .att-block--dragover .att-dropzone { border-color: var(--color-primary); color: var(--color-primary); background: color-mix(in srgb, var(--color-primary) 8%, transparent); }
 }
 .att-list { list-style: none; padding: 0 0 6px 0; margin: 0; display: flex; flex-direction: row; flex-wrap: nowrap; gap: 8px; overflow-x: auto; overscroll-behavior-x: contain; }
-.att-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface-alt); flex: 0 0 auto; max-width: 260px; min-width: 160px; }
+.att-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface-alt); flex: 0 0 220px; width: 220px; max-width: 220px; }
 .att-item .att-meta { min-width: 0; }
 .att-icon { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: var(--radius-sm); background: var(--color-surface); color: var(--color-text-muted); flex-shrink: 0; }
 .att-thumb { width: 40px; height: 40px; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--color-border); background: var(--color-surface); padding: 0; cursor: zoom-in; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; }
