@@ -69,7 +69,11 @@ const createComment = async (req, res) => {
       const parent = await Comment.findOne({ _id: parentId, workspaceId: req.workspaceId, ownerType, ownerId, deletedAt: null });
       if (!parent) return res.status(400).json({ success: false, message: 'Родительский комментарий не найден' });
       // Глубина 2: ответ на ответ -> привязываем к корню
-      rootParentId = parent._id; // полное дерево (Jira-style), без схлопывания
+      // Глубина: считаем цепочку родителей, максимум 3 уровня (корень=1).
+      let depth = 1; let cur = parent;
+      while (cur.parentId) { depth += 1; if (depth >= 3) break; cur = await Comment.findOne({ _id: cur.parentId, workspaceId: req.workspaceId }).select('parentId').lean(); if (!cur) break; }
+      if (depth >= 3) return res.status(400).json({ success: false, message: 'Не больше 3 уровней комментариев' });
+      rootParentId = parent._id;
     }
 
     const body = {};

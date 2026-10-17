@@ -119,7 +119,8 @@ const CommentNode: React.FC<{
   onChanged: () => void;
   childrenOf: (id: string) => CommentItem[];
   submitReply: (c: CommentItem, json: any, md: string, pending: AttachmentMeta[]) => Promise<void>;
-}> = ({ c, replies, ownerType, ownerId, onReply, onChanged, childrenOf, submitReply }) => {
+  depth?: number;
+}> = ({ c, replies, ownerType, ownerId, onReply, onChanged, childrenOf, submitReply, depth = 1 }) => { const canReply = depth < 3;
   const { toast } = useToast();
   const confirm = useConfirm();
   const [editing, setEditing] = useState(false);
@@ -148,7 +149,7 @@ const CommentNode: React.FC<{
         <span className="comment-date">{new Date(c.createdAt).toLocaleString('ru-RU')}{c.editedAt ? ' · изменён' : ''}</span>
         {!c.deleted && (
           <span className="comment-actions">
-            <button type="button" onClick={() => setReplying((v) => !v)} title="Ответить"><Reply size={14} /></button>
+            {canReply && <button type="button" onClick={() => setReplying((v) => !v)} title="Ответить"><Reply size={14} /></button>}
             {!editing && <button type="button" onClick={() => setEditing(true)} title="Редактировать"><Pencil size={14} /></button>}
             <button type="button" onClick={remove} title="Удалить"><Trash2 size={14} /></button>
           </span>
@@ -175,7 +176,7 @@ const CommentNode: React.FC<{
       {viewer && <AttachmentViewer att={viewer} onClose={() => setViewer(null)} />}
       {replies.length > 0 && (
         <div className="comment-replies">
-          {replies.map((r) => <CommentNode key={r._id} c={r} replies={childrenOf(r._id)} ownerType={ownerType} ownerId={ownerId} onReply={onReply} onChanged={onChanged} childrenOf={childrenOf} submitReply={submitReply} />)}
+          {replies.map((r) => <CommentNode key={r._id} c={r} replies={childrenOf(r._id)} ownerType={ownerType} ownerId={ownerId} onReply={onReply} onChanged={onChanged} childrenOf={childrenOf} submitReply={submitReply} depth={depth + 1} />)}
         </div>
       )}
       {replying && !c.deleted && (
