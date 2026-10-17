@@ -7,6 +7,7 @@ export interface LinkedEntity {
   title: string;
   statusId?: string | null;
   statusName?: string | null;
+  isFinal?: boolean;
   priority?: number | null;
 }
 

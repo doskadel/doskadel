@@ -2130,6 +2130,7 @@ color: var(--color-text);
 .linked-badge { font-size: 10px; text-transform: uppercase; padding: 1px 6px; border-radius: 999px; border: 1px solid var(--color-border); color: var(--color-text-muted); flex-shrink: 0; }
 .linked-badge--task { color: var(--color-primary); border-color: color-mix(in srgb, var(--color-primary) 40%, transparent); }
 .linked-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.linked-name--done { text-decoration: line-through; opacity: 0.65; }
 .linked-status { flex-shrink: 0; font-size: 12px; color: var(--color-text-muted); border: 1px solid var(--color-border); border-radius: 999px; padding: 0 8px; }
 .link-search { display: flex; flex-direction: column; gap: 10px; }
 .link-search-input { display: flex; align-items: center; gap: 8px; border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 8px 12px; background: var(--color-input); color: var(--color-text-muted); }
@@ -3328,6 +3329,9 @@ color: var(--color-text);
 .rte-content ul[data-type="taskList"] { list-style: none; padding-left: 0; }
 .rte-content ul[data-type="taskList"] li { display: flex; align-items: flex-start; gap: 8px; margin: 0 0 0.9em; }
 .rte-content ul[data-type="taskList"] li > label { margin-top: 3px; }
+.rte-content ul[data-type="taskList"] li[data-checked="true"] > div,
+.md-content ul[data-type="taskList"] li[data-checked="true"] > div,
+.rte-render ul[data-type="taskList"] li[data-checked="true"] > div { text-decoration: line-through; opacity: 0.6; }
 /* Отступы между пунктами любых списков (редактор) */
 .rte-content ul, .rte-content ol { margin: 0 0 0.7em; }
 .rte-content li { margin: 0 0 0.9em; }

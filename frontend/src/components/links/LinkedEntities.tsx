@@ -52,7 +52,7 @@ const LinkedEntities: React.FC<Props> = ({ ownerType, ownerId, onOpen, readOnly 
             <li key={l.linkId} className="linked-item">
               <button type="button" className="linked-open" onClick={() => onOpen?.(l.type, l.id)}>
                 <span className={'linked-badge linked-badge--' + l.type}>{l.type === 'task' ? 'Задача' : 'Статья'}</span>
-                <span className="linked-name">{l.title}</span>
+                <span className={'linked-name' + (l.isFinal ? ' linked-name--done' : '')}>{l.title}</span>
                 {l.statusName && <span className="linked-status">{l.statusName}</span>}
               </button>
               {!readOnly && (
