@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { editorExtensions } from './extensions';
 import { normalizeDoc } from './normalize';
+import ColorPalette from './ColorPalette';
 
 interface RichTextEditorProps {
   value: any;
@@ -153,6 +154,8 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
         <button type="button" className={btn(state.isItalic)} onClick={() => chain()?.toggleItalic().run()} title="Курсив"><Italic size={16} /></button>
         <button type="button" className={btn(state.isUnderline)} onClick={() => chain()?.toggleUnderline().run()} title="Подчёркнутый"><UnderlineIcon size={16} /></button>
         <button type="button" className={btn(state.isStrike)} onClick={() => chain()?.toggleStrike().run()} title="Зачёркнутый"><Strikethrough size={16} /></button>
+        <ColorPalette kind="text" title="Цвет текста" activeColor={editor.getAttributes('textStyle').color || null} onPick={(c) => { if (c === null) chain()?.unsetColor().run(); else chain()?.setColor(c).run(); }} />
+        <ColorPalette kind="bg" title="Цвет фона" activeColor={editor.getAttributes('highlight').color || null} onPick={(c) => { if (c === null) chain()?.unsetHighlight().run(); else chain()?.setHighlight({ color: c }).run(); }} />
 
         <span className="rte-sep" />
         <button type="button" className={btn(state.bullet)} onClick={() => chain()?.toggleBulletList().run()} title="Маркированный список"><List size={16} /></button>
@@ -178,7 +181,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
             const sel = selectSel.current;
             const c = editor.chain().focus();
             if (sel) c.setTextSelection({ from: sel.from, to: sel.to });
-            c.setLineHeight(parseFloat(v)).run();
+            c.setBlockLineHeight(parseFloat(v)).run();
             selectSel.current = null;
           }}
           onMouseDown={(e) => {

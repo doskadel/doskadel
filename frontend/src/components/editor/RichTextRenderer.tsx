@@ -26,7 +26,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({ contentJson, markdo
       console.error('[RICH] generateHTML failed:', e);
       html = '';
     }
-    const clean = DOMPurify.sanitize(html, { ADD_ATTR: ['data-valign', 'data-row-height'] });
+    const clean = DOMPurify.sanitize(html, { ADD_ATTR: ['data-valign', 'data-row-height', 'style', 'data-color'] });
     return (
       <div
         className={'md-content' + (className ? ' ' + className : '')}

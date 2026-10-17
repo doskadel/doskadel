@@ -4,8 +4,8 @@ import { Extension } from '@tiptap/core';
  * Межстрочный интервал для блочных узлов (параграф, заголовки).
  * lineHeight: 1 | 1.15 | 1.5 | 2 (число).
  */
-export const LineHeight = Extension.create({
-  name: 'lineHeight',
+export const BlockLineHeight = Extension.create({
+  name: 'blockLineHeight',
 
   addOptions() {
     return { types: ['paragraph', 'heading'], defaultHeight: 1 };
@@ -35,7 +35,7 @@ export const LineHeight = Extension.create({
 
   addCommands() {
     return {
-      setLineHeight:
+      setBlockLineHeight:
         (value: number | null) =>
         ({ state, tr, dispatch }: any) => {
           const { from, to, empty } = state.selection;
@@ -72,8 +72,8 @@ export const LineHeight = Extension.create({
 // Типы для TS
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
-    lineHeight: {
-      setLineHeight: (value: number | null) => ReturnType;
+    blockLineHeight: {
+      setBlockLineHeight: (value: number | null) => ReturnType;
     };
   }
 }
