@@ -1987,6 +1987,11 @@ color: var(--color-text);
     display: flex;
     flex-direction: column;
   }
+  .modal-content--task .rte,
+  .modal-content--article .rte {
+    flex: 1 1 auto;
+    min-height: 180px;
+  }
   .modal-content--article .md-editor-wrap {
     flex: 1;
     min-height: 0;
