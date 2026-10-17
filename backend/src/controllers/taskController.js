@@ -151,8 +151,16 @@ const getTasks = async (req, res) => {
     if (req.query.includeClosed !== 'true') filter.closedReason = null;
 
     if (q && q.trim()) {
-      const regex = new RegExp(escapeRegex(q.trim()), 'i');
-      filter.$or = [{ title: regex }, { description: regex }];
+      const term = q.trim().replace(/^#/, '');
+      const regex = new RegExp(escapeRegex(term), 'i');
+      const Tag = require('../models/Tag');
+      const matchedTags = await Tag.find({ workspaceId: req.workspaceId, nameLower: { $regex: escapeRegex(term.toLowerCase()) } }).select('_id').lean();
+      const tagIdsQ = matchedTags.map((t) => t._id);
+      filter.$or = [
+        { title: regex },
+        { description: regex },
+        ...(tagIdsQ.length ? [{ tagIds: { $in: tagIdsQ } }] : []),
+      ];
     }
 
     if (priority) {

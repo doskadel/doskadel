@@ -19,7 +19,8 @@ router.get('/', auth, workspaceContext, async (req, res) => {
       });
     }
 
-    const safe = escapeRegex(q);
+    const term = String(q).trim().replace(/^#/, '');
+    const safe = escapeRegex(term);
 
     // Теги, совпадающие по имени: задачи/статьи с этими тегами тоже в выдаче.
     const matchedTags = await Tag.find({ workspaceId: req.workspaceId, nameLower: { $regex: safe.toLowerCase() } }).select('_id').lean();

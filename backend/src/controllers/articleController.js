@@ -50,10 +50,15 @@ const getArticles = async (req, res) => {
 
     // Поиск по title + content
     if (q && q.trim()) {
-      const regex = new RegExp(escapeRegex(q.trim()), 'i');
+      const term = q.trim().replace(/^#/, '');
+      const regex = new RegExp(escapeRegex(term), 'i');
+      const Tag = require('../models/Tag');
+      const matchedTags = await Tag.find({ workspaceId: req.workspaceId, nameLower: { $regex: escapeRegex(term.toLowerCase()) } }).select('_id').lean();
+      const tagIdsQ = matchedTags.map((t) => t._id);
       filter.$or = [
         { title: regex },
-        { content: regex }
+        { content: regex },
+        ...(tagIdsQ.length ? [{ tagIds: { $in: tagIdsQ } }] : []),
       ];
     }
 
