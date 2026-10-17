@@ -41,7 +41,7 @@ const LinkSearchModal: React.FC<Props> = ({ open, targetType, excludeId, onClose
   }, [q, open, targetType, excludeId]);
 
   return (
-    <Modal open={open} onClose={onClose} title={targetType === 'task' ? 'Связать задачу' : 'Связать статью'}>
+    <Modal open={open} onClose={onClose} title="Связать с…">
       <div className="link-search">
         <div className="link-search-input">
           <Search size={16} />
@@ -49,7 +49,7 @@ const LinkSearchModal: React.FC<Props> = ({ open, targetType, excludeId, onClose
             ref={inputRef}
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder={targetType === 'task' ? 'Поиск задачи по названию…' : 'Поиск статьи по названию…'}
+            placeholder={targetType === 'article' ? 'Поиск статьи по названию…' : 'Поиск задачи по названию…'}
           />
         </div>
         <div className="link-search-results">
