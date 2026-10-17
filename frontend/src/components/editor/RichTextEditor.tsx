@@ -8,7 +8,7 @@ import {
   Table as TableIcon, Trash2, Rows3, Columns3, Plus,
   AlignLeft, AlignCenter, AlignRight,
   AlignVerticalJustifyStart, AlignVerticalJustifyCenter, AlignVerticalJustifyEnd,
-  Paperclip as PaperclipIcon,
+  Paperclip as PaperclipIcon, ChevronUp, ChevronDown,
 } from 'lucide-react';
 import { editorExtensions } from './extensions';
 import { normalizeDoc, convertAttachmentLinks } from './normalize';
@@ -34,7 +34,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
   onUploadFileRef.current = onUploadFile;
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const imgInputRef = React.useRef<HTMLInputElement>(null);
-  const [toolbarCollapsed, setToolbarCollapsed] = React.useState(false);
+  const [toolbarCollapsed, setToolbarCollapsed] = React.useState(true);
 
   // Загрузить файл и вставить узел в позицию (картинка -> Image, иначе chip).
   // Позиция курсора на момент клика по скрепке/картинке (до диалога выбора файла).
@@ -314,9 +314,11 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
   return (
     <div className="rte">
       <div className={'rte-toolbar' + (toolbarCollapsed ? ' rte-toolbar--collapsed' : '')} role="toolbar" onMouseDown={onToolbarMouseDown}>
-        <button type="button" className="rte-collapse-btn" onClick={() => setToolbarCollapsed((v) => !v)} title={toolbarCollapsed ? 'Показать панель' : 'Скрыть панель'} aria-label={toolbarCollapsed ? 'Показать панель' : 'Скрыть панель'}>
-          {toolbarCollapsed ? '▾' : '▴'}
+        <button type="button" className="rte-collapse-btn" onClick={() => setToolbarCollapsed((v) => !v)} title={toolbarCollapsed ? 'Показать панель' : 'Скрыть панель'} aria-expanded={!toolbarCollapsed} aria-label={toolbarCollapsed ? 'Показать панель форматирования' : 'Скрыть панель форматирования'}>
+          {toolbarCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
+          <span className="rte-collapse-label">{toolbarCollapsed ? 'Показать' : 'Скрыть'}</span>
         </button>
+        <div className="rte-toolbar-items">
         <button type="button" className={btn(state.h1)} onClick={() => chain()?.toggleHeading({ level: 1 }).run()} title="Заголовок 1"><Heading1 size={16} /></button>
         <button type="button" className={btn(state.h2)} onClick={() => chain()?.toggleHeading({ level: 2 }).run()} title="Заголовок 2"><Heading2 size={16} /></button>
         <button type="button" className={btn(state.h3)} onClick={() => chain()?.toggleHeading({ level: 3 }).run()} title="Заголовок 3"><Heading3 size={16} /></button>
@@ -406,6 +408,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
           onClick={() => chain()?.insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
           title="Вставить таблицу"
         ><TableIcon size={16} /></button>
+        </div>
       </div>
 
       {state.inTable && (

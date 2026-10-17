@@ -3021,8 +3021,14 @@ color: var(--color-text);
 /* ==================== RICH TEXT (TipTap) ==================== */
 .rte { display: flex; flex-direction: column; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-input); overflow: hidden; }
 .rte-toolbar {
-  display: flex; flex-wrap: wrap; align-items: center; gap: 2px;
+  display: flex; flex-direction: column;
   padding: 6px 8px; background: var(--color-surface-alt); border-bottom: 1px solid var(--color-border);
+}
+.rte-toolbar-items { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; }
+@media (max-width: 640px) {
+  .rte-toolbar-items { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; }
+  .rte-toolbar-items .rte-sep { display: none; }
+  .rte-toolbar-items .rte-btn, .rte-toolbar-items .rte-color-wrap, .rte-toolbar-items .rte-select { justify-content: center; width: 100%; }
 }
 .rte-sep { width: 1px; height: 20px; background: var(--color-border); margin: 0 4px; }
 .rte-color-wrap { position: relative; display: inline-flex; }
@@ -3047,9 +3053,9 @@ color: var(--color-text);
   background: var(--color-surface);
   color: var(--color-text);
 }
-.rte-collapse-btn { display: inline-flex; align-items: center; justify-content: center; margin-left: auto; border: none; background: transparent; color: var(--color-text-muted); cursor: pointer; padding: 4px 8px; font-size: 14px; }
-.rte-toolbar--collapsed { flex-wrap: nowrap; }
-.rte-toolbar--collapsed > *:not(.rte-collapse-btn) { display: none !important; }
+.rte-collapse-btn { display: inline-flex; align-items: center; justify-content: flex-end; gap: 4px; align-self: flex-end; border: none; background: transparent; color: var(--color-text-muted); cursor: pointer; padding: 2px 6px; font-size: 12px; border-radius: var(--radius-sm); }
+.rte-collapse-btn:hover { color: var(--color-text); background: var(--color-surface); }
+.rte-toolbar--collapsed .rte-toolbar-items { display: none !important; }
 .rte-btn {
   display: inline-flex; align-items: center; gap: 4px;
   border: none; background: transparent; color: var(--color-text-muted);
