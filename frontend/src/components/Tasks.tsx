@@ -417,7 +417,7 @@ const Tasks: React.FC = () => {
     updateQuery({
       q: null, priority: null, statuses: null, taskType: null,
       dateFrom: null, dateTo: null, sort: null,
-      overdue: null, dueSoon: null,
+      overdue: null, dueSoon: null, tagIds: null, tagMode: null,
     });
     setSearchInput('');
   };

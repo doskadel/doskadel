@@ -186,7 +186,7 @@ const Knowledge: React.FC = () => {
   };
 
   const handleResetFilters = () => {
-    updateQuery({ q: null, dateFrom: null, dateTo: null, sort: null });
+    updateQuery({ q: null, dateFrom: null, dateTo: null, sort: null, tagIds: null, tagMode: null });
     setSearchInput('');
   };
 
