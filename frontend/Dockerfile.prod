@@ -6,6 +6,8 @@ RUN npm ci
 COPY . .
 # относительный /api — фронт ходит на тот же домен (nginx проксирует)
 ENV REACT_APP_API_URL=
+# Ограничение памяти node при сборке (на сервере мало RAM, иначе OOM)
+ENV NODE_OPTIONS=--max-old-space-size=1536
 RUN npm run build
 
 # --- serve ---
