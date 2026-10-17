@@ -102,11 +102,13 @@ const listLinks = async (req, res) => {
       const ent = await Model.findOne(q).select('_id title statusId priority deletedAt').lean();
       if (!ent) continue;
       let statusName = null;
+      let statusColor = null;
       let isFinal = false;
       if (ent.statusId) {
         const Status = require('../models/Status');
-        const st = await Status.findById(ent.statusId).select('name isFinal').lean();
+        const st = await Status.findById(ent.statusId).select('name isFinal color').lean();
         statusName = st?.name || null;
+        statusColor = st?.color || null;
         isFinal = !!st?.isFinal;
       }
       out.push({
@@ -116,6 +118,7 @@ const listLinks = async (req, res) => {
         title: ent.title,
         statusId: ent.statusId || null,
         statusName,
+        statusColor,
         isFinal,
         priority: ent.priority ?? null,
       });
