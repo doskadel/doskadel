@@ -313,7 +313,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
 
 
   return (
-    <div className="rte">
+    <div className={'rte' + (minimal ? ' rte--minimal' : '')}>
       <div className={'rte-toolbar' + (toolbarCollapsed ? ' rte-toolbar--collapsed' : '')} role="toolbar" onMouseDown={onToolbarMouseDown}>
         <button type="button" className="rte-collapse-btn" onClick={() => setToolbarCollapsed((v) => !v)} title={toolbarCollapsed ? 'Показать панель' : 'Скрыть панель'} aria-expanded={!toolbarCollapsed} aria-label={toolbarCollapsed ? 'Показать панель форматирования' : 'Скрыть панель форматирования'}>
           {toolbarCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}

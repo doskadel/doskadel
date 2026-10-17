@@ -3147,6 +3147,9 @@ color: var(--color-text);
   background: var(--color-surface);
   color: var(--color-text);
 }
+.rte--minimal .rte-toolbar-items { flex-wrap: wrap; gap: 2px; }
+.rte--minimal .rte-btn { padding: 4px 6px; }
+.rte--minimal .rte-toolbar { padding: 4px 6px; }
 .rte-collapse-btn { display: inline-flex; align-items: center; justify-content: flex-end; gap: 4px; align-self: flex-end; border: none; background: transparent; color: var(--color-text-muted); cursor: pointer; padding: 2px 6px; font-size: 12px; border-radius: var(--radius-sm); }
 .rte-collapse-btn:hover { color: var(--color-text); background: var(--color-surface); }
 .rte-toolbar--collapsed .rte-toolbar-items { display: none !important; }
