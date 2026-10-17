@@ -1816,6 +1816,28 @@ color: var(--color-text);
   align-self: flex-start;
   width: 100%;
 }
+
+/* Служебные поля задачи: на широком экране 2 колонки (слева приоритет/статус+тоггл, справа срок/пикер) */
+.task-fields-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-md);
+  align-items: start;
+}
+.task-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  min-width: 0;
+}
+@media (min-width: 900px) {
+  .task-fields-grid {
+    grid-template-columns: 320px 1fr;
+  }
+  .task-col-right .recurrence-picker {
+    max-width: none;
+  }
+}
 .task-date .input {
   width: 100%;
 }

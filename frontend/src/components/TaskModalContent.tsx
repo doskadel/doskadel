@@ -89,61 +89,65 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
           onChange={(json, md) => { setEditDescriptionJson(json); setEditDescription(md); }}
           placeholder="Описание"
         />
-        <div className="task-field">
-          <label className="input-label">Статус</label>
-          <select
-            value={editStatusId}
-            onChange={(e) => setEditStatusId(e.target.value)}
-            className="input"
-          >
-            {statuses.map((s) => (
-              <option key={s._id} value={s._id}>{s.name}</option>
-            ))}
-          </select>
-        </div>
-        <div className="task-field">
-          <label className="input-label">Приоритет</label>
-          <select
-            value={editPriority}
-            onChange={(e) => setEditPriority(parseInt(e.target.value))}
-            className="input"
-          >
-            {PRIORITY_OPTIONS.map((p) => (
-              <option key={p.value} value={p.value}>{p.label}</option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="input-label">Повторять</label>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={!!editRecurrence}
-            className={'rec-toggle' + (editRecurrence ? ' rec-toggle--on' : '')}
-            onClick={() => setEditRecurrence(editRecurrence ? null : getDefaultRecurrence('daily'))}
-          >
-            <span className="rec-toggle-knob" />
-            <span className="rec-toggle-text">Повторять</span>
-            {editRecurrence && <span className="rec-toggle-summary">· {formatRecurrence(editRecurrence)}</span>}
-          </button>
-        </div>
-
-        {editRecurrence ? (
-          <RecurrencePicker value={editRecurrence} onChange={setEditRecurrence} />
-        ) : (
-          <div className="task-date">
-            <label className="input-label">Срок</label>
-            <ClearableField onClear={() => setEditDueDate('')} showClear={!!editDueDate}>
-              <input
-                type="datetime-local"
-                value={editDueDate}
-                onChange={(e) => setEditDueDate(e.target.value)}
+        <div className="task-fields-grid">
+          <div className="task-col">
+            <div className="task-field" style={{ maxWidth: 'none' }}>
+              <label className="input-label">Статус</label>
+              <select
+                value={editStatusId}
+                onChange={(e) => setEditStatusId(e.target.value)}
                 className="input"
-              />
-            </ClearableField>
+              >
+                {statuses.map((s) => (
+                  <option key={s._id} value={s._id}>{s.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="task-field" style={{ maxWidth: 'none' }}>
+              <label className="input-label">Приоритет</label>
+              <select
+                value={editPriority}
+                onChange={(e) => setEditPriority(parseInt(e.target.value))}
+                className="input"
+              >
+                {PRIORITY_OPTIONS.map((p) => (
+                  <option key={p.value} value={p.value}>{p.label}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="input-label">Повторять</label>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={!!editRecurrence}
+                className={'rec-toggle' + (editRecurrence ? ' rec-toggle--on' : '')}
+                onClick={() => setEditRecurrence(editRecurrence ? null : getDefaultRecurrence('daily'))}
+              >
+                <span className="rec-toggle-knob" />
+                <span className="rec-toggle-text">Повторять</span>
+                {editRecurrence && <span className="rec-toggle-summary">· {formatRecurrence(editRecurrence)}</span>}
+              </button>
+            </div>
           </div>
-        )}
+          <div className="task-col task-col-right">
+            {editRecurrence ? (
+              <RecurrencePicker value={editRecurrence} onChange={setEditRecurrence} />
+            ) : (
+              <div className="task-date" style={{ maxWidth: 'none' }}>
+                <label className="input-label">Срок</label>
+                <ClearableField onClear={() => setEditDueDate('')} showClear={!!editDueDate}>
+                  <input
+                    type="datetime-local"
+                    value={editDueDate}
+                    onChange={(e) => setEditDueDate(e.target.value)}
+                    className="input"
+                  />
+                </ClearableField>
+              </div>
+            )}
+          </div>
+        </div>
 
         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
           <button

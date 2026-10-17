@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import api from '../utils/api';
+import api, { getErrorMessage } from '../utils/api';
 import { useToast } from '../components/Toast';
 
 export interface Article {
@@ -135,7 +135,7 @@ export const useArticleDetail = (
       onUpdate?.();
       toast('Статья сохранена', 'success');
     } catch (err: any) {
-      toast(err?.response?.data?.message || 'Не удалось сохранить статью', 'error');
+      toast(getErrorMessage(err, 'Не удалось сохранить статью'), 'error');
       console.error('Error updating article:', err);
     } finally {
       setSaving(false);

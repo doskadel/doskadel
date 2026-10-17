@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import api from '../utils/api';
+import api, { getErrorMessage } from '../utils/api';
 import { useToast } from '../components/Toast';
 import { toDateTimeLocalValue } from '../utils/date';
 import { Recurrence } from '../utils/recurrence';
@@ -184,7 +184,7 @@ export const useTaskDetail = (
       onUpdate?.();
       toast('Задача сохранена', 'success');
     } catch (err: any) {
-      toast(err?.response?.data?.message || 'Не удалось сохранить задачу', 'error');
+      toast(getErrorMessage(err, 'Не удалось сохранить задачу'), 'error');
       console.error('Error updating task:', err);
     } finally {
       setSaving(false);

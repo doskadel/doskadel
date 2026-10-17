@@ -10,6 +10,17 @@ const api = axios.create({
   withCredentials: true,
 });
 
+/** Понятное сообщение об ошибке API (413/сеть/обычные ошибки). */
+export const getErrorMessage = (err: any, fallback = 'Произошла ошибка'): string => {
+  const status = err?.response?.status;
+  if (status === 413) return 'Слишком большой текст: уменьшите описание/статью';
+  if (status === 401) return 'Сессия истекла, войдите снова';
+  if (!err?.response && err?.message) return 'Нет связи с сервером';
+  const data = err?.response?.data;
+  if (data?.errors?.length) return data.errors[0].message || fallback;
+  return data?.message || fallback;
+};
+
 api.interceptors.request.use((config) => {
   const token = getToken();
   if (token) {
