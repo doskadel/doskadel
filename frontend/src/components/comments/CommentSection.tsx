@@ -27,16 +27,22 @@ const CommentEditor: React.FC<{
   const [md, setMd] = useState<string>(initialMarkdown || '');
   const [pending, setPending] = useState<AttachmentMeta[]>([]);
   const [busy, setBusy] = useState(false);
+  const [resetKey, setResetKey] = useState(0);
 
   const submit = async () => {
     if (!json && !md.trim() && pending.length === 0) return;
     setBusy(true);
-    try { await onSubmit(json, md, pending); setPending([]); setJson(null); setMd(''); } finally { setBusy(false); }
+    try {
+      await onSubmit(json, md, pending);
+      setPending([]); setJson(null); setMd('');
+      setResetKey((k) => k + 1); // ремоунт редактора -> пустое поле
+    } finally { setBusy(false); }
   };
 
   return (
     <div className="comment-editor">
       <RichTextEditor
+        key={resetKey}
         value={json}
         initialMarkdown={!json ? initialMarkdown : undefined}
         onChange={(j, m) => { setJson(j); setMd(m); }}
