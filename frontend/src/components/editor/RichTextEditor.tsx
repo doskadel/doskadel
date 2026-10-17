@@ -36,12 +36,33 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
   const imgInputRef = React.useRef<HTMLInputElement>(null);
 
   // Загрузить файл и вставить узел в позицию (картинка -> Image, иначе chip).
+  // Позиция курсора на момент клика по скрепке/картинке (до диалога выбора файла).
+  const savedPosRef = React.useRef<{ pos: number; wasInEditor: boolean } | null>(null);
+
+  const captureCursor = () => {
+    if (!editor) { savedPosRef.current = null; return; }
+    savedPosRef.current = { pos: editor.state.selection.from, wasInEditor: editor.isFocused || editor.state.selection.from > 0 };
+  };
+
   const insertFileAt = async (file: File, editor: any, pos?: number) => {
     const fn = onUploadFileRef.current;
     if (!fn) return;
-    // Загружаем файл; в текст НЕ вставляем автоматически — он появится в блоке вложений.
-    // Вставка в текст — только перетаскиванием из блока (custom MIME в handleDrop).
-    await fn(file);
+    const meta = await fn(file);
+    if (!meta || !editor) return;
+    const isImg = (meta.mime || '').startsWith('image/');
+    const node = isImg
+      ? { type: 'image', attrs: { src: `attachment:${meta.id}`, alt: meta.filename } }
+      : { type: 'attachmentChip', attrs: { id: meta.id, filename: meta.filename, mime: meta.mime } };
+    // Явная позиция (drop/paste) либо сохранённый курсор на момент клика.
+    let target = typeof pos === 'number' ? pos : null;
+    if (target == null && savedPosRef.current?.wasInEditor) target = savedPosRef.current.pos;
+    if (target != null) {
+      const max = editor.state.doc.content.size;
+      editor.chain().focus().insertContentAt(Math.min(target, max), node).run();
+    } else {
+      editor.chain().focus().insertContent(node).run();
+    }
+    savedPosRef.current = null;
   };
   const editor = useEditor({
     extensions: editorExtensions,
@@ -247,6 +268,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
     setUrlDialog('link');
   };
   const addImage = () => {
+    captureCursor();
     if (onUploadFileRef.current) { imgInputRef.current?.click(); return; }
     const { from, to } = editor.state.selection;
     setLinkSel({ from, to });
@@ -357,7 +379,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
           }}
         />
         {onUploadFile && (
-          <button type="button" className={btn(false)} onClick={() => fileInputRef.current?.click()} title="Прикрепить файл"><PaperclipIcon size={16} /></button>
+          <button type="button" className={btn(false)} onClick={() => { captureCursor(); fileInputRef.current?.click(); }} title="Прикрепить файл"><PaperclipIcon size={16} /></button>
         )}
         <input
           ref={fileInputRef}
