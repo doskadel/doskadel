@@ -1844,6 +1844,12 @@ color: var(--color-text);
 }
 .modal-content--task .modal-body {
   padding-bottom: var(--space-2xl, 48px);
+  overflow-y: auto;
+  min-height: 0;
+}
+.modal-content--article .modal-body {
+  overflow-y: auto;
+  min-height: 0;
 }
 
 .modal-header {

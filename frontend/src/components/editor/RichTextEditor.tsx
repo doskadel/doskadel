@@ -41,15 +41,18 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
 
   const captureCursor = () => {
     if (!editor) { savedPosRef.current = null; return; }
-    savedPosRef.current = { pos: editor.state.selection.from, wasInEditor: editor.isFocused };
+    const root = editor.view?.dom as HTMLElement | undefined;
+    const active = document.activeElement;
+    const wasInEditor = !!root && !!active && root.contains(active);
+    savedPosRef.current = { pos: editor.state.selection.from, wasInEditor };
   };
 
-  const insertFileAt = async (file: File, editor: any, pos?: number) => {
+  const insertFileAt = async (file: File, editor: any, pos?: number, forceFile = false) => {
     const fn = onUploadFileRef.current;
     if (!fn) return;
     const meta = await fn(file);
     if (!meta || !editor) return;
-    const isImg = (meta.mime || '').startsWith('image/');
+    const isImg = !forceFile && (meta.mime || '').startsWith('image/');
     const node = isImg
       ? { type: 'image', attrs: { src: `attachment:${meta.id}`, alt: meta.filename } }
       : { type: 'attachmentChip', attrs: { id: meta.id, filename: meta.filename, mime: meta.mime } };
@@ -388,7 +391,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
           style={{ display: 'none' }}
           onChange={(e) => {
             if (e.target.files && e.target.files.length) {
-              Array.from(e.target.files).forEach((f) => insertFileAt(f, editor));
+              Array.from(e.target.files).forEach((f) => insertFileAt(f, editor, undefined, true));
             }
             e.target.value = '';
           }}
