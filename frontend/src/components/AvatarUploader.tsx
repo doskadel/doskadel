@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Camera, Trash2 } from 'lucide-react';
+import { X } from 'lucide-react';
 import api from '../utils/api';
 import { useToast } from './Toast';
 
@@ -11,7 +11,7 @@ interface Props {
 
 const SIZE = 256;
 
-/** Загрузка аватара с кропом по центру в квадрат (canvas), сохранение dataURL. */
+/** Аватар: клик по нему — загрузка (кроп в квадрат); при наличии — крестик удаления. */
 const AvatarUploader: React.FC<Props> = ({ avatar, initials, onChanged }) => {
   const { toast } = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -49,7 +49,8 @@ const AvatarUploader: React.FC<Props> = ({ avatar, initials, onChanged }) => {
     finally { setBusy(false); }
   };
 
-  const remove = async () => {
+  const remove = async (e: React.MouseEvent) => {
+    e.stopPropagation();
     setBusy(true);
     try {
       await api.put('/api/users/avatar', { avatar: '' });
@@ -60,14 +61,14 @@ const AvatarUploader: React.FC<Props> = ({ avatar, initials, onChanged }) => {
   };
 
   return (
-    <div className="avatar-uploader">
-      <div className="avatar-preview">
+    <div className="avatar-uploader" title="Нажмите, чтобы сменить аватар">
+      <button type="button" className="avatar-preview avatar-preview--btn" onClick={() => inputRef.current?.click()} disabled={busy}>
         {avatar ? <img src={avatar} alt="avatar" /> : <span>{initials}</span>}
-      </div>
-      <div className="avatar-actions">
-        <button type="button" className="avatar-btn" onClick={() => inputRef.current?.click()} disabled={busy} title="Загрузить"><Camera size={16} /></button>
-        {avatar && <button type="button" className="avatar-btn avatar-btn--danger" onClick={remove} disabled={busy} title="Удалить"><Trash2 size={16} /></button>}
-      </div>
+        <span className="avatar-hover">Сменить</span>
+      </button>
+      {avatar && (
+        <button type="button" className="avatar-remove" onClick={remove} disabled={busy} title="Удалить аватар"><X size={13} /></button>
+      )}
       <input
         ref={inputRef}
         type="file"
