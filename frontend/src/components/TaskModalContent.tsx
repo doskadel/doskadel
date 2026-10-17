@@ -89,24 +89,32 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
           onChange={(json, md) => { setEditDescriptionJson(json); setEditDescription(md); }}
           placeholder="Описание"
         />
-        <select
-          value={editStatusId}
-          onChange={(e) => setEditStatusId(e.target.value)}
-          className="input"
-        >
-          {statuses.map((s) => (
-            <option key={s._id} value={s._id}>{s.name}</option>
-          ))}
-        </select>
-        <select
-          value={editPriority}
-          onChange={(e) => setEditPriority(parseInt(e.target.value))}
-          className="input"
-        >
-          {PRIORITY_OPTIONS.map((p) => (
-            <option key={p.value} value={p.value}>{p.label}</option>
-          ))}
-        </select>
+        <div className="task-form-row">
+          <div>
+            <label className="input-label">Статус</label>
+            <select
+              value={editStatusId}
+              onChange={(e) => setEditStatusId(e.target.value)}
+              className="input"
+            >
+              {statuses.map((s) => (
+                <option key={s._id} value={s._id}>{s.name}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="input-label">Приоритет</label>
+            <select
+              value={editPriority}
+              onChange={(e) => setEditPriority(parseInt(e.target.value))}
+              className="input"
+            >
+              {PRIORITY_OPTIONS.map((p) => (
+                <option key={p.value} value={p.value}>{p.label}</option>
+              ))}
+            </select>
+          </div>
+        </div>
 
         <div>
           <label className="input-label">Повторять</label>

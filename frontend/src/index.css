@@ -1793,6 +1793,17 @@ color: var(--color-text);
   max-width: min(1400px, calc(100vw - 64px));
   max-height: 94vh;
 }
+
+/* Служебные поля задачи в 2 колонки (не растягиваем на всю ширину) */
+.task-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+}
+.task-form-row > div { min-width: 0; }
+@media (max-width: 640px) {
+  .task-form-row { grid-template-columns: 1fr; }
+}
 .modal-content--task .modal-body {
   padding-bottom: var(--space-2xl, 48px);
 }

@@ -546,17 +546,35 @@ const Tasks: React.FC = () => {
             onChange={(json, md) => { setDescriptionJson(json); setDescription(md); }}
             placeholder="Описание"
           />
-          <select
-            value={priority}
-            onChange={(e) => setPriority(e.target.value === '' ? '' : parseInt(e.target.value))}
-            className="input"
-            required
-          >
-            <option value="" disabled hidden>Выберите приоритет</option>
-            {PRIORITY_OPTIONS.map((p) => (
-              <option key={p.value} value={p.value}>{p.label}</option>
-            ))}
-          </select>
+          <div className="task-form-row">
+            <div>
+              <label className="input-label">Приоритет</label>
+              <select
+                value={priority}
+                onChange={(e) => setPriority(e.target.value === '' ? '' : parseInt(e.target.value))}
+                className="input"
+                required
+              >
+                <option value="" disabled hidden>Выберите приоритет</option>
+                {PRIORITY_OPTIONS.map((p) => (
+                  <option key={p.value} value={p.value}>{p.label}</option>
+                ))}
+              </select>
+            </div>
+            {!isRecurring && (
+              <div>
+                <label className="input-label">Срок</label>
+                <ClearableField onClear={() => setDueDate('')} showClear={!!dueDate}>
+                  <input
+                    type="datetime-local"
+                    value={dueDate}
+                    onChange={(e) => setDueDate(e.target.value)}
+                    className="input"
+                  />
+                </ClearableField>
+              </div>
+            )}
+          </div>
 
           <div>
             <label className="input-label">Повторять</label>
@@ -578,20 +596,8 @@ const Tasks: React.FC = () => {
             </button>
           </div>
 
-          {isRecurring ? (
+          {isRecurring && (
             <RecurrencePicker value={recurrence} onChange={setRecurrence} />
-          ) : (
-            <div>
-              <label className="input-label">Срок</label>
-              <ClearableField onClear={() => setDueDate('')} showClear={!!dueDate}>
-                <input
-                  type="datetime-local"
-                  value={dueDate}
-                  onChange={(e) => setDueDate(e.target.value)}
-                  className="input"
-                />
-              </ClearableField>
-            </div>
           )}
 
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: 'var(--space-sm)' }}>
