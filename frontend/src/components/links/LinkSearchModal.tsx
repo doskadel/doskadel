@@ -26,7 +26,7 @@ const LinkSearchModal: React.FC<Props> = ({ open, targetType, excludeId, onClose
   useEffect(() => {
     if (!open) return;
     const term = q.trim();
-    if (term.length < 2) { setResults([]); return; }
+    if (term.length < 1) { setResults([]); return; }
     setLoading(true);
     const t = setTimeout(async () => {
       try {
@@ -54,7 +54,7 @@ const LinkSearchModal: React.FC<Props> = ({ open, targetType, excludeId, onClose
         </div>
         <div className="link-search-results">
           {loading && <p className="att-empty">Поиск…</p>}
-          {!loading && q.trim().length >= 2 && results.length === 0 && <p className="att-empty">Ничего не найдено</p>}
+          {!loading && q.trim().length >= 1 && results.length === 0 && <p className="att-empty">Ничего не найдено</p>}
           {results.map((r) => (
             <button key={r.id} type="button" className="link-search-item" onClick={() => onPick(r.type, r.id)}>
               <span className={'linked-badge linked-badge--' + r.type}>{r.type === 'task' ? 'Задача' : 'Статья'}</span>
