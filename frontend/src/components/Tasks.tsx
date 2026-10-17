@@ -529,7 +529,7 @@ const Tasks: React.FC = () => {
         onDueFilterClear={handleClearDueFilter}
       />
 
-      <Modal open={createOpen} onClose={handleCloseCreate} title="Новая задача">
+      <Modal open={createOpen} onClose={handleCloseCreate} title="Новая задача" wide className="modal-content--task">
         <form onSubmit={handleSubmit} className="form">
           <input
             type="text"
