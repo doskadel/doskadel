@@ -128,7 +128,6 @@ const ArticleModalContent: React.FC<ArticleModalContentProps> = ({
 
       <AttachmentBlock ownerType="article" ownerId={article._id} readOnly />
       <LinkedEntities ownerType="article" ownerId={article._id} onOpen={(t, id) => window.open(t === 'task' ? `/tasks?task=${id}` : `/knowledge?article=${id}`, '_blank')} />
-      <CommentSection ownerType="article" ownerId={article._id} />
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-md)' }}>
         <div>
@@ -140,6 +139,8 @@ const ArticleModalContent: React.FC<ArticleModalContentProps> = ({
           <p style={{ color: 'var(--color-text)', fontSize: '15px' }}>{new Date(article.updatedAt).toLocaleString('ru-RU')}</p>
         </div>
       </div>
+
+      <CommentSection ownerType="article" ownerId={article._id} />
     </div>
   );
 };

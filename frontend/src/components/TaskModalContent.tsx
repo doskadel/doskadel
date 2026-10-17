@@ -222,7 +222,6 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
 
       <AttachmentBlock ownerType="task" ownerId={task._id} readOnly />
       <LinkedEntities ownerType="task" ownerId={task._id} onOpen={(t, id) => window.open(t === 'task' ? `/tasks?task=${id}` : `/knowledge?article=${id}`, '_blank')} readOnly />
-      <CommentSection ownerType="task" ownerId={task._id} />
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-md)' }}>
         <div>
@@ -318,6 +317,8 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
           <p style={{ color: 'var(--color-text)', fontSize: '15px', margin: 0 }}>{new Date(task.updatedAt).toLocaleString('ru-RU')}</p>
         </div>
       </div>
+
+      <CommentSection ownerType="task" ownerId={task._id} />
     </div>
   );
 };
