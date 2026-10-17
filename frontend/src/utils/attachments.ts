@@ -17,7 +17,7 @@ export interface AttachmentConfig {
 }
 
 /** Загрузка списка вложений владельца. */
-export const listAttachments = (ownerType: 'article' | 'task', ownerId: string): Promise<AttachmentMeta[]> =>
+export const listAttachments = (ownerType: 'article' | 'task' | 'comment', ownerId: string): Promise<AttachmentMeta[]> =>
   api.get('/api/attachments', { params: { ownerType, ownerId } }).then((r) => r.data.attachments || []);
 
 /** Конфиг лимитов/типов с сервера (единственный источник правды). */
@@ -27,7 +27,7 @@ export const getAttachmentsConfig = (): Promise<AttachmentConfig> =>
 /** Загрузка файла (multipart). ownerType/ownerId пусты -> pending. */
 export const uploadAttachment = (
   file: File,
-  owner: { ownerType?: 'article' | 'task'; ownerId?: string },
+  owner: { ownerType?: 'article' | 'task' | 'comment'; ownerId?: string },
   onProgress?: (pct: number) => void
 ): Promise<AttachmentMeta> => {
   const fd = new FormData();

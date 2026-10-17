@@ -49,12 +49,15 @@ const ArticleModal: React.FC<ArticleModalProps> = ({ articleId, onClose, onUpdat
         editTitle={detail.editTitle}
         editContent={detail.editContent}
         editContentJson={detail.editContentJson}
+        editTagIds={detail.editTagIds}
+        setEditTagIds={detail.setEditTagIds}
         saving={detail.saving}
         setEditTitle={detail.setEditTitle}
         setEditContent={detail.setEditContent}
         setEditContentJson={detail.setEditContentJson}
         onSave={detail.saveEdit}
         onCancel={detail.requestCancelEdit}
+        onChecklistSaved={onUpdate}
       />
     </Modal>
   );

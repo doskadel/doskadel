@@ -10,8 +10,16 @@ const createArticle = async (req, res) => {
     const { title, content } = req.body;
     // Гибридное хранение (ADR): contentJson — источник правды, content — производный MD.
     const descFields = applyDescriptionFields(req.body, { content }, { json: 'contentJson', md: 'content', format: 'format' });
+    let tagIds = [];
+    if (req.body.tagIds !== undefined) {
+      const { validateTagIds } = require('./tagController');
+      const ok = await validateTagIds(req.body.tagIds, req.workspaceId);
+      if (!ok) return res.status(400).json({ success: false, message: 'Некорректные теги' });
+      tagIds = req.body.tagIds;
+    }
     const article = new Article({
       title,
+      tagIds,
       ...descFields,
       workspaceId: req.workspaceId,
       userId: req.user._id,
@@ -42,11 +50,22 @@ const getArticles = async (req, res) => {
 
     // Поиск по title + content
     if (q && q.trim()) {
-      const regex = new RegExp(escapeRegex(q.trim()), 'i');
+      const term = q.trim().replace(/^#/, '');
+      const regex = new RegExp(escapeRegex(term), 'i');
+      const Tag = require('../models/Tag');
+      const matchedTags = await Tag.find({ workspaceId: req.workspaceId, nameLower: { $regex: escapeRegex(term.toLowerCase()) } }).select('_id').lean();
+      const tagIdsQ = matchedTags.map((t) => t._id);
       filter.$or = [
         { title: regex },
-        { content: regex }
+        { content: regex },
+        ...(tagIdsQ.length ? [{ tagIds: { $in: tagIdsQ } }] : []),
       ];
+    }
+
+    // Фильтр по тегам: tagIds=a,b&tagMode=any|all
+    if (req.query.tagIds) {
+      const tids = String(req.query.tagIds).split(',').filter(Boolean);
+      if (tids.length > 0) filter.tagIds = req.query.tagMode === 'all' ? { $all: tids } : { $in: tids };
     }
 
     // Фильтр по дате создания
@@ -136,6 +155,12 @@ const updateArticle = async (req, res) => {
     if (!canByMembership(req.membership, 'update')) return res.status(403).json({ success: false, message: 'Forbidden' });
     const updateData = {};
     if (req.body.title !== undefined) updateData.title = req.body.title;
+    if (req.body.tagIds !== undefined) {
+      const { validateTagIds } = require('./tagController');
+      const ok = await validateTagIds(req.body.tagIds, req.workspaceId);
+      if (!ok) return res.status(400).json({ success: false, message: 'Некорректные теги' });
+      updateData.tagIds = req.body.tagIds;
+    }
     // Гибрид (ADR): contentJson — source of truth, content — производный MD.
     applyDescriptionFields(req.body, updateData, { json: 'contentJson', md: 'content', format: 'format' });
     const article = await Article.findOneAndUpdate(

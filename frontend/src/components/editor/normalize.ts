@@ -24,6 +24,24 @@ export const splitHardBreaks = (node: any): any[] => {
 
 export const normalizeDoc = (doc: any) => splitHardBreaks(doc)[0];
 
+/** Инвертирует checked у N-го узла taskItem (по порядку обхода). Возвращает новый JSON. */
+export const toggleChecklistItem = (doc: any, index: number, checked: boolean): any => {
+  let counter = -1;
+  const walk = (node: any): any => {
+    if (!node) return node;
+    if (Array.isArray(node)) return node.map(walk);
+    if (node.type === 'taskItem') {
+      counter += 1;
+      if (counter === index) {
+        return { ...node, attrs: { ...(node.attrs || {}), checked } };
+      }
+    }
+    if (node.content) return { ...node, content: node.content.map(walk) };
+    return node;
+  };
+  return walk(doc);
+};
+
 /** Удаляет из JSON узлы, ссылающиеся на вложение attachment:<id> (image и attachmentChip). */
 export const removeAttachmentFromJson = (node: any, id: string): any => {
   if (!node) return node;

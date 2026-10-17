@@ -21,6 +21,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [botOpen, setBotOpen] = useState(false);
+  const [me, setMe] = useState<any>(null);
+  const loadMe = () => api.get('/api/users/me').then((r) => setMe(r.data.user)).catch(() => {});
+  useEffect(() => { loadMe(); }, []);
 
   // Ctrl/Cmd+K — открыть/закрыть поиск; '/' — открыть (когда фокус не в поле)
   useGlobalHotkey({ keyCode: 'KeyK', onTrigger: () => setSearchOpen((v) => !v) });
@@ -142,7 +145,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               title="Профиль"
               aria-label="Профиль"
             >
-              <span className="layout-avatar-inner"><User size={20} /></span>
+              <span className="layout-avatar-inner">
+                {me?.avatar ? <img src={me.avatar} alt="" className="layout-avatar-img" /> : ((me?.username || me?.email || '?').trim().charAt(0).toUpperCase())}
+              </span>
             </button>
           </div>
         </div>
@@ -183,7 +188,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
       <BotStub open={botOpen} onClose={() => setBotOpen(false)} />
-      <ProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} />
+      <ProfileModal open={profileOpen} onClose={() => { setProfileOpen(false); loadMe(); }} />
       <PushPrompt />
     </div>
   );

@@ -33,5 +33,24 @@
 - **Подсветка кода:** `@tiptap/extension-code-block-lowlight` (декорации ProseMirror) работает ТОЛЬКО в редакторе. Для просмотра — подсвечивать HTML постобработкой (lowlight + CSS `.hljs-*`), как в RichTextRenderer.
 - **Mantine 9 требует React 19**; для React 18 — Mantine 8. (Если когда-то вернёмся к BlockNote.)
 
+## Файлы/вложения (2026-10-18)
+
+- **MinIO из Docker Hub удалён** (source-only, репозиторий архивирован). Замена — **Garage** (`dxflrs/garage`, тег+digest). S3-совместим, single-node через `server --single-node --default-bucket` + env `GARAGE_DEFAULT_ACCESS_KEY/SECRET_KEY/BUCKET`. `rpc_secret`/`admin_token` — только через env (`GARAGE_RPC_SECRET`, `GARAGE_ADMIN_TOKEN`), НЕ в git. Образ distroless — нет shell, entrypoint-скрипт не сделать.
+- **Доступ к файлам — только backend-прокси** (multer→putObject, getObject→pipe). Не публиковать S3 наружу, не использовать presigned (CORS/SigV4-грабли с nginx). Тип файла определять по сигнатуре (`file-type@16`, CJS! v19+ — ESM-only). Текстовые без сигнатуры (txt/md/csv/json) — fallback по расширению.
+- **Node 20 в контейнере**: `file-type@22` требует Node>=22, `@19` ESM-only → брать `16.x`. После смены версий в `package.json` — обновлять `package-lock.json` на хосте и пересобирать образ (анонимный volume `/app/node_modules` сохраняет старые пакеты между recreate).
+- **min-height у редактора в flex-колонке**: без него `.rte` схлопывается под тулбаром на мобиле.
+- **attachment:<id> в JSON**, не URL (TTL/хост). Просмотр — Image NodeView (fetch с Authorization → blob), в RichTextRenderer — после generateHTML заменять `img[src^=attachment:]` на React-корень (createRoot) + DOMPurify ALLOWED_URI_REGEXP для `attachment:`.
+- **Удаление вложения из блока** должно чистить узлы из текста (`removeAttachmentFromJson`).
+- **Вложения комментариев (Jira)**: принадлежат owner, помечены `commentId`; удаление комментария удаляет их из общего блока.
+
+## Дерево комментариев (2026-10-18)
+
+- Глубина: `parentId` = прямой родитель (без схлопывания), лимит 3 (на 3-м нет «Ответить», бэк отклоняет). Ответ — inline под узлом, не общим блоком внизу.
+- **Инлайн-ответ**: `autoFocus` в `RichTextEditor` должен срабатывать ОДИН раз (ref-guard, эффект ПОСЛЕ `useEditor`), иначе курсор сбрасывается в начало при каждом рендере.
+- **Быстрые тогглы чеклиста**: PUT с полным JSON по устаревшему пропсу затирает предыдущие → держать `checklistBase` ref (накопленный JSON) + сериализовать; не перечитывать модалку после каждого тоггла (дёрганье).
+- **Зачёркивание чеклиста**: `data-checked` в TipTap может остаться `false` при визуальной галочке → дублировать правилом `li:has(input[type=checkbox]:checked)`.
+- **Сепараторы комментариев**: у `.comment-item` есть `border-left`; горизонтальный — через `::before` (не `border-top`), иначе сливается с вертикальной линией. `--color-border` на тёмном фоне почти не виден — брать `--color-border-strong`.
+- **Dev-сборка CRA + Service Worker** отдаёт старый CSS из кэша (Ctrl+F5 не помогает): в dev не регистрировать SW (`unregister`), при отладке стилей — Unregister + Clear site data.
+
 ## Гигиена БД
 - cleanup-orphans.js (документы без workspace), cleanup-test-users.js (iso_*/dbg_*) — dry-run по умолчанию, --apply для удаления.

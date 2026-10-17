@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Popover, Listbox, Transition } from '@headlessui/react';
 import { Filter, Search, ArrowUpDown, Check, X } from 'lucide-react';
 import { ARTICLE_SORT_OPTIONS } from '../utils/sort';
+import MultiSelect from './MultiSelect';
+import { listTags, Tag } from '../utils/tags';
 
 interface ArticleFilterBarProps {
   q: string;
@@ -17,13 +19,20 @@ interface ArticleFilterBarProps {
   sort: string;
   onSortChange: (sort: string) => void;
   defaultSort: string;
+  tagIds?: string[];
+  onTagIdsChange?: (ids: string[]) => void;
+  tagMode?: 'any' | 'all';
+  onTagModeChange?: (m: 'any' | 'all') => void;
 }
 
 const ArticleFilterBar: React.FC<ArticleFilterBarProps> = ({
   q, onQChange, dateFrom, dateTo, onDateFromChange, onDateToChange, onDatesClear,
   onReset, hasActiveFilters, dateError, sort, onSortChange, defaultSort,
+  tagIds = [], onTagIdsChange, tagMode = 'any', onTagModeChange,
 }) => {
   const [searchOpen, setSearchOpen] = useState(false);
+  const [allTags, setAllTags] = useState<Tag[]>([]);
+  useEffect(() => { listTags().then(setAllTags).catch(() => {}); }, []);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -34,7 +43,7 @@ const ArticleFilterBar: React.FC<ArticleFilterBarProps> = ({
   const isDatesActive = !!(dateFrom || dateTo);
   const isSortActive = sort !== defaultSort;
   const activeSortLabel = ARTICLE_SORT_OPTIONS.find((o) => o.value === sort)?.label || 'Сортировка';
-  const filterActive = isDatesActive;
+  const filterActive = isDatesActive || tagIds.length > 0;
 
   return (
     <div className="filter-bar">
@@ -48,6 +57,17 @@ const ArticleFilterBar: React.FC<ArticleFilterBarProps> = ({
           </Popover.Button>
           <Transition enter="fb-tr-enter" enterFrom="fb-tr-from" enterTo="fb-tr-to" leave="fb-tr-enter" leaveFrom="fb-tr-to" leaveTo="fb-tr-from">
             <Popover.Panel className="fb-panel" static>
+              {allTags.length > 0 && onTagIdsChange && (
+                <div className="fb-field">
+                  <MultiSelect label="Теги" options={allTags.map((t) => ({ value: t._id, label: t.name }))} selected={tagIds} onChange={(v) => onTagIdsChange(v as string[])} placeholder="Все" />
+                  {tagIds.length > 1 && onTagModeChange && (
+                    <div className="fb-tagmode">
+                      <button type="button" className={tagMode === 'any' ? 'fb-tagmode--on' : ''} onClick={() => onTagModeChange('any')}>Любой</button>
+                      <button type="button" className={tagMode === 'all' ? 'fb-tagmode--on' : ''} onClick={() => onTagModeChange('all')}>Все</button>
+                    </div>
+                  )}
+                </div>
+              )}
               <div className="fb-field">
                 <span className="fb-field-label">Даты</span>
                 <div className="fb-dates">

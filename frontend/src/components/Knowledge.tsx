@@ -7,6 +7,7 @@ import api from '../utils/api';
 import Modal from './Modal';
 import ArticleModal from './ArticleModal';
 import ArticleFilterBar from './ArticleFilterBar';
+import TagSelector from './tags/TagSelector';
 import { useConfirm } from './ConfirmProvider';
 import { useToast } from './Toast';
 import SwipeableRow from './SwipeableRow';
@@ -36,6 +37,9 @@ const Knowledge: React.FC = () => {
   const dateFrom = searchParams.get('dateFrom') || '';
   const dateTo = searchParams.get('dateTo') || '';
   const sortParam = searchParams.get('sort') || '';
+  const tagIdsParam = searchParams.get('tagIds') || '';
+  const tagIds = tagIdsParam ? tagIdsParam.split(',').filter(Boolean) : [];
+  const tagMode = searchParams.get('tagMode') === 'all' ? 'all' : 'any';
   const newParam = searchParams.get('new');
 
   const [articles, setArticles] = useState<Article[]>([]);
@@ -45,6 +49,7 @@ const Knowledge: React.FC = () => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [contentJson, setContentJson] = useState<any>(null);
+  const [createTagIds, setCreateTagIds] = useState<string[]>([]);
   const [pendingAttachments, setPendingAttachments] = useState<import('../utils/attachments').AttachmentMeta[]>([]);
 
   const [searchInput, setSearchInput] = useState(q);
@@ -65,7 +70,7 @@ const Knowledge: React.FC = () => {
 
   useEffect(() => {
     fetchArticles();
-  }, [q, dateFrom, dateTo, sortParam]);
+  }, [q, dateFrom, dateTo, sortParam, tagIdsParam]);
 
   useEffect(() => {
     if (newParam === '1') {
@@ -95,6 +100,7 @@ const Knowledge: React.FC = () => {
       if (dateFrom) params.set('dateFrom', dateFrom);
       if (dateTo) params.set('dateTo', dateTo);
       if (sortParam) params.set('sort', sortParam);
+      if (tagIds.length > 0) { params.set('tagIds', tagIds.join(',')); params.set('tagMode', tagMode); }
 
       const url = '/api/articles' + (params.toString() ? '?' + params.toString() : '');
       const response = await api.get(url);
@@ -123,6 +129,7 @@ const Knowledge: React.FC = () => {
     setContent('');
     setContentJson(null);
     setPendingAttachments([]);
+    setCreateTagIds([]);
   };
 
   const isCreateFormDirty = (): boolean => {
@@ -163,7 +170,7 @@ const Knowledge: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const created = await api.post('/api/articles', { title, content, contentJson });
+      const created = await api.post('/api/articles', { title, content, contentJson, tagIds: createTagIds });
       const newId = created?.data?.article?._id;
       if (newId && pendingAttachments.length) {
         try { await attachToOwner('article', newId, pendingAttachments.map((a) => a._id)); } catch (e) { console.error('attach failed', e); }
@@ -179,7 +186,7 @@ const Knowledge: React.FC = () => {
   };
 
   const handleResetFilters = () => {
-    updateQuery({ q: null, dateFrom: null, dateTo: null, sort: null });
+    updateQuery({ q: null, dateFrom: null, dateTo: null, sort: null, tagIds: null, tagMode: null });
     setSearchInput('');
   };
 
@@ -204,7 +211,7 @@ const Knowledge: React.FC = () => {
     return '';
   })();
 
-  const hasActiveFilters = !!(q || dateFrom || dateTo || (sortParam && sortParam !== DEFAULT_SORT));
+  const hasActiveFilters = !!(q || dateFrom || dateTo || tagIds.length > 0 || (sortParam && sortParam !== DEFAULT_SORT));
 
   const handleRefresh = async () => {
     await fetchArticles();
@@ -240,6 +247,10 @@ const Knowledge: React.FC = () => {
         sort={sortParam || DEFAULT_SORT}
         onSortChange={(s) => updateQuery({ sort: s === DEFAULT_SORT ? null : s })}
         defaultSort={DEFAULT_SORT}
+        tagIds={tagIds}
+        onTagIdsChange={(ids) => updateQuery({ tagIds: ids.length ? ids.join(',') : null, tagMode: ids.length ? tagMode : null })}
+        tagMode={tagMode}
+        onTagModeChange={(m) => updateQuery({ tagMode: tagIds.length ? m : null })}
       />
 
       <Modal open={createOpen} onClose={handleCloseCreate} title="Новая статья" wide className="modal-content--article">
@@ -266,6 +277,10 @@ const Knowledge: React.FC = () => {
               } catch { return null; }
             }}
           />
+          <div>
+            <label className="input-label">Теги</label>
+            <TagSelector value={createTagIds} onChange={setCreateTagIds} />
+          </div>
           <AttachmentBlock
             ownerType="article"
             ownerId={null}

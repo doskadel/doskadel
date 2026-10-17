@@ -72,8 +72,17 @@ const createTask = async (req, res) => {
 
     const { title, description, priority, dueDate, recurrence, notifications } = req.body;
     const descFields = applyDescriptionFields(req.body, {});
+    // Теги: проверка принадлежности workspace.
+    let tagIds = [];
+    if (req.body.tagIds !== undefined) {
+      const { validateTagIds } = require('./tagController');
+      const ok = await validateTagIds(req.body.tagIds, req.workspaceId);
+      if (!ok) return res.status(400).json({ success: false, message: 'Некорректные теги' });
+      tagIds = req.body.tagIds;
+    }
     const task = new Task({
       title, description, priority, dueDate, recurrence, notifications,
+      tagIds,
       ...descFields,
       statusId,
       order,
@@ -142,8 +151,16 @@ const getTasks = async (req, res) => {
     if (req.query.includeClosed !== 'true') filter.closedReason = null;
 
     if (q && q.trim()) {
-      const regex = new RegExp(escapeRegex(q.trim()), 'i');
-      filter.$or = [{ title: regex }, { description: regex }];
+      const term = q.trim().replace(/^#/, '');
+      const regex = new RegExp(escapeRegex(term), 'i');
+      const Tag = require('../models/Tag');
+      const matchedTags = await Tag.find({ workspaceId: req.workspaceId, nameLower: { $regex: escapeRegex(term.toLowerCase()) } }).select('_id').lean();
+      const tagIdsQ = matchedTags.map((t) => t._id);
+      filter.$or = [
+        { title: regex },
+        { description: regex },
+        ...(tagIdsQ.length ? [{ tagIds: { $in: tagIdsQ } }] : []),
+      ];
     }
 
     if (priority) {
@@ -158,6 +175,12 @@ const getTasks = async (req, res) => {
       if (ids.length > 0) filter.statusId = { $in: ids };
     } else if (statusId) {
       filter.statusId = statusId;
+    }
+
+    // Фильтр по тегам: tagIds=a,b&tagMode=any|all
+    if (req.query.tagIds) {
+      const tids = String(req.query.tagIds).split(',').filter(Boolean);
+      if (tids.length > 0) filter.tagIds = req.query.tagMode === 'all' ? { $all: tids } : { $in: tids };
     }
 
     if (dateFrom || dateTo) {
@@ -374,7 +397,12 @@ const updateTask = async (req, res) => {
       }
     }
 
-    const allowed = ['title', 'description', 'statusId', 'priority', 'order', 'dueDate', 'recurrence', 'notifications'];
+    const allowed = ['title', 'description', 'statusId', 'priority', 'order', 'dueDate', 'recurrence', 'notifications', 'tagIds'];
+    if (req.body.tagIds !== undefined) {
+      const { validateTagIds } = require('./tagController');
+      const ok = await validateTagIds(req.body.tagIds, req.workspaceId);
+      if (!ok) return res.status(400).json({ success: false, message: 'Некорректные теги' });
+    }
     const updateData = {};
     allowed.forEach((k) => { if (req.body[k] !== undefined) updateData[k] = req.body[k]; });
     // Гибридное хранение описания: json — источник правды, description — производный MD.

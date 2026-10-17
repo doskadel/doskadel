@@ -4,6 +4,7 @@ const workspaceContext = require('../middleware/workspace');
 const Task = require('../models/Task');
 const Article = require('../models/Article');
 const escapeRegex = require('../utils/escapeRegex');
+const Tag = require('../models/Tag');
 const router = express.Router();
 
 // Поиск задач и статей
@@ -18,23 +19,31 @@ router.get('/', auth, workspaceContext, async (req, res) => {
       });
     }
 
-    const safe = escapeRegex(q);
+    const term = String(q).trim().replace(/^#/, '');
+    const safe = escapeRegex(term);
+
+    // Теги, совпадающие по имени: задачи/статьи с этими тегами тоже в выдаче.
+    const matchedTags = await Tag.find({ workspaceId: req.workspaceId, nameLower: { $regex: safe.toLowerCase() } }).select('_id').lean();
+    const tagIds = matchedTags.map((t) => t._id);
 
     // Поиск задач
     const tasks = await Task.find({
       workspaceId: req.workspaceId,
       $or: [
         { title: { $regex: safe, $options: 'i' } },
-        { description: { $regex: safe, $options: 'i' } }
+        { description: { $regex: safe, $options: 'i' } },
+        ...(tagIds.length ? [{ tagIds: { $in: tagIds } }] : [])
       ]
     }).sort({ updatedAt: -1 });
 
     // Поиск статей
     const articles = await Article.find({
       workspaceId: req.workspaceId,
+      deletedAt: null,
       $or: [
         { title: { $regex: safe, $options: 'i' } },
-        { content: { $regex: safe, $options: 'i' } }
+        { content: { $regex: safe, $options: 'i' } },
+        ...(tagIds.length ? [{ tagIds: { $in: tagIds } }] : [])
       ]
     }).sort({ createdAt: -1 });
 

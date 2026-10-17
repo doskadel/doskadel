@@ -5,6 +5,7 @@ import MultiSelect from './MultiSelect';
 import { Status } from '../utils/status';
 import { PRIORITY_OPTIONS } from '../utils/priority';
 import { TASK_SORT_OPTIONS } from '../utils/sort';
+import { listTags, Tag } from '../utils/tags';
 
 export type TaskTypeFilter = 'single' | 'recurring' | null;
 
@@ -32,6 +33,10 @@ interface FilterBarProps {
   hideSort?: boolean;
   dueFilter?: 'overdue' | 'dueSoon' | null;
   onDueFilterClear?: () => void;
+  tagIds?: string[];
+  onTagIdsChange?: (ids: string[]) => void;
+  tagMode?: 'any' | 'all';
+  onTagModeChange?: (m: 'any' | 'all') => void;
 }
 
 const FilterBar: React.FC<FilterBarProps> = ({
@@ -39,8 +44,11 @@ const FilterBar: React.FC<FilterBarProps> = ({
   taskType, onTaskTypeChange, dateFrom, dateTo, onDateFromChange, onDateToChange, onDatesClear,
   statuses, onReset, hasActiveFilters, dateError, sort, onSortChange, defaultSort, hideSort = false,
   dueFilter = null, onDueFilterClear,
+  tagIds = [], onTagIdsChange, tagMode = 'any', onTagModeChange,
 }) => {
   const [searchOpen, setSearchOpen] = useState(false);
+  const [allTags, setAllTags] = useState<Tag[]>([]);
+  useEffect(() => { listTags().then(setAllTags).catch(() => {}); }, []);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -63,7 +71,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
   const isSortActive = sort !== defaultSort;
   const activeSortLabel = TASK_SORT_OPTIONS.find((o) => o.value === sort)?.label || 'Сортировка';
   // Маркер фильтра — только по полям фильтра (без поиска и сортировки)
-  const filterActive = statusIds.length > 0 || priorityFilter.length > 0 || !!taskType || isDatesActive || !!dueFilter;
+  const filterActive = statusIds.length > 0 || priorityFilter.length > 0 || !!taskType || isDatesActive || !!dueFilter || tagIds.length > 0;
 
   return (
     <div className="filter-bar">
@@ -81,6 +89,17 @@ const FilterBar: React.FC<FilterBarProps> = ({
               <div className="fb-field"><MultiSelect label="Статус" options={statusOptions} selected={statusIds} onChange={(v) => onStatusIdsChange(v as string[])} placeholder="Все" /></div>
               <div className="fb-field"><MultiSelect label="Приоритет" options={priorityOptions} selected={priorityFilter} onChange={(v) => onPriorityFilterChange(v as number[])} placeholder="Все" /></div>
               <div className="fb-field"><MultiSelect label="Тип" options={taskTypeOptions} selected={taskTypeSelected} onChange={handleTaskTypeChange} placeholder="Все" /></div>
+              {allTags.length > 0 && onTagIdsChange && (
+                <div className="fb-field">
+                  <MultiSelect label="Теги" options={allTags.map((t) => ({ value: t._id, label: t.name }))} selected={tagIds} onChange={(v) => onTagIdsChange(v as string[])} placeholder="Все" />
+                  {tagIds.length > 1 && onTagModeChange && (
+                    <div className="fb-tagmode">
+                      <button type="button" className={tagMode === 'any' ? 'fb-tagmode--on' : ''} onClick={() => onTagModeChange('any')}>Любой</button>
+                      <button type="button" className={tagMode === 'all' ? 'fb-tagmode--on' : ''} onClick={() => onTagModeChange('all')}>Все</button>
+                    </div>
+                  )}
+                </div>
+              )}
               {dueFilter && (
                 <div className="fb-field">
                   <span className="fb-field-label">Срок</span>
