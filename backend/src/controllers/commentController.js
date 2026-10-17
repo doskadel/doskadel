@@ -69,7 +69,7 @@ const createComment = async (req, res) => {
       const parent = await Comment.findOne({ _id: parentId, workspaceId: req.workspaceId, ownerType, ownerId, deletedAt: null });
       if (!parent) return res.status(400).json({ success: false, message: 'Родительский комментарий не найден' });
       // Глубина 2: ответ на ответ -> привязываем к корню
-      rootParentId = parent.parentId || parent._id;
+      rootParentId = parent._id; // полное дерево (Jira-style), без схлопывания
     }
 
     const body = {};
