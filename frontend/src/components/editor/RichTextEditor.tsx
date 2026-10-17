@@ -39,15 +39,9 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
   const insertFileAt = async (file: File, editor: any, pos?: number) => {
     const fn = onUploadFileRef.current;
     if (!fn) return;
-    const meta = await fn(file);
-    if (!meta || !editor) return;
-    const isImg = (meta.mime || '').startsWith('image/');
-    const node = isImg
-      ? { type: 'image', attrs: { src: `attachment:${meta.id}`, alt: meta.filename } }
-      : { type: 'attachmentChip', attrs: { id: meta.id, filename: meta.filename, mime: meta.mime } };
-    const chain = editor.chain().focus();
-    if (typeof pos === 'number') chain.insertContentAt(pos, node).run();
-    else chain.insertContent(node).run();
+    // Загружаем файл; в текст НЕ вставляем автоматически — он появится в блоке вложений.
+    // Вставка в текст — только перетаскиванием из блока (custom MIME в handleDrop).
+    await fn(file);
   };
   const editor = useEditor({
     extensions: editorExtensions,
