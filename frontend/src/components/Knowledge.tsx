@@ -11,6 +11,8 @@ import { useConfirm } from './ConfirmProvider';
 import { useToast } from './Toast';
 import SwipeableRow from './SwipeableRow';
 import RichTextEditor from './editor/RichTextEditor';
+import AttachmentBlock from './attachments/AttachmentBlock';
+import { uploadAttachment, attachToOwner } from '../utils/attachments';
 import { stripMarkdown, plainTextFromJson } from '../utils/markdown';
 
 interface Article {
@@ -42,6 +44,7 @@ const Knowledge: React.FC = () => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [contentJson, setContentJson] = useState<any>(null);
+  const [pendingAttachmentIds, setPendingAttachmentIds] = useState<string[]>([]);
 
   const [searchInput, setSearchInput] = useState(q);
 
@@ -118,6 +121,7 @@ const Knowledge: React.FC = () => {
     setTitle('');
     setContent('');
     setContentJson(null);
+    setPendingAttachmentIds([]);
   };
 
   const isCreateFormDirty = (): boolean => {
@@ -158,7 +162,11 @@ const Knowledge: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.post('/api/articles', { title, content, contentJson });
+      const created = await api.post('/api/articles', { title, content, contentJson });
+      const newId = created?.data?.article?._id;
+      if (newId && pendingAttachmentIds.length) {
+        try { await attachToOwner('article', newId, pendingAttachmentIds); } catch (e) { console.error('attach failed', e); }
+      }
       resetCreateForm();
       setCreateOpen(false);
       fetchArticles();
@@ -249,6 +257,19 @@ const Knowledge: React.FC = () => {
             initialMarkdown={content}
             onChange={(json, md) => { setContentJson(json); setContent(md); }}
             placeholder="Введите текст статьи..."
+            onUploadFile={async (file) => {
+              try {
+                const att = await uploadAttachment(file, {});
+                setPendingAttachmentIds((prev) => [...prev, att._id]);
+                return { id: att._id, filename: att.filename, mime: att.mime };
+              } catch { return null; }
+            }}
+          />
+          <AttachmentBlock
+            ownerType="article"
+            ownerId={null}
+            pendingIds={pendingAttachmentIds}
+            onPendingChange={setPendingAttachmentIds}
           />
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: 'var(--space-sm)' }}>
             <button

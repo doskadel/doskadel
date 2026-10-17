@@ -17,6 +17,8 @@ import FilterBar, { TaskTypeFilter } from './FilterBar';
 import RecurrencePicker from './RecurrencePicker';
 import ClearableField from './ClearableField';
 import RichTextEditor from './editor/RichTextEditor';
+import AttachmentBlock from './attachments/AttachmentBlock';
+import { uploadAttachment, attachToOwner } from '../utils/attachments';
 import MarkdownRenderer from './MarkdownRenderer';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { PRIORITY_OPTIONS, getPriorityLabel } from '../utils/priority';
@@ -139,6 +141,7 @@ const Tasks: React.FC = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [descriptionJson, setDescriptionJson] = useState<any>(null);
+  const [pendingAttachmentIds, setPendingAttachmentIds] = useState<string[]>([]);
   const [priority, setPriority] = useState<number | ''>('');
   const [dueDate, setDueDate] = useState('');
   const [isRecurring, setIsRecurring] = useState(false);
@@ -253,6 +256,7 @@ const Tasks: React.FC = () => {
     setTitle('');
     setDescription('');
     setDescriptionJson(null);
+    setPendingAttachmentIds([]);
     setPriority('');
     setDueDate('');
     setIsRecurring(false);
@@ -309,7 +313,11 @@ const Tasks: React.FC = () => {
         payload.dueDate = dueDate ? new Date(dueDate).toISOString() : null;
       }
 
-      await api.post('/api/tasks', payload);
+      const created = await api.post('/api/tasks', payload);
+      const newId = created?.data?.task?._id;
+      if (newId && pendingAttachmentIds.length) {
+        try { await attachToOwner('task', newId, pendingAttachmentIds); } catch (e) { console.error('attach failed', e); }
+      }
       resetCreateForm();
       setCreateOpen(false);
       refreshAll();
@@ -545,6 +553,19 @@ const Tasks: React.FC = () => {
             initialMarkdown={!descriptionJson && description ? description : undefined}
             onChange={(json, md) => { setDescriptionJson(json); setDescription(md); }}
             placeholder="Описание"
+            onUploadFile={async (file) => {
+              try {
+                const att = await uploadAttachment(file, {});
+                setPendingAttachmentIds((prev) => [...prev, att._id]);
+                return { id: att._id, filename: att.filename, mime: att.mime };
+              } catch { return null; }
+            }}
+          />
+          <AttachmentBlock
+            ownerType="task"
+            ownerId={null}
+            pendingIds={pendingAttachmentIds}
+            onPendingChange={setPendingAttachmentIds}
           />
           <div className="task-fields-grid">
             <div className="task-col">
