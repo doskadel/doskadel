@@ -90,11 +90,17 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
       alignCenter: editor?.isActive({ textAlign: 'center' }) ?? false,
       alignRight: editor?.isActive({ textAlign: 'right' }) ?? false,
       vAlign: editor?.getAttributes('tableCell').verticalAlign || editor?.getAttributes('tableHeader').verticalAlign || null,
+      lineHeight: (() => {
+        const a = editor?.getAttributes('paragraph').lineHeight ?? editor?.getAttributes('heading').lineHeight;
+        return a ? String(a) : '1.5';
+      })(),
     }),
   });
 
   // Сохраняем позицию курсора на mousedown тулбара, чтобы клик по кнопке не сбивал выделение.
   const savedSel = React.useRef<{ from: number; to: number } | null>(null);
+  // Отдельно для селекта интервала: выделение на момент клика.
+  const selectSel = React.useRef<{ from: number; to: number } | null>(null);
   const onToolbarMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
     if (editor) {
@@ -160,6 +166,31 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
         <button type="button" className={btn(state.alignLeft)} onClick={() => chain()?.setTextAlign('left').run()} title="По левому краю"><AlignLeft size={16} /></button>
         <button type="button" className={btn(state.alignCenter)} onClick={() => chain()?.setTextAlign('center').run()} title="По центру"><AlignCenter size={16} /></button>
         <button type="button" className={btn(state.alignRight)} onClick={() => chain()?.setTextAlign('right').run()} title="По правому краю"><AlignRight size={16} /></button>
+
+        <span className="rte-sep" />
+        <select
+          className="rte-select"
+          title="Межстрочный интервал"
+          aria-label="Межстрочный интервал"
+          value={(state as any).lineHeight || '1.5'}
+          onChange={(e) => {
+            const v = e.target.value;
+            const sel = selectSel.current;
+            const c = editor.chain().focus();
+            if (sel) c.setTextSelection({ from: sel.from, to: sel.to });
+            c.setLineHeight(parseFloat(v)).run();
+            selectSel.current = null;
+          }}
+          onMouseDown={(e) => {
+            e.stopPropagation();
+            const { from, to } = editor.state.selection;
+            selectSel.current = { from, to };
+          }}
+        >
+          <option value="1">1.0</option>
+          <option value="1.5">1.5</option>
+          <option value="2">2.0</option>
+        </select>
 
         <span className="rte-sep" />
         <button type="button" className={btn(state.link)} onClick={setLink} title="Ссылка"><LinkIcon size={16} /></button>

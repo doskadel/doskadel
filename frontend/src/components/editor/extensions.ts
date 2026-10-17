@@ -10,6 +10,8 @@ import TaskItem from '@tiptap/extension-task-item';
 
 import TextAlign from '@tiptap/extension-text-align';
 import { Markdown } from 'tiptap-markdown';
+import { LineHeight } from './LineHeight';
+
 import { Extension } from '@tiptap/core';
 
 /**
@@ -28,6 +30,7 @@ export const editorExtensions = [
   TextAlign.configure({
     types: ['heading', 'paragraph', 'tableCell', 'tableHeader'],
   }),
+  LineHeight,
   Table.configure({
     resizable: true,
     lastColumnResizable: true,
