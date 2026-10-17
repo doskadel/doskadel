@@ -33,16 +33,6 @@ const btn = (active: boolean) => 'rte-btn' + (active ? ' rte-btn--active' : '');
 
 const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initialMarkdown, placeholder, onUploadFile, minimal, autoFocus }) => {
   const autoFocusedRef = React.useRef(false);
-  React.useEffect(() => {
-    if (autoFocus && editor && !autoFocusedRef.current) {
-      autoFocusedRef.current = true;
-      const t = setTimeout(() => {
-        const max = editor.state.doc.content.size;
-        editor.chain().focus().setTextSelection(Math.min(1, max)).run();
-      }, 40);
-      return () => clearTimeout(t);
-    }
-  }, [editor, autoFocus]);
   const onUploadFileRef = React.useRef(onUploadFile);
   onUploadFileRef.current = onUploadFile;
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -222,6 +212,17 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
       editor.commands.setContent(value, { emitUpdate: false });
     }
   }, [value, editor]);
+
+  React.useEffect(() => {
+    if (autoFocus && editor && !autoFocusedRef.current) {
+      autoFocusedRef.current = true;
+      const t = setTimeout(() => {
+        const max = editor.state.doc.content.size;
+        editor.chain().focus().setTextSelection(Math.min(1, max)).run();
+      }, 40);
+      return () => clearTimeout(t);
+    }
+  }, [editor, autoFocus]);
 
   const state = useEditorState({
     editor,
