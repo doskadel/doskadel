@@ -2895,6 +2895,7 @@ color: var(--color-text);
   border-bottom: 1px solid var(--color-border);
 }
 .rte-table-hint { font-size: 12px; color: var(--color-text-muted); margin-right: 4px; }
+.rte-table-hint--icon { display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; }
 .rte-editor { flex: 1; min-height: 0; overflow-y: auto; }
 .rte-content {
   padding: var(--space-lg); min-height: 100%; outline: none;

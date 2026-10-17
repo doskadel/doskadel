@@ -5,7 +5,7 @@ import {
   Heading1, Heading2, Heading3,
   List, ListOrdered, ListChecks, Quote, Code, Minus,
   Link as LinkIcon, Image as ImageIcon,
-  Table as TableIcon, Trash2, Rows3, Columns3,
+  Table as TableIcon, Trash2, Rows3, Columns3, Plus,
   AlignLeft, AlignCenter, AlignRight,
   AlignVerticalJustifyStart, AlignVerticalJustifyCenter, AlignVerticalJustifyEnd,
 } from 'lucide-react';
@@ -145,10 +145,12 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
 
       {state.inTable && (
         <div className="rte-table-bar" role="toolbar" aria-label="Действия с таблицей">
-          <button type="button" className="rte-btn" onClick={() => chain()?.addRowAfter().run()} title="Добавить строку"><Rows3 size={15} /> +строка</button>
-          <button type="button" className="rte-btn" onClick={() => chain()?.addColumnAfter().run()} title="Добавить столбец"><Columns3 size={15} /> +столбец</button>
-          <button type="button" className="rte-btn" onClick={() => chain()?.deleteRow().run()} title="Удалить строку">−строка</button>
-          <button type="button" className="rte-btn" onClick={() => chain()?.deleteColumn().run()} title="Удалить столбец">−столбец</button>
+          <span className="rte-table-hint rte-table-hint--icon"><Rows3 size={14} /> Строка</span>
+          <button type="button" className="rte-btn" onClick={() => chain()?.addRowAfter().run()} title="Добавить строку" aria-label="Добавить строку"><Plus size={15} /></button>
+          <button type="button" className="rte-btn" onClick={() => chain()?.deleteRow().run()} title="Удалить строку" aria-label="Удалить строку"><Minus size={15} /></button>
+          <span className="rte-table-hint rte-table-hint--icon"><Columns3 size={14} /> Столбец</span>
+          <button type="button" className="rte-btn" onClick={() => chain()?.addColumnAfter().run()} title="Добавить столбец" aria-label="Добавить столбец"><Plus size={15} /></button>
+          <button type="button" className="rte-btn" onClick={() => chain()?.deleteColumn().run()} title="Удалить столбец" aria-label="Удалить столбец"><Minus size={15} /></button>
           <span className="rte-sep" />
           <span className="rte-table-hint">По вертикали:</span>
           <button type="button" className={btn((state as any).vAlign === 'top')} onClick={() => setVAlign('top')} title="Сверху" aria-label="Выровнять сверху"><AlignVerticalJustifyStart size={15} /></button>
