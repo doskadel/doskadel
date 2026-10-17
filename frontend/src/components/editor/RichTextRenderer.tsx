@@ -13,8 +13,8 @@ import api from '../../utils/api';
 // Компонент-картинка для режима просмотра: attachment:<id> -> blob.
 const RenderedAttachmentImage: React.FC<{ attId: string; alt?: string; width?: number | null }> = ({ attId, alt, width }) => {
   const { url, loading, error } = useAttachmentUrl(attId);
-  const style = width ? { width: `${width}px`, maxWidth: '100%', height: 'auto' as const } : undefined;
-  if (url) return <img src={url} alt={alt || ''} style={style} />;
+  const style = width ? { width: `${width}px`, maxWidth: '100%', height: 'auto' as const } : { maxWidth: '100%', height: 'auto' as const };
+  if (url) return <img src={url} alt={alt || ''} style={{ ...style, display: 'block' }} />;
   return <span className="att-inline-ph">{loading ? '…' : (error ? '⚠ файл недоступен' : '')}</span>;
 };
 
@@ -125,6 +125,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({ contentJson, markdo
       const id = parseAttachmentId(img.getAttribute('src'));
       if (!id) return;
       const holder = document.createElement('span');
+      holder.style.display = 'block';
       const wAttr = img.getAttribute('width') || (img as HTMLElement).style.width;
       const width = wAttr ? parseInt(wAttr, 10) || null : null;
       img.replaceWith(holder);
