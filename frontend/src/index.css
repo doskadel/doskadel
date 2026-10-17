@@ -3333,6 +3333,7 @@ color: var(--color-text);
 .rte-content ul[data-type="taskList"] li > label { margin-top: 3px; }
 ul[data-type="taskList"] li[data-checked="true"] > div p,
 ul[data-type="taskList"] li:has(input[type="checkbox"]:checked) > div p { text-decoration: line-through !important; opacity: 0.6; }
+ul[data-type="taskList"] li:has(input[type="checkbox"]:not(:checked)) > div p { text-decoration: none !important; opacity: 1 !important; }
 /* Отступы между пунктами любых списков (редактор) */
 .rte-content ul, .rte-content ol { margin: 0 0 0.7em; }
 .rte-content li { margin: 0 0 0.9em; }

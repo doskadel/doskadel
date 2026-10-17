@@ -64,6 +64,9 @@ const TaskModalContent: React.FC<TaskModalContentProps> = (props) => {
     onSave, onCancel, onQuickChangeStatus, onQuickAction, pendingCount = 0, onChecklistSaved,
   } = props;
 
+  const checklistBase = React.useRef<any>(null);
+  React.useEffect(() => { checklistBase.current = null; }, [task?.descriptionJson]);
+
   if (loading) return <p>Загрузка...</p>;
   if (error) return <p style={{ color: 'var(--color-danger)' }}>{error}</p>;
   if (!task) return null;
@@ -98,7 +101,9 @@ const TaskModalContent: React.FC<TaskModalContentProps> = (props) => {
         className="md-content"
         onToggleCheck={(idx, checked) => {
           if (!task.descriptionJson) return;
-          const next = toggleChecklistItem(task.descriptionJson, idx, checked);
+          const base = checklistBase.current || task.descriptionJson;
+          const next = toggleChecklistItem(base, idx, checked);
+          checklistBase.current = next;
           api.put(`/api/tasks/${task._id}`, { descriptionJson: next, descriptionFormat: 'json' })
             .then(() => onChecklistSaved?.())
             .catch(() => {});

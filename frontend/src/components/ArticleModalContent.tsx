@@ -41,6 +41,9 @@ const ArticleModalContent: React.FC<ArticleModalContentProps> = ({
   article, loading, error, isEditing, editTitle, editContent, editContentJson, editTagIds, saving,
   setEditTitle, setEditContent, setEditContentJson, setEditTagIds, onSave, onCancel, onChecklistSaved,
 }) => {
+  const checklistBase = React.useRef<any>(null);
+  React.useEffect(() => { checklistBase.current = null; }, [article?.contentJson]);
+
   if (loading) return <p>Загрузка...</p>;
   if (error) return <p style={{ color: 'var(--color-danger)' }}>{error}</p>;
   if (!article) return null;
@@ -69,7 +72,9 @@ const ArticleModalContent: React.FC<ArticleModalContentProps> = ({
       markdown={article.content}
       onToggleCheck={(idx, checked) => {
         if (!article.contentJson) return;
-        const next = toggleChecklistItem(article.contentJson, idx, checked);
+        const base = checklistBase.current || article.contentJson;
+        const next = toggleChecklistItem(base, idx, checked);
+        checklistBase.current = next;
         api.put(`/api/articles/${article._id}`, { contentJson: next })
           .then(() => onChecklistSaved?.())
           .catch(() => {});
