@@ -2055,6 +2055,28 @@ color: var(--color-text);
   }
 }
 
+/* ==================== ENTITY LAYOUT (статья/задача) ==================== */
+.entity-layout { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: 'head' 'aside' 'body' 'extras'; gap: var(--space-md); }
+.entity-head { grid-area: head; }
+.entity-body { grid-area: body; min-width: 0; }
+.entity-extras { grid-area: extras; min-width: 0; }
+.entity-aside { grid-area: aside; min-width: 0; }
+.entity-aside-toggle { display: none; width: 100%; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 12px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface-alt); color: var(--color-text); font-family: inherit; font-weight: 600; cursor: pointer; }
+.entity-aside-inner { display: none; flex-direction: column; gap: var(--space-md); }
+.entity-aside-inner--open { display: flex; }
+@media (min-width: 900px) {
+  .entity-layout { grid-template-columns: minmax(0, 1fr) 300px; grid-template-areas: 'head aside' 'body aside' 'extras aside'; column-gap: var(--space-lg); }
+  .entity-aside { border-left: 1px solid var(--color-border); padding-left: var(--space-lg); align-self: start; position: sticky; top: 0; max-height: calc(100vh - 160px); overflow-y: auto; }
+  .entity-aside-toggle { display: none; }
+  .entity-aside-inner { display: flex; }
+}
+@media (min-width: 900px) and (max-width: 1100px) {
+  .entity-layout { grid-template-columns: minmax(0, 1fr) 260px; }
+}
+.entity-aside-field { display: flex; flex-direction: column; gap: 4px; }
+.entity-aside-label { font-size: 12px; text-transform: uppercase; color: var(--color-text-muted); }
+.entity-aside-value { color: var(--color-text); font-size: 15px; }
+
 /* ==================== COMMENTS ==================== */
 .comment-section { margin-top: var(--space-lg); padding-top: var(--space-md); border-top: 1px solid var(--color-border); }
 .comment-head { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; margin-bottom: var(--space-sm); }
