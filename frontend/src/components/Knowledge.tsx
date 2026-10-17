@@ -11,6 +11,9 @@ import { useConfirm } from './ConfirmProvider';
 import { useToast } from './Toast';
 import SwipeableRow from './SwipeableRow';
 import RichTextEditor from './editor/RichTextEditor';
+import AttachmentBlock from './attachments/AttachmentBlock';
+import { removeAttachmentFromJson } from './editor/normalize';
+import { uploadAttachment, attachToOwner } from '../utils/attachments';
 import { stripMarkdown, plainTextFromJson } from '../utils/markdown';
 
 interface Article {
@@ -42,6 +45,7 @@ const Knowledge: React.FC = () => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [contentJson, setContentJson] = useState<any>(null);
+  const [pendingAttachments, setPendingAttachments] = useState<import('../utils/attachments').AttachmentMeta[]>([]);
 
   const [searchInput, setSearchInput] = useState(q);
 
@@ -118,6 +122,7 @@ const Knowledge: React.FC = () => {
     setTitle('');
     setContent('');
     setContentJson(null);
+    setPendingAttachments([]);
   };
 
   const isCreateFormDirty = (): boolean => {
@@ -158,7 +163,11 @@ const Knowledge: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.post('/api/articles', { title, content, contentJson });
+      const created = await api.post('/api/articles', { title, content, contentJson });
+      const newId = created?.data?.article?._id;
+      if (newId && pendingAttachments.length) {
+        try { await attachToOwner('article', newId, pendingAttachments.map((a) => a._id)); } catch (e) { console.error('attach failed', e); }
+      }
       resetCreateForm();
       setCreateOpen(false);
       fetchArticles();
@@ -249,6 +258,20 @@ const Knowledge: React.FC = () => {
             initialMarkdown={content}
             onChange={(json, md) => { setContentJson(json); setContent(md); }}
             placeholder="Введите текст статьи..."
+            onUploadFile={async (file) => {
+              try {
+                const att = await uploadAttachment(file, {});
+                setPendingAttachments((prev) => [...prev, att]);
+                return { id: att._id, filename: att.filename, mime: att.mime };
+              } catch { return null; }
+            }}
+          />
+          <AttachmentBlock
+            ownerType="article"
+            ownerId={null}
+            pendingItems={pendingAttachments}
+            onPendingChange={setPendingAttachments}
+            onDeleted={(att) => setContentJson((prev: any) => removeAttachmentFromJson(prev, att._id))}
           />
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: 'var(--space-sm)' }}>
             <button

@@ -9,6 +9,9 @@ import RecurrencePicker from './RecurrencePicker';
 import ClearableField from './ClearableField';
 import RichTextEditor from './editor/RichTextEditor';
 import RichTextRenderer from './editor/RichTextRenderer';
+import { removeAttachmentFromJson } from './editor/normalize';
+import AttachmentBlock from './attachments/AttachmentBlock';
+import { uploadAttachment, notifyAttachmentsChanged } from '../utils/attachments';
 
 interface TaskModalContentProps {
   task: Task | null;
@@ -88,6 +91,18 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
           initialMarkdown={!editDescriptionJson && editDescription ? editDescription : undefined}
           onChange={(json, md) => { setEditDescriptionJson(json); setEditDescription(md); }}
           placeholder="Описание"
+          onUploadFile={async (file) => {
+            try {
+              const att = await uploadAttachment(file, { ownerType: 'task', ownerId: task!._id });
+              notifyAttachmentsChanged();
+              return { id: att._id, filename: att.filename, mime: att.mime };
+            } catch { return null; }
+          }}
+        />
+        <AttachmentBlock
+          ownerType="task"
+          ownerId={task!._id}
+          onDeleted={(att) => setEditDescriptionJson((prev: any) => removeAttachmentFromJson(prev, att._id))}
         />
         <div className="task-fields-grid">
           <div className="task-col">
@@ -183,11 +198,13 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
         {(task.descriptionJson || task.description) ? (
           <RichTextRenderer contentJson={task.descriptionJson} markdown={task.description} className="md-content" />
         ) : (
-          <p style={{ color: 'var(--color-text-muted)', fontStyle: 'italic', margin: 0 }}>
+          <p style={{ color: 'var(--color-text-muted)', fontStyle: 'italic', margin: 0, textAlign: 'center' }}>
             Нет описания
           </p>
         )}
       </div>
+
+      <AttachmentBlock ownerType="task" ownerId={task._id} readOnly />
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-md)' }}>
         <div>

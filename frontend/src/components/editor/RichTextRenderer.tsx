@@ -1,10 +1,37 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { createRoot, Root } from 'react-dom/client';
 import { generateHTML } from '@tiptap/core';
 import DOMPurify from 'dompurify';
 import { editorExtensions } from './extensions';
 import { lowlight } from './lowlight';
 import { formatCode } from './codeFormat';
 import MarkdownRenderer from '../MarkdownRenderer';
+import { useAttachmentUrl, parseAttachmentId, AttachmentMeta } from '../../utils/attachments';
+import AttachmentViewer from '../attachments/AttachmentViewer';
+import api from '../../utils/api';
+
+// Компонент-картинка для режима просмотра: attachment:<id> -> blob.
+const RenderedAttachmentImage: React.FC<{ attId: string; alt?: string; width?: number | null }> = ({ attId, alt, width }) => {
+  const { url, loading, error } = useAttachmentUrl(attId);
+  const style = width ? { width: `${width}px`, maxWidth: '100%', height: 'auto' as const } : { maxWidth: '100%', height: 'auto' as const };
+  if (url) return <img src={url} alt={alt || ''} style={{ ...style, display: 'block' }} />;
+  return <span className="att-inline-ph">{loading ? '…' : (error ? '⚠ файл недоступен' : '')}</span>;
+};
+
+// Чип не-картинки для просмотра: клик открывает вьювер, скачивание — кнопкой внутри.
+const RenderedAttachmentChip: React.FC<{ attId: string; filename: string; mime?: string }> = ({ attId, filename, mime }) => {
+  const { error } = useAttachmentUrl(attId);
+  const deleted = error;
+  const [open, setOpen] = React.useState(false);
+  return (
+    <>
+      <span className={'attachment-chip' + (deleted ? ' attachment-chip--deleted' : '')} onClick={deleted ? undefined : () => setOpen(true)} title={deleted ? filename : `Открыть: ${filename}`}>
+        {deleted ? `${filename} (удалён)` : filename}
+      </span>
+      {open && <AttachmentViewer att={{ _id: attId, filename, mime: mime || '' }} onClose={() => setOpen(false)} />}
+    </>
+  );
+};
 
 interface RichTextRendererProps {
   contentJson?: any;
@@ -56,7 +83,11 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({ contentJson, markdo
     if (!contentJson) { setHtml(''); return; }
     let raw = '';
     try { raw = generateHTML(contentJson, editorExtensions); } catch (e) { console.error('[RICH] generateHTML failed:', e); }
-    const clean = DOMPurify.sanitize(raw, { ADD_ATTR: ['data-valign', 'data-row-height', 'style', 'data-color'] });
+    const clean = DOMPurify.sanitize(raw, {
+      ADD_ATTR: ['data-valign', 'data-row-height', 'style', 'data-color', 'data-attachment-id', 'data-mime'],
+      ADD_URI_SAFE_ATTR: ['src', 'href'],
+      ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto|tel|attachment):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
+    });
     setHtml(clean);
   }, [contentJson]);
 
@@ -87,6 +118,32 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({ contentJson, markdo
       wrapper.appendChild(header);
       wrapper.appendChild(pre);
     });
+
+    // Attachment-узлы: заменяем на React-корни с хуком useAttachmentUrl.
+    const roots: Root[] = [];
+    root.querySelectorAll('img[src^="attachment:"]').forEach((img) => {
+      const id = parseAttachmentId(img.getAttribute('src'));
+      if (!id) return;
+      const holder = document.createElement('span');
+      holder.style.display = 'block';
+      const wAttr = img.getAttribute('width') || (img as HTMLElement).style.width;
+      const width = wAttr ? parseInt(wAttr, 10) || null : null;
+      img.replaceWith(holder);
+      const r = createRoot(holder);
+      r.render(<RenderedAttachmentImage attId={id} alt={img.getAttribute('alt') || ''} width={width} />);
+      roots.push(r);
+    });
+    root.querySelectorAll('a[data-attachment-id]').forEach((a) => {
+      const id = a.getAttribute('data-attachment-id');
+      if (!id) return;
+      const holder = document.createElement('span');
+      a.replaceWith(holder);
+      const r = createRoot(holder);
+      r.render(<RenderedAttachmentChip attId={id} filename={(a.textContent || 'файл')} mime={a.getAttribute('data-mime') || ''} />);
+      roots.push(r);
+    });
+
+    return () => { roots.forEach((r) => r.unmount()); };
   }, [html]);
 
   const onClick = (e: React.MouseEvent) => {
