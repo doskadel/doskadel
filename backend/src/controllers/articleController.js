@@ -10,8 +10,16 @@ const createArticle = async (req, res) => {
     const { title, content } = req.body;
     // Гибридное хранение (ADR): contentJson — источник правды, content — производный MD.
     const descFields = applyDescriptionFields(req.body, { content }, { json: 'contentJson', md: 'content', format: 'format' });
+    let tagIds = [];
+    if (req.body.tagIds !== undefined) {
+      const { validateTagIds } = require('./tagController');
+      const ok = await validateTagIds(req.body.tagIds, req.workspaceId);
+      if (!ok) return res.status(400).json({ success: false, message: 'Некорректные теги' });
+      tagIds = req.body.tagIds;
+    }
     const article = new Article({
       title,
+      tagIds,
       ...descFields,
       workspaceId: req.workspaceId,
       userId: req.user._id,
@@ -136,6 +144,12 @@ const updateArticle = async (req, res) => {
     if (!canByMembership(req.membership, 'update')) return res.status(403).json({ success: false, message: 'Forbidden' });
     const updateData = {};
     if (req.body.title !== undefined) updateData.title = req.body.title;
+    if (req.body.tagIds !== undefined) {
+      const { validateTagIds } = require('./tagController');
+      const ok = await validateTagIds(req.body.tagIds, req.workspaceId);
+      if (!ok) return res.status(400).json({ success: false, message: 'Некорректные теги' });
+      updateData.tagIds = req.body.tagIds;
+    }
     // Гибрид (ADR): contentJson — source of truth, content — производный MD.
     applyDescriptionFields(req.body, updateData, { json: 'contentJson', md: 'content', format: 'format' });
     const article = await Article.findOneAndUpdate(

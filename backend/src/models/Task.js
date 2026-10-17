@@ -105,6 +105,10 @@ const taskSchema = new mongoose.Schema({
   },
   // Дата последнего возврата в нефинальный статус (F1f): вхождения считаются с неё.
   activeSince: { type: Date, default: null },
+  // Теги (Tag._id). Проверка принадлежности workspace — в контроллере.
+  tagIds: { type: [mongoose.Schema.Types.ObjectId], ref: 'Tag', default: [] },
+  // Счётчик комментариев (неудалённых).
+  commentsCount: { type: Number, default: 0 },
   // Авторство (createdBy = бывший userId). Позже — updatedBy/assigneeId/deletedAt
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
@@ -126,5 +130,7 @@ const taskSchema = new mongoose.Schema({
 taskSchema.index({ workspaceId: 1, statusId: 1, order: 1 });
 taskSchema.index({ workspaceId: 1, 'recurrence.freq': 1 });
 taskSchema.index({ workspaceId: 1, dueDate: 1 }); // для выборки разовых с близким dueDate
+
+taskSchema.index({ workspaceId: 1, tagIds: 1 });
 
 module.exports = mongoose.model('Task', taskSchema);

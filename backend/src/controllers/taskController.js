@@ -72,8 +72,17 @@ const createTask = async (req, res) => {
 
     const { title, description, priority, dueDate, recurrence, notifications } = req.body;
     const descFields = applyDescriptionFields(req.body, {});
+    // Теги: проверка принадлежности workspace.
+    let tagIds = [];
+    if (req.body.tagIds !== undefined) {
+      const { validateTagIds } = require('./tagController');
+      const ok = await validateTagIds(req.body.tagIds, req.workspaceId);
+      if (!ok) return res.status(400).json({ success: false, message: 'Некорректные теги' });
+      tagIds = req.body.tagIds;
+    }
     const task = new Task({
       title, description, priority, dueDate, recurrence, notifications,
+      tagIds,
       ...descFields,
       statusId,
       order,
@@ -374,7 +383,12 @@ const updateTask = async (req, res) => {
       }
     }
 
-    const allowed = ['title', 'description', 'statusId', 'priority', 'order', 'dueDate', 'recurrence', 'notifications'];
+    const allowed = ['title', 'description', 'statusId', 'priority', 'order', 'dueDate', 'recurrence', 'notifications', 'tagIds'];
+    if (req.body.tagIds !== undefined) {
+      const { validateTagIds } = require('./tagController');
+      const ok = await validateTagIds(req.body.tagIds, req.workspaceId);
+      if (!ok) return res.status(400).json({ success: false, message: 'Некорректные теги' });
+    }
     const updateData = {};
     allowed.forEach((k) => { if (req.body[k] !== undefined) updateData[k] = req.body[k]; });
     // Гибридное хранение описания: json — источник правды, description — производный MD.

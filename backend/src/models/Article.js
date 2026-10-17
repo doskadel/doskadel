@@ -44,12 +44,16 @@ const articleSchema = new mongoose.Schema({
   deletedAt: {
     type: Date,
     default: null
-  }
+  },
+  // Теги (Tag._id) и счётчик комментариев.
+  tagIds: { type: [mongoose.Schema.Types.ObjectId], ref: 'Tag', default: [] },
+  commentsCount: { type: Number, default: 0 }
 }, {
   timestamps: true
 });
 
 articleSchema.index({ workspaceId: 1, createdAt: -1 }); // список статей
 articleSchema.index({ workspaceId: 1, title: 1 }); // фильтр по title (префиксный)
+articleSchema.index({ workspaceId: 1, tagIds: 1 }); // теги
 
 module.exports = mongoose.model('Article', articleSchema);
