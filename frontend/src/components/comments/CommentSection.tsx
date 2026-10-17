@@ -28,6 +28,7 @@ const CommentEditor: React.FC<{
   const [pending, setPending] = useState<AttachmentMeta[]>([]);
   const [busy, setBusy] = useState(false);
   const [resetKey, setResetKey] = useState(0);
+  const [expanded, setExpanded] = useState(!!initialMarkdown || !!initialJson || !!onCancel);
 
   const submit = async () => {
     if (!json && !md.trim() && pending.length === 0) return;
@@ -36,8 +37,17 @@ const CommentEditor: React.FC<{
       await onSubmit(json, md, pending);
       setPending([]); setJson(null); setMd('');
       setResetKey((k) => k + 1); // ремоунт редактора -> пустое поле
+      if (!onCancel) setExpanded(false); // новый комментарий -> свернуть в строку
     } finally { setBusy(false); }
   };
+
+  if (!expanded) {
+    return (
+      <button type="button" className="comment-collapsed-input" onClick={() => setExpanded(true)}>
+        Написать комментарий…
+      </button>
+    );
+  }
 
   return (
     <div className="comment-editor">
@@ -65,7 +75,7 @@ const CommentEditor: React.FC<{
         </div>
       )}
       <div className="comment-editor-actions">
-        {onCancel && <button type="button" className="button" onClick={onCancel} style={{ backgroundColor: 'var(--color-text-muted)' }}>Отмена</button>}
+        <button type="button" className="button" onClick={() => { if (onCancel) onCancel(); else setExpanded(false); }} style={{ backgroundColor: 'var(--color-text-muted)' }} disabled={busy}>{onCancel ? 'Отмена' : 'Свернуть'}</button>
         <button type="button" className="button" onClick={submit} disabled={busy}>{busy ? '…' : submitLabel}</button>
       </div>
     </div>

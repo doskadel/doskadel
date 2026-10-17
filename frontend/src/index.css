@@ -2083,6 +2083,8 @@ color: var(--color-text);
 .comment-section { margin-top: var(--space-lg); padding-top: var(--space-md); border-top: 1px solid var(--color-border); }
 .comment-head { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; margin-bottom: var(--space-sm); }
 .comment-editor { margin-bottom: var(--space-md); }
+.comment-collapsed-input { width: 100%; text-align: left; padding: 10px 12px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-input); color: var(--color-text-muted); font-family: inherit; font-size: 14px; cursor: text; margin-bottom: var(--space-md); }
+.comment-collapsed-input:hover { border-color: var(--color-primary); }
 .comment-editor-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
 .comment-list { display: flex; flex-direction: column; gap: var(--space-md); }
 .comment-item { border-left: 2px solid var(--color-border); padding-left: var(--space-md); }
