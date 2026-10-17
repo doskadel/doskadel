@@ -1832,10 +1832,11 @@ color: var(--color-text);
 }
 @media (min-width: 900px) {
   .task-fields-grid {
-    grid-template-columns: 320px 1fr;
+    grid-template-columns: 320px 320px;
+    justify-content: start;
   }
   .task-col-right .recurrence-picker {
-    max-width: none;
+    max-width: 320px;
   }
 }
 .task-date .input {

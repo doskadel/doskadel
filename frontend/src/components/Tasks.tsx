@@ -586,7 +586,7 @@ const Tasks: React.FC = () => {
               {isRecurring ? (
                 <RecurrencePicker value={recurrence} onChange={setRecurrence} />
               ) : (
-                <div className="task-date" style={{ maxWidth: 'none' }}>
+                <div className="task-date">
                   <label className="input-label">Срок</label>
                   <ClearableField onClear={() => setDueDate('')} showClear={!!dueDate}>
                     <input

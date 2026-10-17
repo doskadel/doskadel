@@ -134,7 +134,7 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
             {editRecurrence ? (
               <RecurrencePicker value={editRecurrence} onChange={setEditRecurrence} />
             ) : (
-              <div className="task-date" style={{ maxWidth: 'none' }}>
+              <div className="task-date">
                 <label className="input-label">Срок</label>
                 <ClearableField onClear={() => setEditDueDate('')} showClear={!!editDueDate}>
                   <input
