@@ -50,25 +50,37 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
       handleDOMEvents: {
         mousedown: (view, e) => {
           const target = e.target as HTMLElement;
-          // Только клик по пустой области самого редактора (padding), не по блоку.
-          if (target !== view.dom) return false;
-          const coords = view.posAtCoords({ left: e.clientX, top: e.clientY });
-          if (!coords) return false;
-          const $pos = view.state.doc.resolve(coords.pos);
-          let d = $pos.depth;
-          while (d > 1) d--;
-          const insertAt = d === 1 ? $pos.after(1) : view.state.doc.content.size;
-          const nodeAfter = view.state.doc.nodeAt(insertAt);
-          if (nodeAfter && nodeAfter.type.name === 'paragraph' && nodeAfter.content.size === 0) {
-            view.dispatch(view.state.tr.setSelection(TextSelection.create(view.state.doc, insertAt + 1)));
-            view.focus();
-            e.preventDefault();
-            return true;
+          // Клик по реальному контенту (текст, ячейка, код, картинка) — обычное поведение.
+          if (target.closest('p, h1, h2, h3, li, table, td, th, pre, img, hr, blockquote, code')) return false;
+
+          // Клик по пустой области редактора. Определяем блок по вертикали (Y),
+          // вставляем пустой абзац ПОСЛЕ него (как в Notion).
+          const children = Array.from(view.dom.children) as HTMLElement[];
+          if (children.length === 0) return false;
+          const y = e.clientY;
+          let idx = -1;
+          for (let i = 0; i < children.length; i++) {
+            const r = children[i].getBoundingClientRect();
+            if (y >= r.top && y <= r.bottom) { idx = i; break; }
           }
-          const para = view.state.schema.nodes.paragraph.create();
-          const tr = view.state.tr.insert(insertAt, para);
-          tr.setSelection(TextSelection.create(tr.doc, insertAt + 1));
-          view.dispatch(tr);
+          if (idx < 0) {
+            const last = children[children.length - 1].getBoundingClientRect();
+            idx = y > last.bottom ? children.length - 1 : 0;
+          }
+          let insertAt = 0;
+          for (let i = 0; i <= idx && i < view.state.doc.childCount; i++) {
+            insertAt += view.state.doc.child(i).nodeSize;
+          }
+          // Клик в пустоту -> пустой абзац ПОСЛЕ блока + курсор в нём (Notion-style).
+          const after = view.state.doc.nodeAt(insertAt);
+          if (after && after.type.name === 'paragraph' && after.content.size === 0) {
+            view.dispatch(view.state.tr.setSelection(TextSelection.create(view.state.doc, insertAt + 1)));
+          } else {
+            const para = view.state.schema.nodes.paragraph.create();
+            const tr = view.state.tr.insert(insertAt, para);
+            tr.setSelection(TextSelection.create(tr.doc, insertAt + 1));
+            view.dispatch(tr);
+          }
           view.focus();
           e.preventDefault();
           return true;

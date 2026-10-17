@@ -2924,6 +2924,7 @@ color: var(--color-text);
 .rte-table-hint--icon { display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; }
 .rte-editor { flex: 1; min-height: 0; overflow-y: auto; }
 /* Gapcursor: курсор между блоками (код/таблица/картинка/hr) */
+.ProseMirror { position: relative; }
 .ProseMirror-gapcursor {
   display: none;
   pointer-events: none;
@@ -2934,14 +2935,16 @@ color: var(--color-text);
   display: block;
   position: absolute;
   top: -2px;
-  width: 20px;
-  border-top: 1px solid var(--color-primary);
+  width: 24px;
+  border-top: 2px solid currentColor;
   animation: ProseMirror-cursor-blink 1.1s steps(2, start) infinite;
 }
+.ProseMirror-gapcursor.ProseMirror-gapcursor--top:after { top: auto; bottom: -2px; }
 .ProseMirror-focused .ProseMirror-gapcursor { display: block; }
 @keyframes ProseMirror-cursor-blink { to { visibility: hidden; } }
 .rte-content {
   position: relative;
+  caret-color: var(--color-text);
   padding: var(--space-lg); min-height: 100%; outline: none;
   font-size: 15px; line-height: 1.5; color: var(--color-text);
 }
