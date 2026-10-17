@@ -1794,15 +1794,24 @@ color: var(--color-text);
   max-height: 94vh;
 }
 
-/* Служебные поля задачи в 2 колонки (не растягиваем на всю ширину) */
-.task-form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-md);
+/* Служебные поля задачи: компактные по ширине, не на всю модалку */
+.task-field {
+  max-width: 320px;
+  align-self: flex-start;
+  width: 100%;
 }
-.task-form-row > div { min-width: 0; }
-@media (max-width: 640px) {
-  .task-form-row { grid-template-columns: 1fr; }
+.task-field .input,
+.task-field select.input {
+  width: 100%;
+}
+/* Поля срока/даты — тоже компактные */
+.task-date {
+  max-width: 320px;
+  align-self: flex-start;
+  width: 100%;
+}
+.task-date .input {
+  width: 100%;
 }
 .modal-content--task .modal-body {
   padding-bottom: var(--space-2xl, 48px);

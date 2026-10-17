@@ -546,35 +546,33 @@ const Tasks: React.FC = () => {
             onChange={(json, md) => { setDescriptionJson(json); setDescription(md); }}
             placeholder="Описание"
           />
-          <div className="task-form-row">
-            <div>
-              <label className="input-label">Приоритет</label>
-              <select
-                value={priority}
-                onChange={(e) => setPriority(e.target.value === '' ? '' : parseInt(e.target.value))}
-                className="input"
-                required
-              >
-                <option value="" disabled hidden>Выберите приоритет</option>
-                {PRIORITY_OPTIONS.map((p) => (
-                  <option key={p.value} value={p.value}>{p.label}</option>
-                ))}
-              </select>
-            </div>
-            {!isRecurring && (
-              <div>
-                <label className="input-label">Срок</label>
-                <ClearableField onClear={() => setDueDate('')} showClear={!!dueDate}>
-                  <input
-                    type="datetime-local"
-                    value={dueDate}
-                    onChange={(e) => setDueDate(e.target.value)}
-                    className="input"
-                  />
-                </ClearableField>
-              </div>
-            )}
+          <div className="task-field">
+            <label className="input-label">Приоритет</label>
+            <select
+              value={priority}
+              onChange={(e) => setPriority(e.target.value === '' ? '' : parseInt(e.target.value))}
+              className="input"
+              required
+            >
+              <option value="" disabled hidden>Выберите приоритет</option>
+              {PRIORITY_OPTIONS.map((p) => (
+                <option key={p.value} value={p.value}>{p.label}</option>
+              ))}
+            </select>
           </div>
+          {!isRecurring && (
+            <div className="task-date">
+              <label className="input-label">Срок</label>
+              <ClearableField onClear={() => setDueDate('')} showClear={!!dueDate}>
+                <input
+                  type="datetime-local"
+                  value={dueDate}
+                  onChange={(e) => setDueDate(e.target.value)}
+                  className="input"
+                />
+              </ClearableField>
+            </div>
+          )}
 
           <div>
             <label className="input-label">Повторять</label>
