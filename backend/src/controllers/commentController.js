@@ -26,7 +26,7 @@ const listComments = async (req, res) => {
     const owner = await getOwner(ownerType, ownerId, req.workspaceId);
     if (!owner) return res.status(404).json({ success: false, message: 'Сущность не найдена' });
 
-    const comments = await Comment.find({ workspaceId: req.workspaceId, ownerType, ownerId, deletedAt: null }).sort({ createdAt: 1 }).populate('authorId', 'email').lean();
+    const comments = await Comment.find({ workspaceId: req.workspaceId, ownerType, ownerId, deletedAt: null }).sort({ createdAt: 1 }).populate('authorId', 'email avatar').lean();
     // Вложения комментариев: принадлежат owner, помечены commentId (Jira-style).
     const ids = comments.map((c) => c._id);
     const atts = await Attachment.find({ workspaceId: req.workspaceId, commentId: { $in: ids }, deletedAt: null, status: 'ready' }).lean();
@@ -39,6 +39,7 @@ const listComments = async (req, res) => {
       replyToUserId: c.replyToUserId,
       authorId: c.authorId?._id || c.authorId,
       authorEmail: c.authorId?.email || null,
+      authorAvatar: c.authorId?.avatar || null,
       content: c.deletedAt ? '' : c.content,
       contentJson: c.deletedAt ? null : c.contentJson,
       format: c.format,

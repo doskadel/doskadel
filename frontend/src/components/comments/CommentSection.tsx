@@ -117,7 +117,8 @@ const CommentNode: React.FC<{
   ownerId: string;
   onReply: (c: CommentItem) => void;
   onChanged: () => void;
-}> = ({ c, replies, ownerType, ownerId, onReply, onChanged }) => {
+  childrenOf: (id: string) => CommentItem[];
+}> = ({ c, replies, ownerType, ownerId, onReply, onChanged, childrenOf }) => {
   const { toast } = useToast();
   const confirm = useConfirm();
   const [editing, setEditing] = useState(false);
@@ -154,7 +155,12 @@ const CommentNode: React.FC<{
         )}
       </div>
       <div className="comment-meta">
-        {c.authorEmail && <span className="comment-author">{c.authorEmail}</span>}
+        {c.authorEmail && (
+          <span className="comment-author">
+            <span className="comment-avatar">{c.authorAvatar ? <img src={c.authorAvatar} alt="" /> : (c.authorEmail[0] || '?').toUpperCase()}</span>
+            {c.authorEmail}
+          </span>
+        )}
         <span className="comment-date">{new Date(c.createdAt).toLocaleString('ru-RU')}{c.editedAt ? ' · изменён' : ''}</span>
         {!c.deleted && (
           <span className="comment-actions">
@@ -167,7 +173,7 @@ const CommentNode: React.FC<{
       {viewer && <AttachmentViewer att={viewer} onClose={() => setViewer(null)} />}
       {replies.length > 0 && (
         <div className="comment-replies">
-          {replies.map((r) => <CommentNode key={r._id} c={r} replies={[]} ownerType={ownerType} ownerId={ownerId} onReply={onReply} onChanged={onChanged} />)}
+          {replies.map((r) => <CommentNode key={r._id} c={r} replies={childrenOf(r._id)} ownerType={ownerType} ownerId={ownerId} onReply={onReply} onChanged={onChanged} childrenOf={childrenOf} />)}
         </div>
       )}
     </div>
@@ -184,7 +190,7 @@ const CommentSection: React.FC<Props> = ({ ownerType, ownerId }) => {
   useEffect(() => { refresh(); /* eslint-disable-next-line */ }, [ownerType, ownerId]);
 
   const roots = items.filter((c) => !c.parentId);
-  const repliesOf = (id: string) => items.filter((c) => c.parentId === id);
+  const childrenOf = (id: string) => items.filter((c) => c.parentId === id);
 
   const submit = async (json: any, md: string, pending: AttachmentMeta[]) => {
     try {
@@ -203,7 +209,7 @@ const CommentSection: React.FC<Props> = ({ ownerType, ownerId }) => {
       ) : (
         <div className="comment-list">
           {roots.map((c) => (
-            <CommentNode key={c._id} c={c} replies={repliesOf(c._id)} ownerType={ownerType} ownerId={ownerId} onReply={setReplyTo} onChanged={refresh} />
+            <CommentNode key={c._id} c={c} replies={childrenOf(c._id)} ownerType={ownerType} ownerId={ownerId} onReply={setReplyTo} onChanged={refresh} childrenOf={childrenOf} />
           ))}
         </div>
       )}

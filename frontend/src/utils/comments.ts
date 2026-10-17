@@ -13,6 +13,7 @@ export interface CommentItem {
   replyToUserId: string | null;
   authorId: string;
   authorEmail?: string | null;
+  authorAvatar?: string | null;
   content: string;
   contentJson: any;
   format: 'md' | 'json';
