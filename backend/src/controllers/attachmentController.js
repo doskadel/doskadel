@@ -58,11 +58,15 @@ const uploadAttachment = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Forbidden' });
     }
     const { ownerType, ownerId } = req.body;
-    if (!['article', 'task'].includes(ownerType)) {
-      return res.status(400).json({ success: false, message: 'Invalid ownerType' });
+    // Вложение к несохранённой сущности: ownerType/ownerId пусты -> pending.
+    const hasOwner = ownerType && ownerId;
+    if (hasOwner) {
+      if (!['article', 'task'].includes(ownerType)) {
+        return res.status(400).json({ success: false, message: 'Invalid ownerType' });
+      }
+      const owner = await getOwner(ownerType, ownerId, req.workspaceId);
+      if (!owner) return res.status(404).json({ success: false, message: 'Owner not found' });
     }
-    const owner = await getOwner(ownerType, ownerId, req.workspaceId);
-    if (!owner) return res.status(404).json({ success: false, message: 'Owner not found' });
     if (!req.file) return res.status(400).json({ success: false, message: 'No file' });
     if (req.file.size > FILE_MAX_BYTES) {
       return res.status(413).json({ success: false, message: 'Файл больше лимита' });
@@ -89,8 +93,8 @@ const uploadAttachment = async (req, res) => {
     // pending -> upload -> ready
     const att = await Attachment.create({
       workspaceId: req.workspaceId,
-      ownerType,
-      ownerId,
+      ownerType: hasOwner ? ownerType : null,
+      ownerId: hasOwner ? ownerId : null,
       key,
       filename: originalName,
       mime,
@@ -183,4 +187,50 @@ const deleteAttachment = async (req, res) => {
   }
 };
 
-module.exports = { uploadAttachment, listAttachments, rawAttachment, deleteAttachment };
+// GET /api/attachments/config — лимиты и разрешённые типы для клиента.
+const getConfig = (req, res) => {
+  res.json({
+    success: true,
+    maxFileBytes: FILE_MAX_BYTES,
+    workspaceQuotaBytes: WORKSPACE_QUOTA,
+    allowedMime: Array.from(ALLOWED),
+    inlineMime: Array.from(IMAGE_INLINE),
+  });
+};
+
+// POST /api/attachments/attach — привязка pending-вложений к созданной сущности.
+// body: { ownerType, ownerId, ids: [attachmentId...] }
+const attachToOwner = async (req, res) => {
+  try {
+    if (!canByMembership(req.membership, 'update')) {
+      return res.status(403).json({ success: false, message: 'Forbidden' });
+    }
+    const { ownerType, ownerId, ids } = req.body;
+    if (!['article', 'task'].includes(ownerType)) {
+      return res.status(400).json({ success: false, message: 'Invalid ownerType' });
+    }
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ success: false, message: 'ids required' });
+    }
+    const owner = await getOwner(ownerType, ownerId, req.workspaceId);
+    if (!owner) return res.status(404).json({ success: false, message: 'Owner not found' });
+
+    // Привязываем только свои pending-вложения из этого workspace.
+    const result = await Attachment.updateMany(
+      {
+        _id: { $in: ids },
+        workspaceId: req.workspaceId,
+        uploadedBy: req.user._id,
+        deletedAt: null,
+        $or: [{ ownerId: null }, { ownerId: { $exists: false } }],
+      },
+      { $set: { ownerType, ownerId } }
+    );
+    res.json({ success: true, attached: result.modifiedCount || 0 });
+  } catch (error) {
+    console.error('Attach owner error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+module.exports = { uploadAttachment, listAttachments, rawAttachment, deleteAttachment, getConfig, attachToOwner };

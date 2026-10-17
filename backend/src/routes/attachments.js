@@ -22,6 +22,8 @@ router.post('/', (req, res, next) => {
   });
 }, ctrl.uploadAttachment);
 
+router.get('/config', ctrl.getConfig);
+router.post('/attach', ctrl.attachToOwner);
 router.get('/', ctrl.listAttachments);
 router.get('/:id/raw', ctrl.rawAttachment);
 router.delete('/:id', ctrl.deleteAttachment);

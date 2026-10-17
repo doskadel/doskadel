@@ -13,14 +13,15 @@ const attachmentSchema = new mongoose.Schema({
     required: true,
     index: true,
   },
+  // Для вложений у несохранённой сущности ownerType/ownerId = null (pending, привязка при создании).
   ownerType: {
     type: String,
-    enum: ['article', 'task'],
-    required: true,
+    enum: ['article', 'task', null],
+    default: null,
   },
   ownerId: {
     type: mongoose.Schema.Types.ObjectId,
-    required: true,
+    default: null,
   },
   key: {
     type: String,
