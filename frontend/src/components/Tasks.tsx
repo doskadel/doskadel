@@ -176,7 +176,7 @@ const Tasks: React.FC = () => {
 
   useEffect(() => {
     fetchTasks();
-  }, [q, statusesParam, priorityParam, taskTypeParam, dateFrom, dateTo, sortParam, overdueParam, dueSoonParam]);
+  }, [q, statusesParam, priorityParam, taskTypeParam, dateFrom, dateTo, sortParam, overdueParam, dueSoonParam, tagIdsParam]);
 
   useEffect(() => {
     localStorage.setItem(VIEW_KEY, view);
