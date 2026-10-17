@@ -53,12 +53,24 @@ const recurrenceValidation = body('recurrence')
     return true;
   });
 
-router.post('/', [priorityValidation, dueDateValidation, recurrenceValidation, validate], taskController.createTask);
+const { validateDocJson } = require('../utils/description');
+
+const descValidation = [
+  body('description').optional({ nullable: true }).isString().isLength({ max: 500000 }).withMessage('description too long'),
+  body('descriptionJson').optional({ nullable: true }).custom((value) => {
+    const err = validateDocJson(value, { field: 'descriptionJson' });
+    if (err) throw new Error(err);
+    return true;
+  }),
+  body('descriptionFormat').optional().isIn(['md', 'json']).withMessage('descriptionFormat must be md or json'),
+];
+
+router.post('/', [priorityValidation, dueDateValidation, recurrenceValidation, ...descValidation, validate], taskController.createTask);
 router.get('/calendar-marks', taskController.getCalendarMarks);
 router.get('/', taskController.getTasks);
 router.put('/reorder', taskController.reorderTasks);
 router.get('/:id', taskController.getTaskById);
-router.put('/:id', [priorityValidation, dueDateValidation, recurrenceValidation, validate], taskController.updateTask);
+router.put('/:id', [priorityValidation, dueDateValidation, recurrenceValidation, ...descValidation, validate], taskController.updateTask);
 router.delete('/:id', taskController.deleteTask);
 
 module.exports = router;

@@ -55,7 +55,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ taskId, statuses, onClose, onUpda
 
   return (
     <>
-      <Modal open={!!taskId} onClose={handleClose} title={modalTitle} wide rightRail={rail}>
+      <Modal open={!!taskId} onClose={handleClose} title={modalTitle} wide className="modal-content--task" rightRail={rail}>
         <TaskModalContent
           task={detail.task}
           loading={detail.loading}
@@ -64,6 +64,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ taskId, statuses, onClose, onUpda
           isEditing={detail.isEditing}
           editTitle={detail.editTitle}
           editDescription={detail.editDescription}
+          editDescriptionJson={detail.editDescriptionJson}
           editStatusId={detail.editStatusId}
           editPriority={detail.editPriority}
           editDueDate={detail.editDueDate}
@@ -71,6 +72,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ taskId, statuses, onClose, onUpda
           saving={detail.saving}
           setEditTitle={detail.setEditTitle}
           setEditDescription={detail.setEditDescription}
+          setEditDescriptionJson={detail.setEditDescriptionJson}
           setEditStatusId={detail.setEditStatusId}
           setEditPriority={detail.setEditPriority}
           setEditDueDate={detail.setEditDueDate}

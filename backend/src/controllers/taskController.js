@@ -7,6 +7,7 @@ const { SINGLE, RECURRING } = require('../utils/taskKinds');
 const { canByMembership } = require('../utils/can');
 const { summarizeOccurrences, enrichTaskDue } = require('../utils/taskDueSummary');
 const { getActiveStatusIds } = require('../utils/dueItems');
+const { applyDescriptionFields } = require('../utils/description');
 
 const OCCURRENCE_HORIZON_DAYS = 7;
 
@@ -70,8 +71,10 @@ const createTask = async (req, res) => {
     const order = lastTask ? lastTask.order + 1 : 0;
 
     const { title, description, priority, dueDate, recurrence, notifications } = req.body;
+    const descFields = applyDescriptionFields(req.body, {});
     const task = new Task({
       title, description, priority, dueDate, recurrence, notifications,
+      ...descFields,
       statusId,
       order,
       workspaceId: req.workspaceId,
@@ -374,6 +377,8 @@ const updateTask = async (req, res) => {
     const allowed = ['title', 'description', 'statusId', 'priority', 'order', 'dueDate', 'recurrence', 'notifications'];
     const updateData = {};
     allowed.forEach((k) => { if (req.body[k] !== undefined) updateData[k] = req.body[k]; });
+    // Гибридное хранение описания: json — источник правды, description — производный MD.
+    applyDescriptionFields(req.body, updateData);
 
     // F1f: смена финальный -> нефинальный => activeSince=now (вхождения с даты возврата).
     if (req.body.statusId !== undefined) {

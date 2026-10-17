@@ -7,7 +7,7 @@ import SortableSettings from './shared/SortableSettings';
 import { GripVertical, X, Plus, Settings, CalendarDays, Columns, List, Info, LayoutList, Repeat, Search, ListChecks } from 'lucide-react';
 
 import { useSearchParams } from 'react-router-dom';
-import api from '../utils/api';
+import api, { getErrorMessage } from '../utils/api';
 import KanbanBoard, { KanbanTask } from './KanbanBoard';
 import SwipeableRow from './SwipeableRow';
 import Modal from './Modal';
@@ -16,6 +16,8 @@ import StatusManager from './StatusManager';
 import FilterBar, { TaskTypeFilter } from './FilterBar';
 import RecurrencePicker from './RecurrencePicker';
 import ClearableField from './ClearableField';
+import RichTextEditor from './editor/RichTextEditor';
+import MarkdownRenderer from './MarkdownRenderer';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { PRIORITY_OPTIONS, getPriorityLabel } from '../utils/priority';
 import { deadlineLevel, formatOccurrenceLabel } from '../utils/date';
@@ -30,6 +32,8 @@ interface Task {
   _id: string;
   title: string;
   description: string;
+  descriptionJson?: any;
+  descriptionFormat?: 'md' | 'json';
   statusId: string;
   priority: number;
   order: number;
@@ -42,6 +46,18 @@ interface Task {
 }
 
 type TaskView = 'board' | 'list' | 'calendar';
+
+/** Грубое превращение Markdown в плоский текст для превью в карточке. */
+const stripMarkdown = (md: string): string =>
+  md
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+    .replace(/^[#>*+-]+\s*/gm, '')
+    .replace(/[*_~#>]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 
 const ALL_VIEWS: TaskView[] = ['calendar', 'board', 'list'];
 const VIEW_LABELS: Record<TaskView, string> = { calendar: 'Календарь', board: 'Доска', list: 'Список' };
@@ -122,6 +138,7 @@ const Tasks: React.FC = () => {
   const [statusManagerOpen, setStatusManagerOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [descriptionJson, setDescriptionJson] = useState<any>(null);
   const [priority, setPriority] = useState<number | ''>('');
   const [dueDate, setDueDate] = useState('');
   const [isRecurring, setIsRecurring] = useState(false);
@@ -235,6 +252,7 @@ const Tasks: React.FC = () => {
   const resetCreateForm = () => {
     setTitle('');
     setDescription('');
+    setDescriptionJson(null);
     setPriority('');
     setDueDate('');
     setIsRecurring(false);
@@ -244,6 +262,7 @@ const Tasks: React.FC = () => {
   const isCreateFormDirty = (): boolean =>
     title.trim() !== '' ||
     description.trim() !== '' ||
+    !!descriptionJson ||
     priority !== '' ||
     dueDate !== '' ||
     isRecurring;
@@ -277,6 +296,8 @@ const Tasks: React.FC = () => {
       const payload: any = {
         title,
         description,
+        descriptionJson,
+        descriptionFormat: descriptionJson ? 'json' : 'md',
         priority,
       };
 
@@ -294,7 +315,7 @@ const Tasks: React.FC = () => {
       refreshAll();
       toast('Задача создана', 'success');
     } catch (err: any) {
-      toast(err?.response?.data?.message || 'Не удалось создать задачу', 'error');
+      toast(getErrorMessage(err, 'Не удалось создать задачу'), 'error');
       console.error('Error creating task:', err);
     }
   };
@@ -508,7 +529,7 @@ const Tasks: React.FC = () => {
         onDueFilterClear={handleClearDueFilter}
       />
 
-      <Modal open={createOpen} onClose={handleCloseCreate} title="Новая задача">
+      <Modal open={createOpen} onClose={handleCloseCreate} title="Новая задача" wide className="modal-content--task">
         <form onSubmit={handleSubmit} className="form">
           <input
             type="text"
@@ -519,60 +540,66 @@ const Tasks: React.FC = () => {
             required
             autoFocus
           />
-          <textarea
+          <RichTextEditor
+            value={descriptionJson}
+            initialMarkdown={!descriptionJson && description ? description : undefined}
+            onChange={(json, md) => { setDescriptionJson(json); setDescription(md); }}
             placeholder="Описание"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="input"
-            rows={4}
           />
-          <select
-            value={priority}
-            onChange={(e) => setPriority(e.target.value === '' ? '' : parseInt(e.target.value))}
-            className="input"
-            required
-          >
-            <option value="" disabled hidden>Выберите приоритет</option>
-            {PRIORITY_OPTIONS.map((p) => (
-              <option key={p.value} value={p.value}>{p.label}</option>
-            ))}
-          </select>
-
-          <div>
-            <label className="input-label">Повторять</label>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={isRecurring}
-              className={'rec-toggle' + (isRecurring ? ' rec-toggle--on' : '')}
-              onClick={() => {
-                const recurring = !isRecurring;
-                setIsRecurring(recurring);
-                if (recurring && !recurrence) setRecurrence(getDefaultRecurrence('daily'));
-                if (!recurring) setRecurrence(null);
-              }}
-            >
-              <span className="rec-toggle-knob" />
-              <span className="rec-toggle-text">Повторять</span>
-              {isRecurring && recurrence && <span className="rec-toggle-summary">· {formatRecurrence(recurrence)}</span>}
-            </button>
-          </div>
-
-          {isRecurring ? (
-            <RecurrencePicker value={recurrence} onChange={setRecurrence} />
-          ) : (
-            <div>
-              <label className="input-label">Срок</label>
-              <ClearableField onClear={() => setDueDate('')} showClear={!!dueDate}>
-                <input
-                  type="datetime-local"
-                  value={dueDate}
-                  onChange={(e) => setDueDate(e.target.value)}
+          <div className="task-fields-grid">
+            <div className="task-col">
+              <div className="task-field" style={{ maxWidth: 'none' }}>
+                <label className="input-label">Приоритет</label>
+                <select
+                  value={priority}
+                  onChange={(e) => setPriority(e.target.value === '' ? '' : parseInt(e.target.value))}
                   className="input"
-                />
-              </ClearableField>
+                  required
+                >
+                  <option value="" disabled hidden>Выберите приоритет</option>
+                  {PRIORITY_OPTIONS.map((p) => (
+                    <option key={p.value} value={p.value}>{p.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="input-label">Повторять</label>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={isRecurring}
+                  className={'rec-toggle' + (isRecurring ? ' rec-toggle--on' : '')}
+                  onClick={() => {
+                    const recurring = !isRecurring;
+                    setIsRecurring(recurring);
+                    if (recurring && !recurrence) setRecurrence(getDefaultRecurrence('daily'));
+                    if (!recurring) setRecurrence(null);
+                  }}
+                >
+                  <span className="rec-toggle-knob" />
+                  <span className="rec-toggle-text">Повторять</span>
+                  {isRecurring && recurrence && <span className="rec-toggle-summary">· {formatRecurrence(recurrence)}</span>}
+                </button>
+              </div>
             </div>
-          )}
+            <div className="task-col task-col-right">
+              {isRecurring ? (
+                <RecurrencePicker value={recurrence} onChange={setRecurrence} />
+              ) : (
+                <div className="task-date">
+                  <label className="input-label">Срок</label>
+                  <ClearableField onClear={() => setDueDate('')} showClear={!!dueDate}>
+                    <input
+                      type="datetime-local"
+                      value={dueDate}
+                      onChange={(e) => setDueDate(e.target.value)}
+                      className="input"
+                    />
+                  </ClearableField>
+                </div>
+              )}
+            </div>
+          </div>
 
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: 'var(--space-sm)' }}>
             <button type="button" className="occ-btn-secondary" style={{ flex: '0 0 auto', padding: '0 20px' }} onClick={handleCloseCreate}>
@@ -652,7 +679,7 @@ const Tasks: React.FC = () => {
                 <div className="task-card-content">
                   <h3 className="task-card-title">{task.title}</h3>
                   {task.description && (
-                    <p className="task-card-description">{task.description}</p>
+                    <p className="task-card-description">{stripMarkdown(task.description)}</p>
                   )}
                   <div className="task-card-meta">
                     <span className="task-card-meta-item">

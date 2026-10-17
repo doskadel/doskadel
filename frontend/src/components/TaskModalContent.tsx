@@ -7,6 +7,8 @@ import { formatDueDate, isOverdue } from '../utils/date';
 import { formatRecurrence, getDefaultRecurrence, Recurrence } from '../utils/recurrence';
 import RecurrencePicker from './RecurrencePicker';
 import ClearableField from './ClearableField';
+import RichTextEditor from './editor/RichTextEditor';
+import RichTextRenderer from './editor/RichTextRenderer';
 
 interface TaskModalContentProps {
   task: Task | null;
@@ -17,6 +19,7 @@ interface TaskModalContentProps {
   isEditing: boolean;
   editTitle: string;
   editDescription: string;
+  editDescriptionJson: any;
   editStatusId: string;
   editPriority: number;
   editDueDate: string;
@@ -25,6 +28,7 @@ interface TaskModalContentProps {
 
   setEditTitle: (v: string) => void;
   setEditDescription: (v: string) => void;
+  setEditDescriptionJson: (v: any) => void;
   setEditStatusId: (v: string) => void;
   setEditPriority: (v: number) => void;
   setEditDueDate: (v: string) => void;
@@ -45,6 +49,7 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
   isEditing,
   editTitle,
   editDescription,
+  editDescriptionJson,
   editStatusId,
   editPriority,
   editDueDate,
@@ -52,6 +57,7 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
   saving,
   setEditTitle,
   setEditDescription,
+  setEditDescriptionJson,
   setEditStatusId,
   setEditPriority,
   setEditDueDate,
@@ -77,62 +83,71 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
           placeholder="Название"
           required
         />
-        <textarea
-          value={editDescription}
-          onChange={(e) => setEditDescription(e.target.value)}
-          className="input"
-          rows={6}
+        <RichTextEditor
+          value={editDescriptionJson}
+          initialMarkdown={!editDescriptionJson && editDescription ? editDescription : undefined}
+          onChange={(json, md) => { setEditDescriptionJson(json); setEditDescription(md); }}
           placeholder="Описание"
         />
-        <select
-          value={editStatusId}
-          onChange={(e) => setEditStatusId(e.target.value)}
-          className="input"
-        >
-          {statuses.map((s) => (
-            <option key={s._id} value={s._id}>{s.name}</option>
-          ))}
-        </select>
-        <select
-          value={editPriority}
-          onChange={(e) => setEditPriority(parseInt(e.target.value))}
-          className="input"
-        >
-          {PRIORITY_OPTIONS.map((p) => (
-            <option key={p.value} value={p.value}>{p.label}</option>
-          ))}
-        </select>
-
-        <div>
-          <label className="input-label">Повторять</label>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={!!editRecurrence}
-            className={'rec-toggle' + (editRecurrence ? ' rec-toggle--on' : '')}
-            onClick={() => setEditRecurrence(editRecurrence ? null : getDefaultRecurrence('daily'))}
-          >
-            <span className="rec-toggle-knob" />
-            <span className="rec-toggle-text">Повторять</span>
-            {editRecurrence && <span className="rec-toggle-summary">· {formatRecurrence(editRecurrence)}</span>}
-          </button>
-        </div>
-
-        {editRecurrence ? (
-          <RecurrencePicker value={editRecurrence} onChange={setEditRecurrence} />
-        ) : (
-          <div>
-            <label className="input-label">Срок</label>
-            <ClearableField onClear={() => setEditDueDate('')} showClear={!!editDueDate}>
-              <input
-                type="datetime-local"
-                value={editDueDate}
-                onChange={(e) => setEditDueDate(e.target.value)}
+        <div className="task-fields-grid">
+          <div className="task-col">
+            <div className="task-field" style={{ maxWidth: 'none' }}>
+              <label className="input-label">Статус</label>
+              <select
+                value={editStatusId}
+                onChange={(e) => setEditStatusId(e.target.value)}
                 className="input"
-              />
-            </ClearableField>
+              >
+                {statuses.map((s) => (
+                  <option key={s._id} value={s._id}>{s.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="task-field" style={{ maxWidth: 'none' }}>
+              <label className="input-label">Приоритет</label>
+              <select
+                value={editPriority}
+                onChange={(e) => setEditPriority(parseInt(e.target.value))}
+                className="input"
+              >
+                {PRIORITY_OPTIONS.map((p) => (
+                  <option key={p.value} value={p.value}>{p.label}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="input-label">Повторять</label>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={!!editRecurrence}
+                className={'rec-toggle' + (editRecurrence ? ' rec-toggle--on' : '')}
+                onClick={() => setEditRecurrence(editRecurrence ? null : getDefaultRecurrence('daily'))}
+              >
+                <span className="rec-toggle-knob" />
+                <span className="rec-toggle-text">Повторять</span>
+                {editRecurrence && <span className="rec-toggle-summary">· {formatRecurrence(editRecurrence)}</span>}
+              </button>
+            </div>
           </div>
-        )}
+          <div className="task-col task-col-right">
+            {editRecurrence ? (
+              <RecurrencePicker value={editRecurrence} onChange={setEditRecurrence} />
+            ) : (
+              <div className="task-date">
+                <label className="input-label">Срок</label>
+                <ClearableField onClear={() => setEditDueDate('')} showClear={!!editDueDate}>
+                  <input
+                    type="datetime-local"
+                    value={editDueDate}
+                    onChange={(e) => setEditDueDate(e.target.value)}
+                    className="input"
+                  />
+                </ClearableField>
+              </div>
+            )}
+          </div>
+        </div>
 
         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
           <button
@@ -165,10 +180,8 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
   return (
     <div>
       <div style={{ marginBottom: 'var(--space-lg)' }}>
-        {task.description ? (
-          <p style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', wordBreak: 'break-word', color: 'var(--color-text)', margin: 0 }}>
-            {task.description}
-          </p>
+        {(task.descriptionJson || task.description) ? (
+          <RichTextRenderer contentJson={task.descriptionJson} markdown={task.description} className="md-content" />
         ) : (
           <p style={{ color: 'var(--color-text-muted)', fontStyle: 'italic', margin: 0 }}>
             Нет описания
