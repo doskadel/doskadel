@@ -69,9 +69,18 @@ const createTask = async (req, res) => {
     }).sort({ order: -1 });
     const order = lastTask ? lastTask.order + 1 : 0;
 
-    const { title, description, priority, dueDate, recurrence, notifications } = req.body;
+    const { title, description, descriptionJson, descriptionFormat, priority, dueDate, recurrence, notifications } = req.body;
+    const descFields = {};
+    if (descriptionJson !== undefined) {
+      descFields.descriptionJson = descriptionJson;
+      descFields.descriptionFormat = 'json';
+    } else if (description !== undefined) {
+      descFields.description = description;
+      descFields.descriptionFormat = descriptionFormat || 'md';
+    }
     const task = new Task({
       title, description, priority, dueDate, recurrence, notifications,
+      ...descFields,
       statusId,
       order,
       workspaceId: req.workspaceId,
@@ -374,6 +383,13 @@ const updateTask = async (req, res) => {
     const allowed = ['title', 'description', 'statusId', 'priority', 'order', 'dueDate', 'recurrence', 'notifications'];
     const updateData = {};
     allowed.forEach((k) => { if (req.body[k] !== undefined) updateData[k] = req.body[k]; });
+    // Гибридное хранение описания: json — источник правды, description — производный MD.
+    if (req.body.descriptionJson !== undefined) {
+      updateData.descriptionJson = req.body.descriptionJson;
+      updateData.descriptionFormat = 'json';
+    } else if (req.body.descriptionFormat !== undefined) {
+      updateData.descriptionFormat = req.body.descriptionFormat;
+    }
 
     // F1f: смена финальный -> нефинальный => activeSince=now (вхождения с даты возврата).
     if (req.body.statusId !== undefined) {

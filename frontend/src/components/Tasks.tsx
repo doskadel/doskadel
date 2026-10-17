@@ -16,6 +16,8 @@ import StatusManager from './StatusManager';
 import FilterBar, { TaskTypeFilter } from './FilterBar';
 import RecurrencePicker from './RecurrencePicker';
 import ClearableField from './ClearableField';
+import RichTextEditor from './editor/RichTextEditor';
+import MarkdownRenderer from './MarkdownRenderer';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { PRIORITY_OPTIONS, getPriorityLabel } from '../utils/priority';
 import { deadlineLevel, formatOccurrenceLabel } from '../utils/date';
@@ -30,6 +32,8 @@ interface Task {
   _id: string;
   title: string;
   description: string;
+  descriptionJson?: any;
+  descriptionFormat?: 'md' | 'json';
   statusId: string;
   priority: number;
   order: number;
@@ -42,6 +46,18 @@ interface Task {
 }
 
 type TaskView = 'board' | 'list' | 'calendar';
+
+/** Грубое превращение Markdown в плоский текст для превью в карточке. */
+const stripMarkdown = (md: string): string =>
+  md
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+    .replace(/^[#>*+-]+\s*/gm, '')
+    .replace(/[*_~#>]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 
 const ALL_VIEWS: TaskView[] = ['calendar', 'board', 'list'];
 const VIEW_LABELS: Record<TaskView, string> = { calendar: 'Календарь', board: 'Доска', list: 'Список' };
@@ -122,6 +138,7 @@ const Tasks: React.FC = () => {
   const [statusManagerOpen, setStatusManagerOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [descriptionJson, setDescriptionJson] = useState<any>(null);
   const [priority, setPriority] = useState<number | ''>('');
   const [dueDate, setDueDate] = useState('');
   const [isRecurring, setIsRecurring] = useState(false);
@@ -235,6 +252,7 @@ const Tasks: React.FC = () => {
   const resetCreateForm = () => {
     setTitle('');
     setDescription('');
+    setDescriptionJson(null);
     setPriority('');
     setDueDate('');
     setIsRecurring(false);
@@ -244,6 +262,7 @@ const Tasks: React.FC = () => {
   const isCreateFormDirty = (): boolean =>
     title.trim() !== '' ||
     description.trim() !== '' ||
+    !!descriptionJson ||
     priority !== '' ||
     dueDate !== '' ||
     isRecurring;
@@ -277,6 +296,8 @@ const Tasks: React.FC = () => {
       const payload: any = {
         title,
         description,
+        descriptionJson,
+        descriptionFormat: descriptionJson ? 'json' : 'md',
         priority,
       };
 
@@ -519,12 +540,11 @@ const Tasks: React.FC = () => {
             required
             autoFocus
           />
-          <textarea
+          <RichTextEditor
+            value={descriptionJson}
+            initialMarkdown={!descriptionJson && description ? description : undefined}
+            onChange={(json, md) => { setDescriptionJson(json); setDescription(md); }}
             placeholder="Описание"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="input"
-            rows={4}
           />
           <select
             value={priority}
@@ -652,7 +672,7 @@ const Tasks: React.FC = () => {
                 <div className="task-card-content">
                   <h3 className="task-card-title">{task.title}</h3>
                   {task.description && (
-                    <p className="task-card-description">{task.description}</p>
+                    <p className="task-card-description">{stripMarkdown(task.description)}</p>
                   )}
                   <div className="task-card-meta">
                     <span className="task-card-meta-item">

@@ -7,6 +7,8 @@ import { formatDueDate, isOverdue } from '../utils/date';
 import { formatRecurrence, getDefaultRecurrence, Recurrence } from '../utils/recurrence';
 import RecurrencePicker from './RecurrencePicker';
 import ClearableField from './ClearableField';
+import RichTextEditor from './editor/RichTextEditor';
+import RichTextRenderer from './editor/RichTextRenderer';
 
 interface TaskModalContentProps {
   task: Task | null;
@@ -17,6 +19,7 @@ interface TaskModalContentProps {
   isEditing: boolean;
   editTitle: string;
   editDescription: string;
+  editDescriptionJson: any;
   editStatusId: string;
   editPriority: number;
   editDueDate: string;
@@ -25,6 +28,7 @@ interface TaskModalContentProps {
 
   setEditTitle: (v: string) => void;
   setEditDescription: (v: string) => void;
+  setEditDescriptionJson: (v: any) => void;
   setEditStatusId: (v: string) => void;
   setEditPriority: (v: number) => void;
   setEditDueDate: (v: string) => void;
@@ -45,6 +49,7 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
   isEditing,
   editTitle,
   editDescription,
+  editDescriptionJson,
   editStatusId,
   editPriority,
   editDueDate,
@@ -52,6 +57,7 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
   saving,
   setEditTitle,
   setEditDescription,
+  setEditDescriptionJson,
   setEditStatusId,
   setEditPriority,
   setEditDueDate,
@@ -77,11 +83,10 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
           placeholder="Название"
           required
         />
-        <textarea
-          value={editDescription}
-          onChange={(e) => setEditDescription(e.target.value)}
-          className="input"
-          rows={6}
+        <RichTextEditor
+          value={editDescriptionJson}
+          initialMarkdown={!editDescriptionJson && editDescription ? editDescription : undefined}
+          onChange={(json, md) => { setEditDescriptionJson(json); setEditDescription(md); }}
           placeholder="Описание"
         />
         <select
@@ -165,10 +170,8 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
   return (
     <div>
       <div style={{ marginBottom: 'var(--space-lg)' }}>
-        {task.description ? (
-          <p style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', wordBreak: 'break-word', color: 'var(--color-text)', margin: 0 }}>
-            {task.description}
-          </p>
+        {(task.descriptionJson || task.description) ? (
+          <RichTextRenderer contentJson={task.descriptionJson} markdown={task.description} className="md-content" />
         ) : (
           <p style={{ color: 'var(--color-text-muted)', fontStyle: 'italic', margin: 0 }}>
             Нет описания

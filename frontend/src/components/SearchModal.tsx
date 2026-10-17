@@ -288,6 +288,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
                   isEditing={taskDetail.isEditing}
                   editTitle={taskDetail.editTitle}
                   editDescription={taskDetail.editDescription}
+                  editDescriptionJson={taskDetail.editDescriptionJson}
                   editStatusId={taskDetail.editStatusId}
                   editPriority={taskDetail.editPriority}
                   editDueDate={taskDetail.editDueDate}
@@ -295,6 +296,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
                   saving={taskDetail.saving}
                   setEditTitle={taskDetail.setEditTitle}
                   setEditDescription={taskDetail.setEditDescription}
+                  setEditDescriptionJson={taskDetail.setEditDescriptionJson}
                   setEditStatusId={taskDetail.setEditStatusId}
                   setEditPriority={taskDetail.setEditPriority}
                   setEditDueDate={taskDetail.setEditDueDate}

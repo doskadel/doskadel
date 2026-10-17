@@ -11,6 +11,21 @@ const taskSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  // Гибридное хранение (как в Article): descriptionJson — источник правды (JSON TipTap),
+  // description — производный Markdown (для regex-поиска и старых клиентов).
+  descriptionJson: {
+    type: mongoose.Schema.Types.Mixed,
+    default: null
+  },
+  descriptionFormat: {
+    type: String,
+    enum: ['md', 'json'],
+    default: 'md'
+  },
+  descriptionSchemaVersion: {
+    type: Number,
+    default: 1
+  },
   statusId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Status',

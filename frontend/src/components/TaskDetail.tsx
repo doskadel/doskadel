@@ -5,11 +5,15 @@ import { PRIORITY_OPTIONS, getPriorityLabel } from '../utils/priority';
 import { Status } from '../utils/status';
 import { useConfirm } from './ConfirmProvider';
 import { useToast } from './Toast';
+import RichTextEditor from './editor/RichTextEditor';
+import RichTextRenderer from './editor/RichTextRenderer';
 
 interface Task {
   _id: string;
   title: string;
   description: string;
+  descriptionJson?: any;
+  descriptionFormat?: 'md' | 'json';
   statusId: string;
   priority: number;
   createdAt: string;
@@ -30,6 +34,7 @@ const TaskDetail: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState('');
   const [editDescription, setEditDescription] = useState('');
+  const [editDescriptionJson, setEditDescriptionJson] = useState<any>(null);
   const [editStatusId, setEditStatusId] = useState('');
   const [editPriority, setEditPriority] = useState(2);
   const [saving, setSaving] = useState(false);
@@ -49,6 +54,7 @@ const TaskDetail: React.FC = () => {
       setStatuses(statusesRes.data.statuses);
       setEditTitle(t.title);
       setEditDescription(t.description || '');
+      setEditDescriptionJson(t.descriptionJson || null);
       setEditStatusId(t.statusId);
       setEditPriority(t.priority);
       setLoading(false);
@@ -59,15 +65,16 @@ const TaskDetail: React.FC = () => {
     }
   };
 
-  const editSig = JSON.stringify([editTitle, editDescription, editStatusId, editPriority]);
+  const editSig = JSON.stringify([editTitle, editDescription, editDescriptionJson, editStatusId, editPriority]);
   const [editSnap, setEditSnap] = useState('');
   const startEdit = () => {
     if (!task) return;
     setEditTitle(task.title);
     setEditDescription(task.description || '');
+    setEditDescriptionJson(task.descriptionJson || null);
     setEditStatusId(task.statusId);
     setEditPriority(task.priority);
-    setEditSnap(JSON.stringify([task.title, task.description || '', task.statusId, task.priority]));
+    setEditSnap(JSON.stringify([task.title, task.description || '', task.descriptionJson || null, task.statusId, task.priority]));
     setIsEditing(true);
   };
 
@@ -92,6 +99,8 @@ const TaskDetail: React.FC = () => {
       const response = await api.put(`/api/tasks/${task._id}`, {
         title: editTitle,
         description: editDescription,
+        descriptionJson: editDescriptionJson,
+        descriptionFormat: editDescriptionJson ? 'json' : 'md',
         statusId: editStatusId,
         priority: editPriority,
       });
@@ -153,11 +162,10 @@ const TaskDetail: React.FC = () => {
               placeholder="Название"
               required
             />
-            <textarea
-              value={editDescription}
-              onChange={(e) => setEditDescription(e.target.value)}
-              className="input"
-              rows={5}
+            <RichTextEditor
+              value={editDescriptionJson}
+              initialMarkdown={!editDescriptionJson && editDescription ? editDescription : undefined}
+              onChange={(json, md) => { setEditDescriptionJson(json); setEditDescription(md); }}
               placeholder="Описание"
             />
             <select
@@ -223,9 +231,9 @@ const TaskDetail: React.FC = () => {
             </div>
           </div>
 
-          {task.description && (
+          {((task.descriptionJson) || task.description) && (
             <div style={{ marginBottom: 'var(--space-lg)' }}>
-              <p style={{ whiteSpace: 'pre-wrap', color: 'var(--color-text)' }}>{task.description}</p>
+              <RichTextRenderer contentJson={task.descriptionJson} markdown={task.description} className="md-content" />
             </div>
           )}
 

@@ -8,6 +8,8 @@ export interface Task {
   _id: string;
   title: string;
   description: string;
+  descriptionJson?: any;
+  descriptionFormat?: 'md' | 'json';
   statusId: string;
   priority: number;
   dueDate?: string | null;
@@ -30,6 +32,7 @@ export interface UseTaskDetailResult {
   isEditing: boolean;
   editTitle: string;
   editDescription: string;
+  editDescriptionJson: any;
   editStatusId: string;
   editPriority: number;
   editDueDate: string;
@@ -38,6 +41,7 @@ export interface UseTaskDetailResult {
 
   setEditTitle: (v: string) => void;
   setEditDescription: (v: string) => void;
+  setEditDescriptionJson: (v: any) => void;
   setEditStatusId: (v: string) => void;
   setEditPriority: (v: number) => void;
   setEditDueDate: (v: string) => void;
@@ -73,6 +77,7 @@ export const useTaskDetail = (
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState('');
   const [editDescription, setEditDescription] = useState('');
+  const [editDescriptionJson, setEditDescriptionJson] = useState<any>(null);
   const [editStatusId, setEditStatusId] = useState('');
   const [editPriority, setEditPriority] = useState(2);
   const [editDueDate, setEditDueDate] = useState('');
@@ -98,6 +103,7 @@ export const useTaskDetail = (
       setTask(t);
       setEditTitle(t.title);
       setEditDescription(t.description || '');
+      setEditDescriptionJson(t.descriptionJson || null);
       setEditStatusId(t.statusId);
       setEditPriority(t.priority);
       setEditDueDate(toDateTimeLocalValue(t.dueDate));
@@ -116,6 +122,7 @@ export const useTaskDetail = (
     if (!task) return;
     setEditTitle(task.title);
     setEditDescription(task.description || '');
+    setEditDescriptionJson(task.descriptionJson || null);
     setEditStatusId(task.statusId);
     setEditPriority(task.priority);
     setEditDueDate(toDateTimeLocalValue(task.dueDate));
@@ -128,7 +135,7 @@ export const useTaskDetail = (
   };
 
   // Несохранённые правки: снимок полей на момент входа в редактирование
-  const editSig = JSON.stringify([editTitle, editDescription, editStatusId, editPriority, editDueDate, editRecurrence]);
+  const editSig = JSON.stringify([editTitle, editDescription, editDescriptionJson, editStatusId, editPriority, editDueDate, editRecurrence]);
   const [editSnap, setEditSnap] = useState('');
   useEffect(() => {
     setEditSnap(isEditing ? editSig : '');
@@ -156,6 +163,8 @@ export const useTaskDetail = (
       const payload: any = {
         title: editTitle,
         description: editDescription,
+        descriptionJson: editDescriptionJson,
+        descriptionFormat: editDescriptionJson ? 'json' : 'md',
         statusId: editStatusId,
         priority: editPriority,
       };
@@ -238,6 +247,7 @@ export const useTaskDetail = (
     isEditing,
     editTitle,
     editDescription,
+    editDescriptionJson,
     editStatusId,
     editPriority,
     editDueDate,
@@ -245,6 +255,7 @@ export const useTaskDetail = (
     saving,
     setEditTitle,
     setEditDescription,
+    setEditDescriptionJson,
     setEditStatusId,
     setEditPriority,
     setEditDueDate,
