@@ -16,8 +16,6 @@ const LinkedEntities: React.FC<Props> = ({ ownerType, ownerId, onOpen, readOnly 
   const [items, setItems] = useState<LinkedEntity[]>([]);
   const [searchOpen, setSearchOpen] = useState(false);
 
-  const targetType = ownerType === 'task' ? 'article' : 'task';
-
   const refresh = () => listLinks(ownerType, ownerId).then(setItems).catch(() => {});
   useEffect(() => { refresh(); /* eslint-disable-next-line */ }, [ownerType, ownerId]);
 
@@ -67,7 +65,7 @@ const LinkedEntities: React.FC<Props> = ({ ownerType, ownerId, onOpen, readOnly 
 
       <LinkSearchModal
         open={searchOpen}
-        targetType={targetType}
+        excludeType={ownerType}
         excludeId={ownerId}
         onClose={() => setSearchOpen(false)}
         onPick={add}

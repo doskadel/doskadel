@@ -31,8 +31,8 @@ const createLink = async (req, res) => {
     if (!['task', 'article'].includes(fromType) || !['task', 'article'].includes(toType)) {
       return res.status(400).json({ success: false, message: 'Некорректный тип' });
     }
-    if (fromType === toType) return res.status(400).json({ success: false, message: 'Связь только задача↔статья' });
-    if (!fromId || !toId || String(fromId) === String(toId)) return res.status(400).json({ success: false, message: 'Некорректная связь' });
+    if (!fromId || !toId) return res.status(400).json({ success: false, message: 'Некорректная связь' });
+    if (fromType === toType && String(fromId) === String(toId)) return res.status(400).json({ success: false, message: 'Нельзя связать сущность с собой' });
 
     const [okFrom, okTo] = await Promise.all([
       entityExists(fromType, fromId, req.workspaceId),

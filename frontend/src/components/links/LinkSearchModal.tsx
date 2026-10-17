@@ -7,13 +7,13 @@ interface Result { type: 'task' | 'article'; id: string; title: string; }
 
 interface Props {
   open: boolean;
-  targetType: 'task' | 'article';
+  excludeType?: 'task' | 'article';
   excludeId?: string;
   onClose: () => void;
   onPick: (type: 'task' | 'article', id: string) => void;
 }
 
-const LinkSearchModal: React.FC<Props> = ({ open, targetType, excludeId, onClose, onPick }) => {
+const LinkSearchModal: React.FC<Props> = ({ open, excludeType, excludeId, onClose, onPick }) => {
   const [q, setQ] = useState('');
   const [results, setResults] = useState<Result[]>([]);
   const [loading, setLoading] = useState(false);
@@ -33,12 +33,12 @@ const LinkSearchModal: React.FC<Props> = ({ open, targetType, excludeId, onClose
         const r = await api.get('/api/search', { params: { q: term } });
         const tasks = (r.data.results?.tasks || []).map((x: any) => ({ type: 'task' as const, id: x._id, title: x.title }));
         const articles = (r.data.results?.articles || []).map((x: any) => ({ type: 'article' as const, id: x._id, title: x.title }));
-        const all = (targetType === 'task' ? tasks : articles).filter((x: Result) => x.id !== excludeId);
+        const all = [...tasks, ...articles].filter((x: Result) => !(x.id === excludeId && x.type === excludeType));
         setResults(all.slice(0, 20));
       } catch { setResults([]); } finally { setLoading(false); }
     }, 250);
     return () => clearTimeout(t);
-  }, [q, open, targetType, excludeId]);
+  }, [q, open, excludeType, excludeId]);
 
   return (
     <Modal open={open} onClose={onClose} title="Связать с…">
