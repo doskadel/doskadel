@@ -4,7 +4,7 @@ import { VerticalAlignTableCell, VerticalAlignTableHeader } from './VerticalAlig
 import { RowHeightTableRow } from './RowHeightTableRow';
 import { rowResizePlugin } from './rowResizePlugin';
 
-import Image from '@tiptap/extension-image';
+import { AttachmentImageExt, AttachmentChip } from './attachmentNodes';
 import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
 
@@ -33,7 +33,8 @@ export const editorExtensions: Extensions = [
   }),
   CodeBlockLowlight.configure({ lowlight }),
   Gapcursor,
-  Image,
+  AttachmentImageExt,
+  AttachmentChip,
   TaskList,
   TaskItem.configure({ nested: true }),
   TextAlign.configure({

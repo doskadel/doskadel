@@ -2,6 +2,8 @@ import React from 'react';
 import { Article } from '../hooks/useArticleDetail';
 import RichTextEditor from './editor/RichTextEditor';
 import RichTextRenderer from './editor/RichTextRenderer';
+import AttachmentBlock from './attachments/AttachmentBlock';
+import { uploadAttachment } from '../utils/attachments';
 
 interface ArticleModalContentProps {
   article: Article | null;
@@ -65,7 +67,14 @@ const ArticleModalContent: React.FC<ArticleModalContentProps> = ({
           initialMarkdown={editContent}
           onChange={(json, md) => { setEditContentJson(json); setEditContent(md); }}
           placeholder="Введите текст статьи..."
+          onUploadFile={async (file) => {
+            try {
+              const att = await uploadAttachment(file, { ownerType: 'article', ownerId: article!._id });
+              return { id: att._id, filename: att.filename, mime: att.mime };
+            } catch { return null; }
+          }}
         />
+        <AttachmentBlock ownerType="article" ownerId={article!._id} pendingIds={[]} onPendingChange={() => {}} />
         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
           <button
             type="button"
@@ -94,6 +103,8 @@ const ArticleModalContent: React.FC<ArticleModalContentProps> = ({
       <div style={{ marginBottom: 'var(--space-lg)' }}>
         <RichTextRenderer contentJson={article.contentJson} markdown={article.content} />
       </div>
+
+      <AttachmentBlock ownerType="article" ownerId={article._id} pendingIds={[]} onPendingChange={() => {}} readOnly />
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-md)' }}>
         <div>

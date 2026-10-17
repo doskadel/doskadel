@@ -8,9 +8,10 @@ import {
   Table as TableIcon, Trash2, Rows3, Columns3, Plus,
   AlignLeft, AlignCenter, AlignRight,
   AlignVerticalJustifyStart, AlignVerticalJustifyCenter, AlignVerticalJustifyEnd,
+  Paperclip as PaperclipIcon,
 } from 'lucide-react';
 import { editorExtensions } from './extensions';
-import { normalizeDoc } from './normalize';
+import { normalizeDoc, convertAttachmentLinks } from './normalize';
 import ColorPalette from './ColorPalette';
 import UrlDialog from './UrlDialog';
 import { makeCodeBlock, makeBlockquote } from './blocks';
@@ -22,11 +23,31 @@ interface RichTextEditorProps {
   onChange: (json: any, markdown: string) => void;
   initialMarkdown?: string;
   placeholder?: string;
+  /** Загрузка файла (вложения): возвращает метаданные или null при ошибке. */
+  onUploadFile?: (file: File) => Promise<{ id: string; filename: string; mime: string } | null>;
 }
 
 const btn = (active: boolean) => 'rte-btn' + (active ? ' rte-btn--active' : '');
 
-const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initialMarkdown, placeholder }) => {
+const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initialMarkdown, placeholder, onUploadFile }) => {
+  const onUploadFileRef = React.useRef(onUploadFile);
+  onUploadFileRef.current = onUploadFile;
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  // Загрузить файл и вставить узел в позицию (картинка -> Image, иначе chip).
+  const insertFileAt = async (file: File, editor: any, pos?: number) => {
+    const fn = onUploadFileRef.current;
+    if (!fn) return;
+    const meta = await fn(file);
+    if (!meta || !editor) return;
+    const isImg = (meta.mime || '').startsWith('image/');
+    const node = isImg
+      ? { type: 'image', attrs: { src: `attachment:${meta.id}`, alt: meta.filename } }
+      : { type: 'attachmentChip', attrs: { id: meta.id, filename: meta.filename, mime: meta.mime } };
+    const chain = editor.chain().focus();
+    if (typeof pos === 'number') chain.insertContentAt(pos, node).run();
+    else chain.insertContent(node).run();
+  };
   const editor = useEditor({
     extensions: editorExtensions,
     content: value || initialMarkdown || '',
@@ -34,7 +55,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
       // Статья из Markdown (нет contentJson): разбиваем абзацы по hardBreak,
       // чтобы цитата/код применялись к текущей строке, а не ко всему многострочному абзацу.
       if (!value && initialMarkdown) {
-        const normalized = normalizeDoc(editor.getJSON());
+        const normalized = convertAttachmentLinks(normalizeDoc(editor.getJSON()));
         // @ts-ignore — TipTap 3 принимает опции вторым аргументом
         editor.commands.setContent(normalized, { emitUpdate: false });
       }
@@ -99,6 +120,13 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
       // Клик в пустой области (справа/снизу от блока) -> вставить пустой абзац ПОСЛЕ блока и встать в него (как в Notion).
       // Отдельный handler в handleDOMEvents ниже.
       handlePaste: (view, event) => {
+        // Вставка файлов из буфера (картинки и пр.).
+        const files = event.clipboardData?.files;
+        if (files && files.length > 0 && onUploadFileRef.current) {
+          event.preventDefault();
+          Array.from(files as unknown as File[]).forEach((f) => insertFileAt(f, editor));
+          return true;
+        }
         // Внутри блока кода — форматируем JSON/XML при вставке.
         if (!editor || !editor.isActive('codeBlock')) return false;
         const text = event.clipboardData?.getData('text/plain') || '';
@@ -110,6 +138,15 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
         return true;
       },
       handleDrop: (view, e, _slice, moved) => {
+        // Drag-n-drop файлов из ОС.
+        const dt = (e as DragEvent).dataTransfer;
+        if (dt && dt.files && dt.files.length > 0 && onUploadFileRef.current) {
+          e.preventDefault();
+          const posInfo = view.posAtCoords({ left: (e as DragEvent).clientX, top: (e as DragEvent).clientY });
+          const pos = posInfo?.pos;
+          Array.from(dt.files).forEach((f) => insertFileAt(f, editor, pos));
+          return true;
+        }
         if (!moved) return false;
         const p = view.posAtCoords({ left: e.clientX, top: e.clientY });
         if (!p) return false;
@@ -281,6 +318,21 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
         <span className="rte-sep" />
         <button type="button" className={btn(state.link)} onClick={setLink} title="Ссылка"><LinkIcon size={16} /></button>
         <button type="button" className={btn(false)} onClick={addImage} title="Картинка по ссылке"><ImageIcon size={16} /></button>
+        {onUploadFile && (
+          <button type="button" className={btn(false)} onClick={() => fileInputRef.current?.click()} title="Прикрепить файл"><PaperclipIcon size={16} /></button>
+        )}
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
+          style={{ display: 'none' }}
+          onChange={(e) => {
+            if (e.target.files && e.target.files.length) {
+              Array.from(e.target.files).forEach((f) => insertFileAt(f, editor));
+            }
+            e.target.value = '';
+          }}
+        />
         <button
           type="button"
           className={btn(state.inTable)}

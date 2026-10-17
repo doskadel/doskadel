@@ -23,3 +23,35 @@ export const splitHardBreaks = (node: any): any[] => {
 };
 
 export const normalizeDoc = (doc: any) => splitHardBreaks(doc)[0];
+
+/**
+ * После парсинга Markdown ссылки вида [filename](attachment:<id>) приходят как text с link-mark.
+ * Превращаем их в узлы attachmentChip (ревью Клода: MD не должен терять вложения).
+ */
+const ATT_RE = /^attachment:([a-f0-9]{24})$/i;
+
+export const convertAttachmentLinks = (node: any): any => {
+  if (!node) return node;
+  if (Array.isArray(node)) return node.map(convertAttachmentLinks);
+  if (node.content) {
+    const out: any[] = [];
+    for (const child of node.content) {
+      if (child.type === 'text' && Array.isArray(child.marks)) {
+        const link = child.marks.find((m: any) => m.type === 'link' && ATT_RE.test(m.attrs?.href || ''));
+        if (link) {
+          const id = ATT_RE.exec(link.attrs.href)![1];
+          const filename = child.text || 'файл';
+          const rest = child.marks.filter((m: any) => m !== link);
+          // Сохраняем прочие marks (bold и т.п.) как текст до/после не нужно — упрощаем: один чип.
+          out.push({ type: 'attachmentChip', attrs: { id, filename, mime: '' } });
+          if (rest.length) { /* потеря прочих marks на ссылке — приемлемо */ }
+          continue;
+        }
+      }
+      out.push(convertAttachmentLinks(child));
+    }
+    return { ...node, content: out };
+  }
+  return node;
+};
+

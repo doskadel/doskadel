@@ -1,10 +1,35 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { createRoot, Root } from 'react-dom/client';
 import { generateHTML } from '@tiptap/core';
 import DOMPurify from 'dompurify';
 import { editorExtensions } from './extensions';
 import { lowlight } from './lowlight';
 import { formatCode } from './codeFormat';
 import MarkdownRenderer from '../MarkdownRenderer';
+import { useAttachmentUrl, parseAttachmentId, AttachmentMeta } from '../../utils/attachments';
+import api from '../../utils/api';
+
+// Компонент-картинка для режима просмотра: attachment:<id> -> blob.
+const RenderedAttachmentImage: React.FC<{ attId: string; alt?: string }> = ({ attId, alt }) => {
+  const { url, loading, error } = useAttachmentUrl(attId);
+  if (url) return <img src={url} alt={alt || ''} />;
+  return <span className="att-inline-ph">{loading ? '…' : (error ? '⚠ файл недоступен' : '')}</span>;
+};
+
+// Чип не-картинки для просмотра.
+const RenderedAttachmentChip: React.FC<{ attId: string; filename: string }> = ({ attId, filename }) => {
+  const { url, error } = useAttachmentUrl(attId);
+  const deleted = error;
+  const onClick = () => {
+    if (!url) return;
+    const a = document.createElement('a'); a.href = url; a.download = filename || 'file'; document.body.appendChild(a); a.click(); a.remove();
+  };
+  return (
+    <span className={'attachment-chip' + (deleted ? ' attachment-chip--deleted' : '')} onClick={deleted ? undefined : onClick} title={filename}>
+      {deleted ? `${filename} (удалён)` : filename}
+    </span>
+  );
+};
 
 interface RichTextRendererProps {
   contentJson?: any;
@@ -56,7 +81,11 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({ contentJson, markdo
     if (!contentJson) { setHtml(''); return; }
     let raw = '';
     try { raw = generateHTML(contentJson, editorExtensions); } catch (e) { console.error('[RICH] generateHTML failed:', e); }
-    const clean = DOMPurify.sanitize(raw, { ADD_ATTR: ['data-valign', 'data-row-height', 'style', 'data-color'] });
+    const clean = DOMPurify.sanitize(raw, {
+      ADD_ATTR: ['data-valign', 'data-row-height', 'style', 'data-color', 'data-attachment-id'],
+      ADD_URI_SAFE_ATTR: ['src', 'href'],
+      ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto|tel|attachment):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
+    });
     setHtml(clean);
   }, [contentJson]);
 
@@ -87,6 +116,29 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({ contentJson, markdo
       wrapper.appendChild(header);
       wrapper.appendChild(pre);
     });
+
+    // Attachment-узлы: заменяем на React-корни с хуком useAttachmentUrl.
+    const roots: Root[] = [];
+    root.querySelectorAll('img[src^="attachment:"]').forEach((img) => {
+      const id = parseAttachmentId(img.getAttribute('src'));
+      if (!id) return;
+      const holder = document.createElement('span');
+      img.replaceWith(holder);
+      const r = createRoot(holder);
+      r.render(<RenderedAttachmentImage attId={id} alt={img.getAttribute('alt') || ''} />);
+      roots.push(r);
+    });
+    root.querySelectorAll('a[data-attachment-id]').forEach((a) => {
+      const id = a.getAttribute('data-attachment-id');
+      if (!id) return;
+      const holder = document.createElement('span');
+      a.replaceWith(holder);
+      const r = createRoot(holder);
+      r.render(<RenderedAttachmentChip attId={id} filename={(a.textContent || 'файл')} />);
+      roots.push(r);
+    });
+
+    return () => { roots.forEach((r) => r.unmount()); };
   }, [html]);
 
   const onClick = (e: React.MouseEvent) => {
