@@ -198,7 +198,7 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
         {(task.descriptionJson || task.description) ? (
           <RichTextRenderer contentJson={task.descriptionJson} markdown={task.description} className="md-content" />
         ) : (
-          <p style={{ color: 'var(--color-text-muted)', fontStyle: 'italic', margin: 0 }}>
+          <p style={{ color: 'var(--color-text-muted)', fontStyle: 'italic', margin: 0, textAlign: 'center' }}>
             Нет описания
           </p>
         )}
