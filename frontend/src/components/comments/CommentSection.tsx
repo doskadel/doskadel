@@ -82,6 +82,7 @@ const CommentEditor: React.FC<{
       <RichTextEditor
         key={resetKey}
         minimal
+        autoFocus
         value={json}
         initialMarkdown={!json ? initialMarkdown : undefined}
         onChange={(j, m) => { setJson(j); setMd(m); }}

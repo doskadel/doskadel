@@ -26,11 +26,21 @@ interface RichTextEditorProps {
   /** Загрузка файла (вложения): возвращает метаданные или null при ошибке. */
   onUploadFile?: (file: File) => Promise<{ id: string; filename: string; mime: string } | null>;
   minimal?: boolean;
+  autoFocus?: boolean;
 }
 
 const btn = (active: boolean) => 'rte-btn' + (active ? ' rte-btn--active' : '');
 
-const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initialMarkdown, placeholder, onUploadFile, minimal }) => {
+const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initialMarkdown, placeholder, onUploadFile, minimal, autoFocus }) => {
+  React.useEffect(() => {
+    if (autoFocus && editor) {
+      const t = setTimeout(() => {
+        const max = editor.state.doc.content.size;
+        editor.chain().focus().setTextSelection(Math.min(1, max)).run();
+      }, 40);
+      return () => clearTimeout(t);
+    }
+  });
   const onUploadFileRef = React.useRef(onUploadFile);
   onUploadFileRef.current = onUploadFile;
   const fileInputRef = React.useRef<HTMLInputElement>(null);
