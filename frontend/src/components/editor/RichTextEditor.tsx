@@ -179,6 +179,18 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
   });
 
   // Реактивное состояние активных узлов (ререндер при движении курсора).
+  // Внешнее изменение value (например, удаление вложения из блока чистит JSON) —
+  // синхронизируем редактор, не затирая текущий ввод.
+  React.useEffect(() => {
+    if (!editor || !value) return;
+    const current = JSON.stringify(editor.getJSON());
+    const incoming = JSON.stringify(value);
+    if (incoming !== current) {
+      // @ts-ignore — TipTap 3
+      editor.commands.setContent(value, { emitUpdate: false });
+    }
+  }, [value, editor]);
+
   const state = useEditorState({
     editor,
     selector: ({ editor }) => ({
