@@ -6,6 +6,8 @@ services:
     depends_on:
       mongo:
         condition: service_healthy
+      garage:
+        condition: service_healthy
     networks:
       - doskadel-network
     volumes:
@@ -29,6 +31,29 @@ services:
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
 
+  # S3-совместимое хранилище Garage (MinIO из Docker Hub удалён, ревью Клода 2026-10-17).
+  # S3 API не публикуется наружу: наружу ходит только backend.
+  garage:
+    image: dxflrs/garage:v2.4.1@sha256:9c96caa2612d3411acc5b0e6701fb238dbfba33e533a6d7d3d811a4b12d0d020
+    command: ["/garage", "server", "--single-node", "--default-bucket"]
+    environment:
+      - GARAGE_RPC_SECRET=${GARAGE_RPC_SECRET}
+      - GARAGE_ADMIN_TOKEN=${GARAGE_ADMIN_TOKEN}
+      - GARAGE_DEFAULT_ACCESS_KEY=${GARAGE_ACCESS_KEY}
+      - GARAGE_DEFAULT_SECRET_KEY=${GARAGE_SECRET_KEY}
+      - GARAGE_DEFAULT_BUCKET=${S3_BUCKET:-doskadel-files}
+    volumes:
+      - ./infra/garage/garage.toml:/etc/garage.toml:ro
+      - garage_meta:/var/lib/garage/meta
+      - garage_data:/var/lib/garage/data
+    networks:
+      - doskadel-network
+    healthcheck:
+      test: ["CMD", "/garage", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   mongo:
     image: mongo:7.0
     ports:
@@ -49,3 +74,5 @@ networks:
 
 volumes:
   mongo_data:
+  garage_meta:
+  garage_data:

@@ -82,6 +82,13 @@ const startServer = async () => {
   app.use('/api/push', require('./src/routes/push'));
   app.use('/api/users', require('./src/routes/users'));
   app.use('/api/settings', require('./src/routes/settings'));
+  app.use('/api/attachments', require('./src/routes/attachments'));
+
+  // Инициализация бакета (не роняет старт, если MinIO недоступен — ревью Клода).
+  const storage = require('./src/utils/storage');
+  storage.ensureBucket().then((ok) => {
+    console.log(ok ? 'MinIO bucket ready' : 'MinIO bucket NOT ready (will retry on use)');
+  }).catch((e) => console.error('MinIO init error:', e?.message || e));
 
   app.use((err, req, res, next) => {
     console.error(err.stack);

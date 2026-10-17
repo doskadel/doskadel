@@ -2,6 +2,23 @@
 
 Новые — сверху. Формат: контекст, решение, следствия.
 
+## 2026-10-17 — Файлы: S3-совместимое хранилище, блокер MinIO
+
+**Контекст:** Фаза 3 — файлы в статьях и задачах. Решение 2026-10-14: MinIO. Но Docker Hub удалил образ `minio/minio` (source-only дистрибуция, репозиторий архивирован); `quay.io/minio/minio` с 2026-09-24 требует авторизованного pull. Анонимный docker pull невозможен.
+
+**Решение (архитектура, ревью Клода 2026-10-17):**
+- Доступ к файлам — **только через backend-прокси** (multer -> putObject, getObject -> pipe). Не публикуем S3 наружу, не используем presigned (нет CORS/SigV4-граблей с nginx), права проверяются на каждый запрос. Лимит файла 25MB (S3_PRESIGN_TTL не нужен).
+- Модель Attachment: `status pending|ready` (двухфазная загрузка), `deletedAt` (soft delete), ключ `ws/<workspaceId>/<uuid>.<ext>`, `sha256`. Индекс `{ownerType, ownerId, deletedAt}`.
+- MIME определять по сигнатуре (file-type), не доверять клиенту. Allow-list типов. Инлайн-показ только png/jpeg/gif/webp; остальное `Content-Disposition: attachment`. Всегда `X-Content-Type-Options: nosniff` (stored XSS).
+- Квота на workspace (суммарный размер). Каскад при удалении статьи/задачи — soft + GC-скрипт (TODO).
+- В тексте статьи — стабильная ссылка `attachment:<id>`, не URL. `<img>` не шлёт Authorization (JWT в заголовке) -> нужен Image NodeView с fetch в blob + objectURL (правка RichTextRenderer/редактора).
+
+**Замена хранилища:** вопрос выбора (pgsty/silo, rustfs, сборка из исходников, SeaweedFS) — на решении яруса 1 (Клод) + оператор. Код storage.js на AWS SDK v3 совместим с любым S3 API, замена — только endpoint + образ.
+
+**Лицензия MinIO:** AGPLv3 (community), с декабря 2025 maintenance mode; для личного проекта оператора не блокер, но зафиксировать перед продом.
+
+**Бэкап:** volume хранилища + mongodump вместе (иначе ссылки в Mongo без файлов).
+
 ## 2026-10-16 — Формат контента задач/статей: TipTap + гибридное хранение
 
 **Контекст:** статьи хранятся как Markdown-текст (Article.content, обязательная строка). Regex-поиск по content в 2 местах (articleController, routes/search). Рендер/редактор в 3 местах (ArticleDetail, ArticleModalContent, Knowledge). Юзеры не знают Markdown — нужен WYSIWYG (кнопка «таблица» -> визуальная таблица с +строка/+столбец). В будущем — импорт/экспорт статей и задач. Старые статьи в MD на проде (не терять).

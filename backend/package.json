@@ -9,6 +9,8 @@
     "test": "jest --runInBand"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1152.0",
+    "@aws-sdk/lib-storage": "^3.1152.0",
     "agenda": "^5.0.0",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.7",
@@ -17,10 +19,12 @@
     "express": "^4.18.2",
     "express-rate-limit": "^6.8.1",
     "express-validator": "^7.0.1",
+    "file-type": "^16.5.4",
     "helmet": "^7.0.0",
     "jsonwebtoken": "^9.0.2",
     "luxon": "^3.7.2",
     "mongoose": "^7.5.0",
+    "multer": "^2.4.0",
     "web-push": "^3.6.7"
   },
   "devDependencies": {
