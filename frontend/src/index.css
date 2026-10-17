@@ -1810,6 +1810,12 @@ color: var(--color-text);
   align-self: flex-start;
   width: 100%;
 }
+/* Пикер повторения в широкой модалке задачи — компактный, слева */
+.modal-content--task .recurrence-picker {
+  max-width: 320px;
+  align-self: flex-start;
+  width: 100%;
+}
 .task-date .input {
   width: 100%;
 }
