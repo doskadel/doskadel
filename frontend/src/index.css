@@ -2952,6 +2952,46 @@ color: var(--color-text);
 /* Абзацы внутри ячеек — без внешних отступов (иначе текст смещён) */
 .rte-content td > p, .rte-content th > p { margin: 0; }
 /* Минимальная высота строки (чтобы вертикальное выравнивание было заметно) */
+/* Просмотр статьи (JSON): таблица по содержимому, сохраняем ширины столбцов (colgroup) */
+.rte-render table {
+  width: auto !important;
+  max-width: 100% !important;
+  table-layout: auto !important;
+  border-collapse: collapse;
+  margin: var(--space-md) 0;
+}
+.rte-render table col { min-width: 0; }
+.rte-render th, .rte-render td {
+  border: 1px solid var(--color-border);
+  padding: 6px 10px;
+  vertical-align: middle;
+  overflow-wrap: anywhere;
+}
+.rte-render th { background: var(--color-surface-alt); font-weight: 600; }
+.rte-render .tableWrapper { overflow-x: auto; }
+.rte-render blockquote {
+  width: fit-content;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin: var(--space-md) 0;
+  padding: 4px 14px;
+  border-left: 3px solid var(--color-border-strong);
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+}
+.rte-render pre {
+  width: fit-content;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin: var(--space-md) 0;
+  padding: var(--space-md);
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+}
+
 .rte-content table tr { height: 40px; position: relative; }
 /* Зона захвата у нижней границы строки — курсор row-resize */
 .rte-content table tr::after {
@@ -2991,8 +3031,23 @@ color: var(--color-text);
 .rte-content ul[data-type="taskList"] { list-style: none; padding-left: 0; }
 .rte-content ul[data-type="taskList"] li { display: flex; align-items: flex-start; gap: 8px; }
 .rte-content ul[data-type="taskList"] li > label { margin-top: 3px; }
-.rte-content blockquote { border-left: 3px solid var(--color-border-strong); padding-left: 12px; color: var(--color-text-muted); margin: var(--space-md) 0; }
-.rte-content pre { background: var(--color-surface-alt); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-md); overflow-x: auto; }
+.rte-content blockquote {
+  border-left: 3px solid var(--color-border-strong);
+  padding: 4px 14px;
+  color: var(--color-text-muted);
+  margin: var(--space-md) 0;
+  width: fit-content;
+  max-width: 100%;
+}
+.rte-content pre {
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  overflow-x: auto;
+  width: fit-content;
+  max-width: 100%;
+}
 .rte-content code { background: var(--color-surface-alt); border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: 1px 5px; font-size: 0.9em; }
 .rte-content pre code { background: none; border: none; padding: 0; }
 .rte-content img { max-width: 100%; height: auto; border-radius: var(--radius-sm); }
@@ -3036,6 +3091,36 @@ color: var(--color-text);
 .md-content ul, .md-content ol { margin: 0 0 var(--space-md); padding-left: 24px; }
 .md-content li { margin: 2px 0; }
 .md-content li input[type="checkbox"] { margin-right: 6px; }
+
+/* Чеклисты (taskList) — и в просмотре, и в старых статьях: без маркера, чекбокс слева текста */
+.md-content ul[data-type="taskList"],
+.rte-render ul[data-type="taskList"] {
+  list-style: none;
+  padding-left: 0;
+  margin: 0 0 var(--space-md);
+}
+.md-content ul[data-type="taskList"] li,
+.rte-render ul[data-type="taskList"] li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+}
+.md-content ul[data-type="taskList"] li > label,
+.rte-render ul[data-type="taskList"] li > label {
+  flex-shrink: 0;
+  margin-top: 3px;
+  display: inline-flex;
+}
+.md-content ul[data-type="taskList"] li > div,
+.rte-render ul[data-type="taskList"] li > div {
+  flex: 1;
+  min-width: 0;
+}
+.md-content ul[data-type="taskList"] li > div > p,
+.rte-render ul[data-type="taskList"] li > div > p {
+  margin: 0;
+}
 .md-content a { color: var(--color-primary); text-decoration: none; }
 .md-content a:hover { text-decoration: underline; }
 .md-content blockquote {
@@ -3045,6 +3130,9 @@ color: var(--color-text);
   color: var(--color-text-muted);
   background: var(--color-surface-alt);
   border-radius: var(--radius-sm);
+  width: fit-content;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 .md-content code {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -3061,6 +3149,9 @@ color: var(--color-text);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   overflow-x: auto;
+  width: fit-content;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 .md-content pre code { background: none; border: none; padding: 0; font-size: 13px; }
 .md-content table {
