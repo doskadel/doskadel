@@ -154,6 +154,7 @@ const CommentNode: React.FC<{
         )}
       </div>
       <div className="comment-meta">
+        {c.authorEmail && <span className="comment-author">{c.authorEmail}</span>}
         <span className="comment-date">{new Date(c.createdAt).toLocaleString('ru-RU')}{c.editedAt ? ' · изменён' : ''}</span>
         {!c.deleted && (
           <span className="comment-actions">

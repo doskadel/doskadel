@@ -12,6 +12,7 @@ export interface CommentItem {
   parentId: string | null;
   replyToUserId: string | null;
   authorId: string;
+  authorEmail?: string | null;
   content: string;
   contentJson: any;
   format: 'md' | 'json';
