@@ -33,7 +33,7 @@ const LinkSearchModal: React.FC<Props> = ({ open, targetType, excludeId, onClose
         const r = await api.get('/api/search', { params: { q: term } });
         const tasks = (r.data.results?.tasks || []).map((x: any) => ({ type: 'task' as const, id: x._id, title: x.title }));
         const articles = (r.data.results?.articles || []).map((x: any) => ({ type: 'article' as const, id: x._id, title: x.title }));
-        const all = (targetType === 'task' ? tasks : articles).filter((x) => x.id !== excludeId);
+        const all = (targetType === 'task' ? tasks : articles).filter((x: Result) => x.id !== excludeId);
         setResults(all.slice(0, 20));
       } catch { setResults([]); } finally { setLoading(false); }
     }, 250);
