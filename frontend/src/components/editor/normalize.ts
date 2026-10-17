@@ -24,6 +24,19 @@ export const splitHardBreaks = (node: any): any[] => {
 
 export const normalizeDoc = (doc: any) => splitHardBreaks(doc)[0];
 
+/** Удаляет из JSON узлы, ссылающиеся на вложение attachment:<id> (image и attachmentChip). */
+export const removeAttachmentFromJson = (node: any, id: string): any => {
+  if (!node) return node;
+  if (Array.isArray(node)) return node.map((n) => removeAttachmentFromJson(n, id));
+  if (node.type === 'image' && node.attrs?.src === `attachment:${id}`) return null;
+  if (node.type === 'attachmentChip' && node.attrs?.id === id) return null;
+  if (node.content) {
+    const content = node.content.map((c: any) => removeAttachmentFromJson(c, id)).filter((c: any) => c !== null);
+    return { ...node, content };
+  }
+  return node;
+};
+
 /**
  * После парсинга Markdown ссылки вида [filename](attachment:<id>) приходят как text с link-mark.
  * Превращаем их в узлы attachmentChip (ревью Клода: MD не должен терять вложения).

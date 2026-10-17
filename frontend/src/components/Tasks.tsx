@@ -18,6 +18,7 @@ import RecurrencePicker from './RecurrencePicker';
 import ClearableField from './ClearableField';
 import RichTextEditor from './editor/RichTextEditor';
 import AttachmentBlock from './attachments/AttachmentBlock';
+import { removeAttachmentFromJson } from './editor/normalize';
 import { uploadAttachment, attachToOwner } from '../utils/attachments';
 import MarkdownRenderer from './MarkdownRenderer';
 import { useMediaQuery } from '../hooks/useMediaQuery';
@@ -566,6 +567,7 @@ const Tasks: React.FC = () => {
             ownerId={null}
             pendingItems={pendingAttachments}
             onPendingChange={setPendingAttachments}
+            onDeleted={(att) => setDescriptionJson((prev: any) => removeAttachmentFromJson(prev, att._id))}
           />
           <div className="task-fields-grid">
             <div className="task-col">

@@ -2,6 +2,7 @@ import React from 'react';
 import { Article } from '../hooks/useArticleDetail';
 import RichTextEditor from './editor/RichTextEditor';
 import RichTextRenderer from './editor/RichTextRenderer';
+import { removeAttachmentFromJson } from './editor/normalize';
 import AttachmentBlock from './attachments/AttachmentBlock';
 import { uploadAttachment, notifyAttachmentsChanged } from '../utils/attachments';
 
@@ -75,7 +76,11 @@ const ArticleModalContent: React.FC<ArticleModalContentProps> = ({
             } catch { return null; }
           }}
         />
-        <AttachmentBlock ownerType="article" ownerId={article!._id} />
+        <AttachmentBlock
+          ownerType="article"
+          ownerId={article!._id}
+          onDeleted={(att) => setEditContentJson((prev: any) => removeAttachmentFromJson(prev, att._id))}
+        />
         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
           <button
             type="button"

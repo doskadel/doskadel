@@ -9,6 +9,7 @@ import RecurrencePicker from './RecurrencePicker';
 import ClearableField from './ClearableField';
 import RichTextEditor from './editor/RichTextEditor';
 import RichTextRenderer from './editor/RichTextRenderer';
+import { removeAttachmentFromJson } from './editor/normalize';
 import AttachmentBlock from './attachments/AttachmentBlock';
 import { uploadAttachment, notifyAttachmentsChanged } from '../utils/attachments';
 
@@ -98,7 +99,11 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
             } catch { return null; }
           }}
         />
-        <AttachmentBlock ownerType="task" ownerId={task!._id} />
+        <AttachmentBlock
+          ownerType="task"
+          ownerId={task!._id}
+          onDeleted={(att) => setEditDescriptionJson((prev: any) => removeAttachmentFromJson(prev, att._id))}
+        />
         <div className="task-fields-grid">
           <div className="task-col">
             <div className="task-field" style={{ maxWidth: 'none' }}>

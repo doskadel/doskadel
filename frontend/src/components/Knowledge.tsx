@@ -12,6 +12,7 @@ import { useToast } from './Toast';
 import SwipeableRow from './SwipeableRow';
 import RichTextEditor from './editor/RichTextEditor';
 import AttachmentBlock from './attachments/AttachmentBlock';
+import { removeAttachmentFromJson } from './editor/normalize';
 import { uploadAttachment, attachToOwner } from '../utils/attachments';
 import { stripMarkdown, plainTextFromJson } from '../utils/markdown';
 
@@ -270,6 +271,7 @@ const Knowledge: React.FC = () => {
             ownerId={null}
             pendingItems={pendingAttachments}
             onPendingChange={setPendingAttachments}
+            onDeleted={(att) => setContentJson((prev: any) => removeAttachmentFromJson(prev, att._id))}
           />
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: 'var(--space-sm)' }}>
             <button

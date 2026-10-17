@@ -13,6 +13,7 @@ interface Props {
   pendingItems?: AttachmentMeta[]; // загруженные до создания сущности (объекты)
   onPendingChange?: (items: AttachmentMeta[]) => void;
   onUploaded?: (att: AttachmentMeta) => void; // для вставки в текст
+  onDeleted?: (att: AttachmentMeta) => void; // удалить ссылки из текста
   readOnly?: boolean;
 }
 
@@ -41,7 +42,7 @@ const AttachmentThumb: React.FC<{ att: AttachmentMeta; onOpen: (id: string) => v
   return null;
 };
 
-const AttachmentBlock: React.FC<Props> = ({ ownerType, ownerId, pendingItems = [], onPendingChange, onUploaded, readOnly }) => {
+const AttachmentBlock: React.FC<Props> = ({ ownerType, ownerId, pendingItems = [], onPendingChange, onUploaded, onDeleted, readOnly }) => {
   const { toast } = useToast();
   const confirm = useConfirm();
   const [items, setItems] = useState<AttachmentMeta[]>([]);
@@ -111,6 +112,7 @@ const AttachmentBlock: React.FC<Props> = ({ ownerType, ownerId, pendingItems = [
       await deleteAttachment(att._id);
       if (ownerId) setItems((prev) => prev.filter((a) => a._id !== att._id));
       else { setPending((prev) => prev.filter((a) => a._id !== att._id)); }
+      onDeleted?.(att);
       toast('Файл удалён', 'success');
     } catch { toast('Не удалось удалить файл', 'error'); }
   };
