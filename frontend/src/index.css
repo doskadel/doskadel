@@ -2107,6 +2107,7 @@ color: var(--color-text);
 .comment-avatar { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; overflow: hidden; background: var(--color-surface-alt); color: var(--color-text-muted); font-size: 11px; font-weight: 600; flex-shrink: 0; }
 .comment-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .comment-actions { display: inline-flex; gap: 4px; }
+.comment-actions--bottom { margin-top: 6px; }
 .comment-actions button { border: none; background: transparent; color: var(--color-text-muted); cursor: pointer; padding: 2px; border-radius: var(--radius-sm); }
 .comment-actions button:hover { color: var(--color-primary); background: var(--color-surface-alt); }
 .comment-replies { margin-top: 0; margin-left: var(--space-lg); display: flex; flex-direction: column; gap: 0; }

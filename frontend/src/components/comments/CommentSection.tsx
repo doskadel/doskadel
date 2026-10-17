@@ -149,13 +149,6 @@ const CommentNode: React.FC<{
           </span>
         )}
         <span className="comment-date">{new Date(c.createdAt).toLocaleString('ru-RU')}{c.editedAt ? ' · изменён' : ''}</span>
-        {!c.deleted && (
-          <span className="comment-actions">
-            {canReply && <button type="button" onClick={() => setReplying((v) => !v)} title="Ответить"><Reply size={14} /></button>}
-            {!editing && <button type="button" onClick={() => setEditing(true)} title="Редактировать"><Pencil size={14} /></button>}
-            <button type="button" onClick={remove} title="Удалить"><Trash2 size={14} /></button>
-          </span>
-        )}
       </div>
       <div className="comment-body">
         {c.deleted ? (
@@ -175,6 +168,13 @@ const CommentNode: React.FC<{
           </>
         )}
       </div>
+      {!c.deleted && (
+        <div className="comment-actions comment-actions--bottom">
+          {canReply && <button type="button" onClick={() => setReplying((v) => !v)} title="Ответить"><Reply size={14} /></button>}
+          {!editing && <button type="button" onClick={() => setEditing(true)} title="Редактировать"><Pencil size={14} /></button>}
+          <button type="button" onClick={remove} title="Удалить"><Trash2 size={14} /></button>
+        </div>
+      )}
       {viewer && <AttachmentViewer att={viewer} onClose={() => setViewer(null)} />}
       {replies.length > 0 && (
         <div className="comment-replies">
