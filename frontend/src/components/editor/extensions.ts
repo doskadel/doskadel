@@ -12,9 +12,12 @@ import TextAlign from '@tiptap/extension-text-align';
 import { TextStyle, Color } from '@tiptap/extension-text-style';
 import { BlockLineHeight } from './LineHeight';
 import Highlight from '@tiptap/extension-highlight';
+import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
+import { lowlight } from './lowlight';
 import { Markdown } from 'tiptap-markdown';
 
 import { Extension, Extensions } from '@tiptap/core';
+import Gapcursor from '@tiptap/extension-gapcursor';
 
 /**
  * Единый набор расширений TipTap для DoskaDel.
@@ -26,7 +29,10 @@ export const editorExtensions: Extensions = [
     heading: { levels: [1, 2, 3] },
     link: { openOnClick: false, autolink: true },
     hardBreak: false,
+    codeBlock: false,
   }),
+  CodeBlockLowlight.configure({ lowlight }),
+  Gapcursor,
   Image,
   TaskList,
   TaskItem.configure({ nested: true }),

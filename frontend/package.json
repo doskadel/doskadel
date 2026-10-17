@@ -1,6 +1,6 @@
 {
   "name": "doskadel-frontend",
-  "version": "1.2.0",
+  "version": "1.4.0",
   "description": "Frontend for DoskaDel application",
   "main": "src/index.tsx",
   "scripts": {
@@ -16,6 +16,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@fontsource/inter": "^5.3.0",
     "@headlessui/react": "^2.2.10",
+    "@tiptap/extension-code-block-lowlight": "^3.32.0",
     "@tiptap/extension-color": "^3.32.0",
     "@tiptap/extension-highlight": "^3.32.0",
     "@tiptap/extension-image": "^3.32.0",
@@ -35,6 +36,7 @@
     "axios": "^1.4.0",
     "dompurify": "^3.4.17",
     "http-proxy-middleware": "^3.0.7",
+    "lowlight": "^3.3.0",
     "lucide-react": "^1.50.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

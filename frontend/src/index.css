@@ -2923,9 +2923,31 @@ color: var(--color-text);
 .rte-table-hint { font-size: 12px; color: var(--color-text-muted); margin-right: 4px; }
 .rte-table-hint--icon { display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; }
 .rte-editor { flex: 1; min-height: 0; overflow-y: auto; }
+/* Gapcursor: курсор между блоками (код/таблица/картинка/hr) */
+.ProseMirror-gapcursor {
+  display: none;
+  pointer-events: none;
+  position: absolute;
+}
+.ProseMirror-gapcursor:after {
+  content: '';
+  display: block;
+  position: absolute;
+  top: -2px;
+  width: 20px;
+  border-top: 1px solid var(--color-primary);
+  animation: ProseMirror-cursor-blink 1.1s steps(2, start) infinite;
+}
+.ProseMirror-focused .ProseMirror-gapcursor { display: block; }
+@keyframes ProseMirror-cursor-blink { to { visibility: hidden; } }
 .rte-content {
+  position: relative;
   padding: var(--space-lg); min-height: 100%; outline: none;
   font-size: 15px; line-height: 1.5; color: var(--color-text);
+}
+.rte-content p, .rte-content h1, .rte-content h2, .rte-content h3,
+.rte-content li, .rte-content blockquote {
+  line-height: inherit;
 }
 .rte-content .ProseMirror-focused { outline: none; }
 .rte-content p.is-editor-empty:first-child::before {
@@ -3030,8 +3052,12 @@ color: var(--color-text);
 .rte-content .rte-align-right { text-align: right; }
 .rte-content .rte-align-left { text-align: left; }
 .rte-content ul[data-type="taskList"] { list-style: none; padding-left: 0; }
-.rte-content ul[data-type="taskList"] li { display: flex; align-items: flex-start; gap: 8px; }
+.rte-content ul[data-type="taskList"] li { display: flex; align-items: flex-start; gap: 8px; margin: 0 0 0.9em; }
 .rte-content ul[data-type="taskList"] li > label { margin-top: 3px; }
+/* Отступы между пунктами любых списков (редактор) */
+.rte-content ul, .rte-content ol { margin: 0 0 0.7em; }
+.rte-content li { margin: 0 0 0.9em; }
+.rte-content li > p { margin: 0; }
 .rte-content blockquote {
   border-left: 3px solid var(--color-border-strong);
   padding: 4px 14px;
@@ -3051,6 +3077,56 @@ color: var(--color-text);
 }
 .rte-content code { background: var(--color-surface-alt); border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: 1px 5px; font-size: 0.9em; }
 .rte-content pre code { background: none; border: none; padding: 0; }
+/* Подсветка кода (hljs/lowlight) */
+.hljs-comment, .hljs-quote { color: #6b7280; font-style: italic; }
+.hljs-keyword, .hljs-selector-tag, .hljs-built_in { color: #c586c0; }
+.hljs-string, .hljs-attr { color: #a5d6a7; }
+.hljs-number, .hljs-literal, .hljs-variable { color: #f78c6c; }
+.hljs-title, .hljs-section, .hljs-function { color: #82aaff; }
+.hljs-type, .hljs-class .hljs-title { color: #ffcb6b; }
+.hljs-tag, .hljs-name { color: #89ddff; }
+.hljs-attribute, .hljs-property { color: #ffcb6b; }
+.hljs-meta, .hljs-symbol, .hljs-regexp { color: #f07178; }
+.hljs-punctuation { color: #9ca3af; }
+/* Код-блок в просмотре: шапка с языком и копированием */
+.code-block {
+  margin: 0 0 var(--space-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  width: fit-content;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.code-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: 6px 12px;
+  background: var(--color-surface-alt);
+  border-bottom: 1px solid var(--color-border);
+  font-size: 12px;
+}
+.code-block-lang { color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.code-block-copy {
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 3px 10px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+.code-block-copy:hover { color: var(--color-text); border-color: var(--color-primary); }
+.code-block pre {
+  margin: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  width: auto;
+}
 .rte-content img { max-width: 100%; height: auto; border-radius: var(--radius-sm); }
 .rte-content a { color: var(--color-primary); text-decoration: underline; }
 
@@ -3088,9 +3164,20 @@ color: var(--color-text);
 .md-content h1 { font-size: 24px; }
 .md-content h2 { font-size: 20px; }
 .md-content h3 { font-size: 17px; }
-.md-content p { margin: 0 0 var(--space-md); }
+.md-content p { margin: 0 0 0.45em; }
+/* Пустые абзацы в просмотре не схлопываются (сохраняем пустые строки) */
+.md-content p:empty,
+.rte-render p:empty,
+.rte-content p:empty {
+  min-height: 1.4em;
+}
+.md-content p:empty::after,
+.rte-render p:empty::after {
+  content: '\200B'; /* zero-width space, чтобы пустой p держал строку */
+}
 .md-content ul, .md-content ol { margin: 0 0 var(--space-md); padding-left: 24px; }
-.md-content li { margin: 2px 0; }
+.md-content li { margin: 0 0 0.9em; }
+.md-content li > p { margin: 0; }
 .md-content li input[type="checkbox"] { margin-right: 6px; }
 
 /* Чеклисты (taskList) — и в просмотре, и в старых статьях: без маркера, чекбокс слева текста */
@@ -3105,7 +3192,7 @@ color: var(--color-text);
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  margin: 0;
+  margin: 0 0 0.9em;
 }
 .md-content ul[data-type="taskList"] li > label,
 .rte-render ul[data-type="taskList"] li > label {

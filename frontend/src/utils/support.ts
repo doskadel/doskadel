@@ -1,7 +1,7 @@
 /** Контакты и версия приложения — в одном месте. */
 export const SUPPORT_EMAIL = 'doskadel.info@gmail.com';
 /** Версия (обновлять при релизе; соответствует frontend/package.json version). */
-export const APP_VERSION = '1.2.0';
+export const APP_VERSION = '1.4.0';
 /** Краткое описание приложения. */
 export const APP_TAGLINE = 'Задачи, планы и база знаний в одном месте.';
 

@@ -14,6 +14,8 @@ import { normalizeDoc } from './normalize';
 import ColorPalette from './ColorPalette';
 import UrlDialog from './UrlDialog';
 import { makeCodeBlock, makeBlockquote } from './blocks';
+import { formatCode } from './codeFormat';
+import { TextSelection } from '@tiptap/pm/state';
 
 interface RichTextEditorProps {
   value: any;
@@ -56,6 +58,30 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
           }
           return false;
         },
+      },
+      handleClick: (view, pos, event) => {
+        // Клик мимо блоков (справа/снизу от таблицы/кода) -> курсор в конец документа.
+        const dom = view.dom as HTMLElement;
+        const target = event.target as HTMLElement;
+        if (target === dom) {
+          const end = view.state.doc.content.size;
+          const sel = TextSelection.near(view.state.doc.resolve(end), -1);
+          view.dispatch(view.state.tr.setSelection(sel));
+          view.focus();
+          return true;
+        }
+        return false;
+      },
+      handlePaste: (view, event) => {
+        // Внутри блока кода — форматируем JSON/XML при вставке.
+        if (!editor || !editor.isActive('codeBlock')) return false;
+        const text = event.clipboardData?.getData('text/plain') || '';
+        if (!text.trim()) return false;
+        const fmt = formatCode(text);
+        if (!fmt.lang) return false;
+        event.preventDefault();
+        editor.chain().focus().insertContent(fmt.code).run();
+        return true;
       },
       handleDrop: (view, e, _slice, moved) => {
         if (!moved) return false;
@@ -220,7 +246,9 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
           }}
         >
           <option value="1">1.0</option>
+          <option value="1.25">1.25</option>
           <option value="1.5">1.5</option>
+          <option value="1.75">1.75</option>
           <option value="2">2.0</option>
         </select>
 
