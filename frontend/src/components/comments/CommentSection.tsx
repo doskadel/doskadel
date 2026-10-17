@@ -138,6 +138,22 @@ const CommentNode: React.FC<{
 
   return (
     <div className="comment-item">
+      <div className="comment-meta">
+        {c.authorEmail && (
+          <span className="comment-author">
+            <span className="comment-avatar">{c.authorAvatar ? <img src={c.authorAvatar} alt="" /> : (c.authorEmail[0] || '?').toUpperCase()}</span>
+            {c.authorEmail}
+          </span>
+        )}
+        <span className="comment-date">{new Date(c.createdAt).toLocaleString('ru-RU')}{c.editedAt ? ' · изменён' : ''}</span>
+        {!c.deleted && (
+          <span className="comment-actions">
+            <button type="button" onClick={() => setReplying((v) => !v)} title="Ответить"><Reply size={14} /></button>
+            {!editing && <button type="button" onClick={() => setEditing(true)} title="Редактировать"><Pencil size={14} /></button>}
+            <button type="button" onClick={remove} title="Удалить"><Trash2 size={14} /></button>
+          </span>
+        )}
+      </div>
       <div className="comment-body">
         {c.deleted ? (
           <p className="comment-deleted">Комментарий удалён</p>
@@ -154,22 +170,6 @@ const CommentNode: React.FC<{
               </div>
             )}
           </>
-        )}
-      </div>
-      <div className="comment-meta">
-        {c.authorEmail && (
-          <span className="comment-author">
-            <span className="comment-avatar">{c.authorAvatar ? <img src={c.authorAvatar} alt="" /> : (c.authorEmail[0] || '?').toUpperCase()}</span>
-            {c.authorEmail}
-          </span>
-        )}
-        <span className="comment-date">{new Date(c.createdAt).toLocaleString('ru-RU')}{c.editedAt ? ' · изменён' : ''}</span>
-        {!c.deleted && (
-          <span className="comment-actions">
-            <button type="button" onClick={() => setReplying((v) => !v)} title="Ответить"><Reply size={14} /></button>
-            {!editing && <button type="button" onClick={() => setEditing(true)} title="Редактировать"><Pencil size={14} /></button>}
-            <button type="button" onClick={remove} title="Удалить"><Trash2 size={14} /></button>
-          </span>
         )}
       </div>
       {viewer && <AttachmentViewer att={viewer} onClose={() => setViewer(null)} />}
