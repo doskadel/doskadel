@@ -3,11 +3,11 @@ import { Table } from '@tiptap/extension-table';
 import { VerticalAlignTableCell, VerticalAlignTableHeader } from './VerticalAlignTableCell';
 import { RowHeightTableRow } from './RowHeightTableRow';
 import { rowResizePlugin } from './rowResizePlugin';
-import Link from '@tiptap/extension-link';
+
 import Image from '@tiptap/extension-image';
 import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
-import Underline from '@tiptap/extension-underline';
+
 import TextAlign from '@tiptap/extension-text-align';
 import { Markdown } from 'tiptap-markdown';
 import { Extension } from '@tiptap/core';
@@ -20,9 +20,8 @@ import { Extension } from '@tiptap/core';
 export const editorExtensions = [
   StarterKit.configure({
     heading: { levels: [1, 2, 3] },
+    link: { openOnClick: false, autolink: true },
   }),
-  Underline,
-  Link.configure({ openOnClick: false, autolink: true }),
   Image,
   TaskList,
   TaskItem.configure({ nested: true }),

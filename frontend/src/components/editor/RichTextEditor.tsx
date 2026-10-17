@@ -10,6 +10,7 @@ import {
   AlignVerticalJustifyStart, AlignVerticalJustifyCenter, AlignVerticalJustifyEnd,
 } from 'lucide-react';
 import { editorExtensions } from './extensions';
+import { normalizeDoc } from './normalize';
 
 interface RichTextEditorProps {
   value: any;
@@ -24,6 +25,15 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
   const editor = useEditor({
     extensions: editorExtensions,
     content: value || initialMarkdown || '',
+    onCreate: ({ editor }) => {
+      // Статья из Markdown (нет contentJson): разбиваем абзацы по hardBreak,
+      // чтобы цитата/код применялись к текущей строке, а не ко всему многострочному абзацу.
+      if (!value && initialMarkdown) {
+        const normalized = normalizeDoc(editor.getJSON());
+        // @ts-ignore — TipTap 3 принимает опции вторым аргументом
+        editor.commands.setContent(normalized, { emitUpdate: false });
+      }
+    },
     onUpdate: ({ editor }) => {
       const json = editor.getJSON();
       // @ts-ignore — storage markdown от tiptap-markdown
@@ -83,7 +93,26 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
     }),
   });
 
-  const chain = useCallback(() => editor?.chain().focus(), [editor]);
+  // Сохраняем позицию курсора на mousedown тулбара, чтобы клик по кнопке не сбивал выделение.
+  const savedSel = React.useRef<{ from: number; to: number } | null>(null);
+  const onToolbarMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (editor) {
+      const { from, to } = editor.state.selection;
+      savedSel.current = { from, to };
+    }
+  };
+  const chain = useCallback(() => {
+    if (!editor) return null;
+    const sel = savedSel.current;
+    if (sel) {
+      const max = editor.state.doc.content.size;
+      const from = Math.min(sel.from, max);
+      const to = Math.min(sel.to, max);
+      return editor.chain().focus().setTextSelection({ from, to });
+    }
+    return editor.chain().focus();
+  }, [editor]);
 
   if (!editor || !state) return null;
 
@@ -108,7 +137,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
 
   return (
     <div className="rte">
-      <div className="rte-toolbar" role="toolbar">
+      <div className="rte-toolbar" role="toolbar" onMouseDown={onToolbarMouseDown}>
         <button type="button" className={btn(state.h1)} onClick={() => chain()?.toggleHeading({ level: 1 }).run()} title="Заголовок 1"><Heading1 size={16} /></button>
         <button type="button" className={btn(state.h2)} onClick={() => chain()?.toggleHeading({ level: 2 }).run()} title="Заголовок 2"><Heading2 size={16} /></button>
         <button type="button" className={btn(state.h3)} onClick={() => chain()?.toggleHeading({ level: 3 }).run()} title="Заголовок 3"><Heading3 size={16} /></button>
@@ -144,7 +173,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
       </div>
 
       {state.inTable && (
-        <div className="rte-table-bar" role="toolbar" aria-label="Действия с таблицей">
+        <div className="rte-table-bar" role="toolbar" aria-label="Действия с таблицей" onMouseDown={onToolbarMouseDown}>
           <span className="rte-table-hint rte-table-hint--icon"><Rows3 size={14} /> Строка</span>
           <button type="button" className="rte-btn" onClick={() => chain()?.addRowAfter().run()} title="Добавить строку" aria-label="Добавить строку"><Plus size={15} /></button>
           <button type="button" className="rte-btn" onClick={() => chain()?.deleteRow().run()} title="Удалить строку" aria-label="Удалить строку"><Minus size={15} /></button>
