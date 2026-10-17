@@ -37,6 +37,7 @@ export const editorExtensions: Extensions = [
   Placeholder.configure({
     emptyEditorClass: 'is-editor-empty',
     emptyNodeClass: 'is-empty',
+    placeholder: ({ editor }: any) => (editor?.options?.editorProps?.attributes?.['data-placeholder']) || 'Введите текст…',
   }),
   AttachmentImageExt,
   AttachmentChip,
