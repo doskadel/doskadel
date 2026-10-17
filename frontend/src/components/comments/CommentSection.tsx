@@ -118,10 +118,12 @@ const CommentNode: React.FC<{
   onReply: (c: CommentItem) => void;
   onChanged: () => void;
   childrenOf: (id: string) => CommentItem[];
-}> = ({ c, replies, ownerType, ownerId, onReply, onChanged, childrenOf }) => {
+  submitReply: (c: CommentItem, json: any, md: string, pending: AttachmentMeta[]) => Promise<void>;
+}> = ({ c, replies, ownerType, ownerId, onReply, onChanged, childrenOf, submitReply }) => {
   const { toast } = useToast();
   const confirm = useConfirm();
   const [editing, setEditing] = useState(false);
+  const [replying, setReplying] = useState(false);
   const [viewer, setViewer] = useState<any | null>(null);
 
   const saveEdit = async (json: any, md: string) => {
@@ -164,7 +166,7 @@ const CommentNode: React.FC<{
         <span className="comment-date">{new Date(c.createdAt).toLocaleString('ru-RU')}{c.editedAt ? ' · изменён' : ''}</span>
         {!c.deleted && (
           <span className="comment-actions">
-            <button type="button" onClick={() => onReply(c)} title="Ответить"><Reply size={14} /></button>
+            <button type="button" onClick={() => setReplying((v) => !v)} title="Ответить"><Reply size={14} /></button>
             {!editing && <button type="button" onClick={() => setEditing(true)} title="Редактировать"><Pencil size={14} /></button>}
             <button type="button" onClick={remove} title="Удалить"><Trash2 size={14} /></button>
           </span>
@@ -173,7 +175,12 @@ const CommentNode: React.FC<{
       {viewer && <AttachmentViewer att={viewer} onClose={() => setViewer(null)} />}
       {replies.length > 0 && (
         <div className="comment-replies">
-          {replies.map((r) => <CommentNode key={r._id} c={r} replies={childrenOf(r._id)} ownerType={ownerType} ownerId={ownerId} onReply={onReply} onChanged={onChanged} childrenOf={childrenOf} />)}
+          {replies.map((r) => <CommentNode key={r._id} c={r} replies={childrenOf(r._id)} ownerType={ownerType} ownerId={ownerId} onReply={onReply} onChanged={onChanged} childrenOf={childrenOf} submitReply={submitReply} />)}
+        </div>
+      )}
+      {replying && !c.deleted && (
+        <div className="comment-reply-inline">
+          <CommentEditor ownerType={ownerType} ownerId={ownerId} onSubmit={(json, md, pending) => submitReply(c, json, md, pending)} onCancel={() => setReplying(false)} submitLabel="Ответить" />
         </div>
       )}
     </div>
@@ -184,7 +191,7 @@ const CommentSection: React.FC<Props> = ({ ownerType, ownerId }) => {
   const { toast } = useToast();
   const [items, setItems] = useState<CommentItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [replyTo, setReplyTo] = useState<CommentItem | null>(null);
+
 
   const refresh = () => listComments(ownerType, ownerId).then((c) => { setItems(c); setLoading(false); }).catch(() => setLoading(false));
   useEffect(() => { refresh(); /* eslint-disable-next-line */ }, [ownerType, ownerId]);
@@ -194,8 +201,14 @@ const CommentSection: React.FC<Props> = ({ ownerType, ownerId }) => {
 
   const submit = async (json: any, md: string, pending: AttachmentMeta[]) => {
     try {
-      await createComment({ ownerType, ownerId, parentId: replyTo?._id || null, replyToUserId: replyTo?.authorId || null, contentJson: json, content: md, attachments: pending.map((p) => p._id) });
-      setReplyTo(null);
+      await createComment({ ownerType, ownerId, parentId: null, contentJson: json, content: md, attachments: pending.map((p) => p._id) });
+      refresh();
+    } catch (e: any) { toast(e?.response?.data?.message || 'Не удалось отправить', 'error'); }
+  };
+
+  const submitReply = async (parent: CommentItem, json: any, md: string, pending: AttachmentMeta[]) => {
+    try {
+      await createComment({ ownerType, ownerId, parentId: parent._id, replyToUserId: parent.authorId, contentJson: json, content: md, attachments: pending.map((p) => p._id) });
       refresh();
     } catch (e: any) { toast(e?.response?.data?.message || 'Не удалось отправить', 'error'); }
   };
@@ -209,14 +222,8 @@ const CommentSection: React.FC<Props> = ({ ownerType, ownerId }) => {
       ) : (
         <div className="comment-list">
           {roots.map((c) => (
-            <CommentNode key={c._id} c={c} replies={childrenOf(c._id)} ownerType={ownerType} ownerId={ownerId} onReply={setReplyTo} onChanged={refresh} childrenOf={childrenOf} />
+            <CommentNode key={c._id} c={c} replies={childrenOf(c._id)} ownerType={ownerType} ownerId={ownerId} onReply={() => {}} onChanged={refresh} childrenOf={childrenOf} submitReply={submitReply} />
           ))}
-        </div>
-      )}
-      {replyTo && (
-        <div className="comment-reply-box">
-          <div className="comment-reply-head">Ответ на комментарий <button type="button" onClick={() => setReplyTo(null)}><X size={14} /></button></div>
-          <CommentEditor ownerType={ownerType} ownerId={ownerId} onSubmit={submit} onCancel={() => setReplyTo(null)} submitLabel="Ответить" />
         </div>
       )}
     </div>
