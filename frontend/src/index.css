@@ -2088,8 +2088,9 @@ color: var(--color-text);
 .comment-editor-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
 .comment-list { display: flex; flex-direction: column; gap: 0; }
 .comment-item { border-left: 2px solid var(--color-border); padding-left: var(--space-md); margin-bottom: var(--space-sm); }
-.comment-item + .comment-item { position: relative; margin-top: 24px !important; padding-top: 24px !important; border-top: none !important; }
-.comment-item + .comment-item::before { content: ''; position: absolute; top: 0; left: 20px; right: 0; height: 1px; background: var(--color-border); }
+.comment-item + .comment-item, .comment-replies > .comment-item:first-child { position: relative; margin-top: 36px !important; }
+.comment-item + .comment-item { padding-top: 36px !important; border-top: none !important; }
+.comment-item + .comment-item::before { content: ''; position: absolute; top: 0; left: 20px; right: 0; height: 1px; background: color-mix(in srgb, var(--color-border) 35%, transparent); }
 @media (max-width: 640px) {
   .comment-item { padding-left: var(--space-sm); }
   .comment-replies { margin-left: 0; }
