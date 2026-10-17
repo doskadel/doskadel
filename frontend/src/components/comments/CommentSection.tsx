@@ -29,6 +29,17 @@ const CommentEditor: React.FC<{
   const [busy, setBusy] = useState(false);
   const [resetKey, setResetKey] = useState(0);
   const [expanded, setExpanded] = useState(!!initialMarkdown || !!initialJson || !!onCancel);
+  const rootRef = React.useRef<HTMLDivElement>(null);
+  React.useEffect(() => {
+    if (!expanded) return;
+    const onDocDown = (e: MouseEvent) => {
+      if (rootRef.current && rootRef.current.contains(e.target as Node)) return;
+      const empty = !md.trim() && !json && pending.length === 0;
+      if (empty && !onCancel) setExpanded(false);
+    };
+    document.addEventListener('mousedown', onDocDown);
+    return () => document.removeEventListener('mousedown', onDocDown);
+  }, [expanded, md, json, pending, onCancel]);
 
   const submit = async () => {
     if (!json && !md.trim() && pending.length === 0) return;
@@ -50,7 +61,7 @@ const CommentEditor: React.FC<{
   }
 
   return (
-    <div className="comment-editor">
+    <div className="comment-editor" ref={rootRef}>
       <RichTextEditor
         key={resetKey}
         value={json}
@@ -75,7 +86,7 @@ const CommentEditor: React.FC<{
         </div>
       )}
       <div className="comment-editor-actions">
-        <button type="button" className="button" onClick={() => { if (onCancel) onCancel(); else setExpanded(false); }} style={{ backgroundColor: 'var(--color-text-muted)' }} disabled={busy}>{onCancel ? 'Отмена' : 'Свернуть'}</button>
+        {onCancel && <button type="button" className="button" onClick={onCancel} style={{ backgroundColor: 'var(--color-text-muted)' }} disabled={busy}>Отмена</button>}
         <button type="button" className="button" onClick={submit} disabled={busy}>{busy ? '…' : submitLabel}</button>
       </div>
     </div>
