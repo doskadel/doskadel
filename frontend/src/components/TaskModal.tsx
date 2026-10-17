@@ -89,7 +89,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ taskId, statuses, onClose, onUpda
             onUpdate?.();
           }}
           pendingCount={pendingCount}
-          onChecklistSaved={() => { detail.refresh(); onUpdate?.(); }}
+          onChecklistSaved={() => { onUpdate?.(); }}
         />
       </Modal>
 
