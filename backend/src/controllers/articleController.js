@@ -1,6 +1,7 @@
 const Article = require('../models/Article');
 const escapeRegex = require('../utils/escapeRegex');
 const { canByMembership } = require('../utils/can');
+const { applyDescriptionFields } = require('../utils/description');
 
 // Создание статьи
 const createArticle = async (req, res) => {
@@ -8,12 +9,10 @@ const createArticle = async (req, res) => {
     if (!canByMembership(req.membership, 'create')) return res.status(403).json({ success: false, message: 'Forbidden' });
     const { title, content } = req.body;
     // Гибридное хранение (ADR): contentJson — источник правды, content — производный MD.
-    const contentJson = req.body.contentJson !== undefined ? req.body.contentJson : null;
-    const format = contentJson ? 'json' : 'md';
+    const descFields = applyDescriptionFields(req.body, { content }, { json: 'contentJson', md: 'content', format: 'format' });
     const article = new Article({
-      title, content,
-      contentJson,
-      format,
+      title,
+      ...descFields,
       workspaceId: req.workspaceId,
       userId: req.user._id,
       createdBy: req.user._id
@@ -136,12 +135,9 @@ const updateArticle = async (req, res) => {
   try {
     if (!canByMembership(req.membership, 'update')) return res.status(403).json({ success: false, message: 'Forbidden' });
     const updateData = {};
-    ['title', 'content'].forEach((k) => { if (req.body[k] !== undefined) updateData[k] = req.body[k]; });
-    // Гибрид (ADR): при наличии contentJson — source of truth, format='json'
-    if (req.body.contentJson !== undefined) {
-      updateData.contentJson = req.body.contentJson;
-      updateData.format = req.body.contentJson ? 'json' : 'md';
-    }
+    if (req.body.title !== undefined) updateData.title = req.body.title;
+    // Гибрид (ADR): contentJson — source of truth, content — производный MD.
+    applyDescriptionFields(req.body, updateData, { json: 'contentJson', md: 'content', format: 'format' });
     const article = await Article.findOneAndUpdate(
       { _id: req.params.id, workspaceId: req.workspaceId },
       updateData,

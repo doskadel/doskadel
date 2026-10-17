@@ -59,4 +59,17 @@ describe('Task description (hybrid storage)', () => {
     expect(found.descriptionJson).toEqual(newJson);
     expect(found.descriptionFormat).toBe('json');
   });
+
+  test('поиск: regex по description находит задачу с json (б)', async () => {
+    const ws = oid();
+    const st = await makeStatus(ws);
+    const json = { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'уникальноеслово' }] }] };
+    await Task.create({
+      workspaceId: ws, userId: oid(), statusId: st._id, title: 'Q',
+      description: 'уникальноеслово в md', descriptionJson: json, descriptionFormat: 'json',
+    });
+    const found = await Task.findOne({ workspaceId: ws, description: /уникальноеслово/ }).lean();
+    expect(found).not.toBe(null);
+    expect(found.descriptionJson).toEqual(json);
+  });
 });

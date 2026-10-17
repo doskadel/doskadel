@@ -53,9 +53,15 @@ const recurrenceValidation = body('recurrence')
     return true;
   });
 
+const { validateDocJson } = require('../utils/description');
+
 const descValidation = [
-  body('description').optional({ nullable: true }).isString().isLength({ max: 100000 }).withMessage('description too long'),
-  body('descriptionJson').optional({ nullable: true }).isObject().withMessage('descriptionJson must be an object'),
+  body('description').optional({ nullable: true }).isString().isLength({ max: 500000 }).withMessage('description too long'),
+  body('descriptionJson').optional({ nullable: true }).custom((value) => {
+    const err = validateDocJson(value, { field: 'descriptionJson' });
+    if (err) throw new Error(err);
+    return true;
+  }),
   body('descriptionFormat').optional().isIn(['md', 'json']).withMessage('descriptionFormat must be md or json'),
 ];
 
