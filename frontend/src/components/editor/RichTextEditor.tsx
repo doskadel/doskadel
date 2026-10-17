@@ -34,6 +34,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
   onUploadFileRef.current = onUploadFile;
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const imgInputRef = React.useRef<HTMLInputElement>(null);
+  const [toolbarCollapsed, setToolbarCollapsed] = React.useState(false);
 
   // Загрузить файл и вставить узел в позицию (картинка -> Image, иначе chip).
   // Позиция курсора на момент клика по скрепке/картинке (до диалога выбора файла).
@@ -312,7 +313,10 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
 
   return (
     <div className="rte">
-      <div className="rte-toolbar" role="toolbar" onMouseDown={onToolbarMouseDown}>
+      <div className={'rte-toolbar' + (toolbarCollapsed ? ' rte-toolbar--collapsed' : '')} role="toolbar" onMouseDown={onToolbarMouseDown}>
+        <button type="button" className="rte-collapse-btn" onClick={() => setToolbarCollapsed((v) => !v)} title={toolbarCollapsed ? 'Показать панель' : 'Скрыть панель'} aria-label={toolbarCollapsed ? 'Показать панель' : 'Скрыть панель'}>
+          {toolbarCollapsed ? '▾' : '▴'}
+        </button>
         <button type="button" className={btn(state.h1)} onClick={() => chain()?.toggleHeading({ level: 1 }).run()} title="Заголовок 1"><Heading1 size={16} /></button>
         <button type="button" className={btn(state.h2)} onClick={() => chain()?.toggleHeading({ level: 2 }).run()} title="Заголовок 2"><Heading2 size={16} /></button>
         <button type="button" className={btn(state.h3)} onClick={() => chain()?.toggleHeading({ level: 3 }).run()} title="Заголовок 3"><Heading3 size={16} /></button>
