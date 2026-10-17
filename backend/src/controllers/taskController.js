@@ -169,6 +169,12 @@ const getTasks = async (req, res) => {
       filter.statusId = statusId;
     }
 
+    // Фильтр по тегам: tagIds=a,b&tagMode=any|all
+    if (req.query.tagIds) {
+      const tids = String(req.query.tagIds).split(',').filter(Boolean);
+      if (tids.length > 0) filter.tagIds = req.query.tagMode === 'all' ? { $all: tids } : { $in: tids };
+    }
+
     if (dateFrom || dateTo) {
       filter.createdAt = {};
       if (dateFrom) filter.createdAt.$gte = new Date(dateFrom);

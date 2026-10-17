@@ -12,6 +12,7 @@ import RichTextRenderer from './editor/RichTextRenderer';
 import { removeAttachmentFromJson } from './editor/normalize';
 import AttachmentBlock from './attachments/AttachmentBlock';
 import { uploadAttachment, notifyAttachmentsChanged } from '../utils/attachments';
+import TagSelector from './tags/TagSelector';
 
 interface TaskModalContentProps {
   task: Task | null;
@@ -23,6 +24,7 @@ interface TaskModalContentProps {
   editTitle: string;
   editDescription: string;
   editDescriptionJson: any;
+  editTagIds: string[];
   editStatusId: string;
   editPriority: number;
   editDueDate: string;
@@ -32,6 +34,7 @@ interface TaskModalContentProps {
   setEditTitle: (v: string) => void;
   setEditDescription: (v: string) => void;
   setEditDescriptionJson: (v: any) => void;
+  setEditTagIds: (v: string[]) => void;
   setEditStatusId: (v: string) => void;
   setEditPriority: (v: number) => void;
   setEditDueDate: (v: string) => void;
@@ -53,6 +56,7 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
   editTitle,
   editDescription,
   editDescriptionJson,
+  editTagIds,
   editStatusId,
   editPriority,
   editDueDate,
@@ -61,6 +65,7 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
   setEditTitle,
   setEditDescription,
   setEditDescriptionJson,
+  setEditTagIds,
   setEditStatusId,
   setEditPriority,
   setEditDueDate,
@@ -104,6 +109,10 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
           ownerId={task!._id}
           onDeleted={(att) => setEditDescriptionJson((prev: any) => removeAttachmentFromJson(prev, att._id))}
         />
+        <div>
+          <label className="input-label">Теги</label>
+          <TagSelector value={editTagIds} onChange={setEditTagIds} />
+        </div>
         <div className="task-fields-grid">
           <div className="task-col">
             <div className="task-field" style={{ maxWidth: 'none' }}>
@@ -202,6 +211,10 @@ const TaskModalContent: React.FC<TaskModalContentProps> = ({
             Нет описания
           </p>
         )}
+      </div>
+
+      <div style={{ marginBottom: 'var(--space-md)' }}>
+        <TagSelector value={Array.isArray(task.tagIds) ? task.tagIds : []} onChange={() => {}} readOnly />
       </div>
 
       <AttachmentBlock ownerType="task" ownerId={task._id} readOnly />

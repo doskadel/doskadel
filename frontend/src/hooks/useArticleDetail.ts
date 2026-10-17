@@ -8,6 +8,7 @@ export interface Article {
   content: string;
   contentJson?: any;
   format?: 'md' | 'json';
+  tagIds?: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -22,6 +23,8 @@ export interface UseArticleDetailResult {
   editTitle: string;
   editContent: string;
   editContentJson: any;
+  editTagIds: string[];
+  setEditTagIds: (v: string[]) => void;
   saving: boolean;
 
   setEditTitle: (v: string) => void;
@@ -57,6 +60,7 @@ export const useArticleDetail = (
   const [editTitle, setEditTitle] = useState('');
   const [editContent, setEditContent] = useState('');
   const [editContentJson, setEditContentJson] = useState<any>(null);
+  const [editTagIds, setEditTagIds] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -79,6 +83,7 @@ export const useArticleDetail = (
       setEditTitle(a.title);
       setEditContent(a.content);
       setEditContentJson(a.contentJson || null);
+      setEditTagIds(Array.isArray(a.tagIds) ? a.tagIds : []);
     } catch (err: any) {
       console.error('Error fetching article:', err);
       setError(err.response?.data?.message || 'Не удалось загрузить статью');
@@ -92,6 +97,7 @@ export const useArticleDetail = (
     setEditTitle(article.title);
     setEditContent(article.content);
     setEditContentJson(article.contentJson || null);
+    setEditTagIds(Array.isArray(article.tagIds) ? article.tagIds : []);
     setIsEditing(true);
   };
 
@@ -129,6 +135,7 @@ export const useArticleDetail = (
         title: editTitle,
         content: editContent,
         contentJson: editContentJson,
+        tagIds: editTagIds,
       });
       setArticle(response.data.article);
       setIsEditing(false);
@@ -186,10 +193,12 @@ export const useArticleDetail = (
     editTitle,
     editContent,
     editContentJson,
+    editTagIds,
     saving,
     setEditTitle,
     setEditContent,
     setEditContentJson,
+    setEditTagIds,
     startEdit,
     cancelEdit,
     isDirty,

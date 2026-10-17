@@ -3,6 +3,7 @@ import { Article } from '../hooks/useArticleDetail';
 import RichTextEditor from './editor/RichTextEditor';
 import RichTextRenderer from './editor/RichTextRenderer';
 import { removeAttachmentFromJson } from './editor/normalize';
+import TagSelector from './tags/TagSelector';
 import AttachmentBlock from './attachments/AttachmentBlock';
 import { uploadAttachment, notifyAttachmentsChanged } from '../utils/attachments';
 
@@ -15,11 +16,13 @@ interface ArticleModalContentProps {
   editTitle: string;
   editContent: string;
   editContentJson: any;
+  editTagIds: string[];
   saving: boolean;
 
   setEditTitle: (v: string) => void;
   setEditContent: (v: string) => void;
   setEditContentJson: (v: any) => void;
+  setEditTagIds: (v: string[]) => void;
 
   onSave: () => void;
   onCancel: () => void;
@@ -33,10 +36,12 @@ const ArticleModalContent: React.FC<ArticleModalContentProps> = ({
   editTitle,
   editContent,
   editContentJson,
+  editTagIds,
   saving,
   setEditTitle,
   setEditContent,
   setEditContentJson,
+  setEditTagIds,
   onSave,
   onCancel,
 }) => {
@@ -81,6 +86,10 @@ const ArticleModalContent: React.FC<ArticleModalContentProps> = ({
           ownerId={article!._id}
           onDeleted={(att) => setEditContentJson((prev: any) => removeAttachmentFromJson(prev, att._id))}
         />
+        <div>
+          <label className="input-label">Теги</label>
+          <TagSelector value={editTagIds} onChange={setEditTagIds} />
+        </div>
         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
           <button
             type="button"
@@ -108,6 +117,10 @@ const ArticleModalContent: React.FC<ArticleModalContentProps> = ({
     <div>
       <div style={{ marginBottom: 'var(--space-lg)' }}>
         <RichTextRenderer contentJson={article.contentJson} markdown={article.content} />
+      </div>
+
+      <div style={{ marginBottom: 'var(--space-md)' }}>
+        <TagSelector value={Array.isArray(article.tagIds) ? article.tagIds : []} onChange={() => {}} readOnly />
       </div>
 
       <AttachmentBlock ownerType="article" ownerId={article._id} readOnly />

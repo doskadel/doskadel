@@ -19,6 +19,8 @@ import ClearableField from './ClearableField';
 import RichTextEditor from './editor/RichTextEditor';
 import AttachmentBlock from './attachments/AttachmentBlock';
 import { removeAttachmentFromJson } from './editor/normalize';
+import TagFilter from './tags/TagFilter';
+import TagSelector from './tags/TagSelector';
 import { uploadAttachment, attachToOwner } from '../utils/attachments';
 import MarkdownRenderer from './MarkdownRenderer';
 import { useMediaQuery } from '../hooks/useMediaQuery';
@@ -93,6 +95,10 @@ const Tasks: React.FC = () => {
     ? priorityParam.split(',').map((p) => parseInt(p, 10)).filter((p) => p >= 1 && p <= 3)
     : [];
 
+  const tagIdsParam = searchParams.get('tagIds') || '';
+  const tagIds = tagIdsParam ? tagIdsParam.split(',').filter(Boolean) : [];
+  const tagMode = searchParams.get('tagMode') === 'all' ? 'all' : 'any';
+
   const taskType: TaskTypeFilter =
     taskTypeParam === 'single' || taskTypeParam === 'recurring' ? taskTypeParam : null;
 
@@ -142,6 +148,7 @@ const Tasks: React.FC = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [descriptionJson, setDescriptionJson] = useState<any>(null);
+  const [createTagIds, setCreateTagIds] = useState<string[]>([]);
   const [pendingAttachments, setPendingAttachments] = useState<import('../utils/attachments').AttachmentMeta[]>([]);
   const [priority, setPriority] = useState<number | ''>('');
   const [dueDate, setDueDate] = useState('');
@@ -218,6 +225,7 @@ const Tasks: React.FC = () => {
       if (sortParam) params.set('sort', sortParam);
       if (overdueParam === '1') params.set('overdue', 'true');
       if (dueSoonParam === '1') params.set('dueSoon', 'true');
+      if (tagIds.length > 0) { params.set('tagIds', tagIds.join(',')); params.set('tagMode', tagMode); }
 
       const url = '/api/tasks' + (params.toString() ? '?' + params.toString() : '');
       // Бэк (getTasks → enrichTaskDue) уже отдаёт pendingOccurrenceCount/nextOccurrenceDueAt.
@@ -257,6 +265,7 @@ const Tasks: React.FC = () => {
     setTitle('');
     setDescription('');
     setDescriptionJson(null);
+    setCreateTagIds([]);
     setPendingAttachments([]);
     setPriority('');
     setDueDate('');
@@ -303,6 +312,7 @@ const Tasks: React.FC = () => {
         description,
         descriptionJson,
         descriptionFormat: descriptionJson ? 'json' : 'md',
+        tagIds: createTagIds,
         priority,
       };
 
@@ -438,6 +448,7 @@ const Tasks: React.FC = () => {
     q ||
     statusIds.length > 0 ||
     priorityFilter.length > 0 ||
+    tagIds.length > 0 ||
     taskType ||
     dateFrom ||
     dateTo ||
@@ -512,6 +523,10 @@ const Tasks: React.FC = () => {
         </button>
       </div>
 
+      <div style={{ marginBottom: 'var(--space-sm)' }}>
+        <TagFilter value={tagIds} onChange={(ids) => updateQuery({ tagIds: ids.length ? ids.join(',') : null, tagMode: ids.length ? tagMode : null })} />
+      </div>
+
       <FilterBar
         q={searchInput}
         onQChange={setSearchInput}
@@ -562,6 +577,10 @@ const Tasks: React.FC = () => {
               } catch { return null; }
             }}
           />
+          <div>
+            <label className="input-label">Теги</label>
+            <TagSelector value={createTagIds} onChange={setCreateTagIds} />
+          </div>
           <AttachmentBlock
             ownerType="task"
             ownerId={null}

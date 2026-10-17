@@ -57,6 +57,12 @@ const getArticles = async (req, res) => {
       ];
     }
 
+    // Фильтр по тегам: tagIds=a,b&tagMode=any|all
+    if (req.query.tagIds) {
+      const tids = String(req.query.tagIds).split(',').filter(Boolean);
+      if (tids.length > 0) filter.tagIds = req.query.tagMode === 'all' ? { $all: tids } : { $in: tids };
+    }
+
     // Фильтр по дате создания
     if (dateFrom || dateTo) {
       filter.createdAt = {};
