@@ -4,6 +4,7 @@ import { useTheme } from '../hooks/useTheme';
 import Modal from './Modal';
 import api from '../utils/api';
 import PasswordInput from './PasswordInput';
+import AvatarUploader from './AvatarUploader';
 import { clearToken } from '../utils/token';
 import { useConfirm } from './ConfirmProvider';
 import { useToast } from './Toast';
@@ -276,11 +277,11 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ open, onClose }) => {
       {!loading && user && view === 'profile' && (
         <div className="profile-view">
           <div className="profile-header">
-            {user.avatar ? (
-              <img src={user.avatar} alt={user.username} className="profile-avatar" />
-            ) : (
-              <div className="profile-avatar profile-avatar--initials">{initials}</div>
-            )}
+            <AvatarUploader
+              avatar={user.avatar || null}
+              initials={initials}
+              onChanged={(url) => setUser((u: any) => ({ ...u, avatar: url }))}
+            />
             <p className="profile-username">{user.username}</p>
             <p className="profile-email">{user.email}</p>
           </div>
