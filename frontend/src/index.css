@@ -3071,6 +3071,13 @@ color: var(--color-text);
   padding: 6px 8px; background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface-alt));
   border-bottom: 1px solid var(--color-border);
 }
+@media (max-width: 640px) {
+  .rte-table-bar { flex-wrap: nowrap; gap: 2px; overflow-x: auto; padding: 4px 6px; }
+  .rte-table-bar .rte-table-hint--icon svg { display: none; }
+  .rte-table-bar .rte-table-hint { font-size: 11px; margin-right: 2px; white-space: nowrap; }
+  .rte-table-bar .rte-sep { margin: 0 2px; }
+  .rte-table-bar .rte-btn { padding: 4px; }
+}
 .rte-table-hint { font-size: 12px; color: var(--color-text-muted); margin-right: 4px; }
 .rte-table-hint--icon { display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; }
 .rte-editor { flex: 1; min-height: 0; overflow-y: auto; }

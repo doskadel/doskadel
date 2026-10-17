@@ -416,6 +416,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
           <span className="rte-table-hint rte-table-hint--icon"><Rows3 size={14} /> Строка</span>
           <button type="button" className="rte-btn" onClick={() => chain()?.addRowAfter().run()} title="Добавить строку" aria-label="Добавить строку"><Plus size={15} /></button>
           <button type="button" className="rte-btn" onClick={() => chain()?.deleteRow().run()} title="Удалить строку" aria-label="Удалить строку"><Minus size={15} /></button>
+          <span className="rte-sep" />
           <span className="rte-table-hint rte-table-hint--icon"><Columns3 size={14} /> Столбец</span>
           <button type="button" className="rte-btn" onClick={() => chain()?.addColumnAfter().run()} title="Добавить столбец" aria-label="Добавить столбец"><Plus size={15} /></button>
           <button type="button" className="rte-btn" onClick={() => chain()?.deleteColumn().run()} title="Удалить столбец" aria-label="Удалить столбец"><Minus size={15} /></button>
