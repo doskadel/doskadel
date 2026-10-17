@@ -104,7 +104,7 @@ const TaskModalContent: React.FC<TaskModalContentProps> = (props) => {
         readOnly={!isEditing}
         onDeleted={isEditing ? (att) => setEditDescriptionJson((prev: any) => removeAttachmentFromJson(prev, att._id)) : undefined}
       />
-      <LinkedEntities ownerType="task" ownerId={task._id} readOnly={!isEditing} onOpen={(t, id) => window.open(t === 'task' ? `/tasks?task=${id}` : `/knowledge?article=${id}`, '_blank')} />
+      <LinkedEntities ownerType="task" ownerId={task._id} onOpen={(t, id) => window.open(t === 'task' ? `/tasks?task=${id}` : `/knowledge?article=${id}`, '_blank')} />
       {!isEditing && <CommentSection ownerType="task" ownerId={task._id} />}
     </>
   );

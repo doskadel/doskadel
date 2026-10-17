@@ -73,7 +73,7 @@ const ArticleModalContent: React.FC<ArticleModalContentProps> = ({
         readOnly={!isEditing}
         onDeleted={isEditing ? (att) => setEditContentJson((prev: any) => removeAttachmentFromJson(prev, att._id)) : undefined}
       />
-      <LinkedEntities ownerType="article" ownerId={article._id} readOnly={!isEditing} onOpen={(t, id) => window.open(t === 'task' ? `/tasks?task=${id}` : `/knowledge?article=${id}`, '_blank')} />
+      <LinkedEntities ownerType="article" ownerId={article._id} onOpen={(t, id) => window.open(t === 'task' ? `/tasks?task=${id}` : `/knowledge?article=${id}`, '_blank')} />
       {!isEditing && <CommentSection ownerType="article" ownerId={article._id} />}
     </>
   );
