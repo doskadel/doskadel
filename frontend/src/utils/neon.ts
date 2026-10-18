@@ -36,8 +36,8 @@ export const applyNeon = (hex: string): string => {
   root.style.setProperty('--neon-rgb', rgb.join(' '));
   root.style.setProperty('--neon-2-rgb', rgb2.join(' '));
   // Подстраиваем primary-акцент (кнопки, ссылки, активные) под выбранный цвет.
-  const hex = '#' + rgb.map((v) => v.toString(16).padStart(2, '0')).join('');
-  root.style.setProperty('--color-primary', hex);
+  const outHex = '#' + rgb.map((v) => v.toString(16).padStart(2, '0')).join('');
+  root.style.setProperty('--color-primary', outHex);
   // цвет primary-акцентов подстроим под неон (кнопки, ссылки, активные)
   root.style.setProperty('--neon-hex', '#' + rgb.map((v) => v.toString(16).padStart(2, '0')).join(''));
   return '#' + rgb.map((v) => v.toString(16).padStart(2, '0')).join('');
