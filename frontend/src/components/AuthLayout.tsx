@@ -20,7 +20,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ title, subtitle, error, childre
     <div className="auth-layout">
       <div className="auth-layout-form">
         <div className="auth-card">
-          <div className="auth-brand"><Logo height={34} /></div>
+          <div className="auth-brand"><Logo size="lg" /></div>
           <h2 className="auth-title">{title}</h2>
           {subtitle && <p className="auth-subtitle">{subtitle}</p>}
           {error && <p className="auth-error" role="alert" aria-live="polite">{error}</p>}

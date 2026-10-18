@@ -25,7 +25,7 @@ const AboutModal: React.FC<AboutModalProps> = ({ open, onClose }) => {
   return (
     <Modal open={open} onClose={onClose} title="О приложении">
       <div className="about">
-        <h3 className="about-name"><Logo height={30} /></h3>
+        <h3 className="about-name"><Logo size="md" /></h3>
         <p className="about-tagline">{APP_TAGLINE}</p>
         <p className="about-version">Версия {APP_VERSION}</p>
 

@@ -95,7 +95,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             {isNested && (
               <button onClick={handleBack} className="layout-back" title="Назад">←</button>
             )}
-            <Link to="/" className="layout-logo"><Logo height={26} /></Link>
+            <Link to="/" className="layout-logo"><Logo size="sm" /></Link>
 
             {/* Навигация для ПК/широких экранов */}
             <nav className="layout-nav layout-nav--desktop" aria-label="Основная навигация">
