@@ -1605,8 +1605,20 @@ color: var(--color-text);
   justify-content: space-between;
   align-items: center;
   padding: var(--space-sm) var(--space-md);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.18);
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 -14px 24px -14px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.18);
 }
+/* Глубина/градиент поверх цветного фона статуса (не ломает inline-цвет) */
+.kanban-column-header::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255,255,255,0.14), rgba(0,0,0,0.18));
+}
+.kanban-column-header > * { position: relative; z-index: 1; }
 
 .kanban-column-title {
   font-size: 13px;
@@ -1618,16 +1630,20 @@ color: var(--color-text);
 
 .kanban-column-count {
   font-size: 12px;
-  font-weight: 600;
-  border: 1px solid;
-  border-radius: 50%;
-  min-width: 22px;
+  font-weight: 700;
+  border: 1px solid rgba(255,255,255,0.35);
+  border-radius: 999px;
+  min-width: 24px;
   height: 22px;
-  padding: 0 4px;
+  padding: 0 7px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
+  background: rgba(0,0,0,0.28) !important;
+  color: #fff !important;
+  backdrop-filter: blur(2px);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.35);
 }
 
 .kanban-column-body {
