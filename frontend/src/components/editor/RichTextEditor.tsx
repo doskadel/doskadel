@@ -291,9 +291,9 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
     setLinkSel({ from, to });
     setUrlDialog('link');
   };
-  const insertExisting = (att: AttachmentMeta, pos?: number | null) => {
+  const insertExisting = (att: AttachmentMeta, asFile = false, pos?: number | null) => {
     if (!editor) return;
-    const isImg = att.mime.startsWith('image/');
+    const isImg = !asFile && att.mime.startsWith('image/');
     const node = isImg
       ? { type: 'image', attrs: { src: `attachment:${att._id}`, alt: att.filename } }
       : { type: 'attachmentChip', attrs: { id: att._id, filename: att.filename, mime: att.mime } };
@@ -502,7 +502,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
             items={attachments}
             imagesOnly
             onClose={() => setImagePickerOpen(false)}
-            onPick={(att) => { insertExisting(att); setImagePickerOpen(false); }}
+            onPick={(att) => { insertExisting(att, false); setImagePickerOpen(false); }}
             onUploadNew={() => { setImagePickerOpen(false); imgInputRef.current?.click(); }}
           />
           <AttachmentPickerModal
@@ -510,7 +510,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
             title="Вставить файл из вложений"
             items={attachments}
             onClose={() => setFilePickerOpen(false)}
-            onPick={(att) => { insertExisting(att); setFilePickerOpen(false); }}
+            onPick={(att) => { insertExisting(att, true); setFilePickerOpen(false); }}
             onUploadNew={() => { setFilePickerOpen(false); fileInputRef.current?.click(); }}
           />
         </>
