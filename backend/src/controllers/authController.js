@@ -340,4 +340,53 @@ const resendVerification = async (req, res) => {
   }
 };
 
-module.exports = { register, login, refresh, logout, changePassword, listSessions, logoutAll, verifyEmail, resendVerification };
+// POST /api/auth/forgot-password { email } — письмо со ссылкой сброса
+const forgotPassword = async (req, res) => {
+  try {
+    const email = String(req.body.email || '').trim().toLowerCase();
+    if (!email) return res.status(400).json({ success: false, message: 'email required' });
+    const user = await User.findOne({ email });
+    // Не раскрываем существование аккаунта: всегда 200.
+    if (user) {
+      const token = crypto.randomBytes(32).toString('hex');
+      user.resetPasswordToken = crypto.createHash('sha256').update(token).digest('hex');
+      user.resetPasswordExpires = new Date(Date.now() + 60 * 60 * 1000);
+      await user.save();
+      const { sendMail, resetPasswordHtml, APP_URL } = require('../utils/mailer');
+      const link = `${APP_URL}/reset-password?token=${token}`;
+      sendMail({ to: user.email, subject: 'Восстановление пароля в DoskaDel', html: resetPasswordHtml(user.username, link) }).catch(() => {});
+    }
+    res.json({ success: true, message: 'Если аккаунт существует, письмо отправлено' });
+  } catch (e) {
+    console.error('forgotPassword error:', e);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+// POST /api/auth/reset-password { token, password } — задать новый пароль
+const resetPassword = async (req, res) => {
+  try {
+    const { token, password } = req.body;
+    if (!token || !password || String(password).length < 6) {
+      return res.status(400).json({ success: false, message: 'Токен и пароль (мин. 6 символов) обязательны' });
+    }
+    const hash = crypto.createHash('sha256').update(String(token)).digest('hex');
+    const user = await User.findOne({ resetPasswordToken: hash });
+    if (!user) return res.status(400).json({ success: false, message: 'Ссылка недействительна или устарела' });
+    if (user.resetPasswordExpires && user.resetPasswordExpires < new Date()) {
+      return res.status(400).json({ success: false, message: 'Срок действия ссылки истёк' });
+    }
+    user.password = password; // перехэшируется в pre-save
+    user.resetPasswordToken = null;
+    user.resetPasswordExpires = null;
+    await user.save();
+    // Отзываем все refresh-сессии (кроме текущей у юзера её нет — это анонимный сброс).
+    await RefreshToken.deleteMany({ userId: user._id }).catch(() => {});
+    res.json({ success: true, message: 'Пароль изменён. Войдите с новым паролем.' });
+  } catch (e) {
+    console.error('resetPassword error:', e);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+module.exports = { register, login, refresh, logout, changePassword, listSessions, logoutAll, verifyEmail, resendVerification, forgotPassword, resetPassword };

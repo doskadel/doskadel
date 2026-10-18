@@ -6,6 +6,8 @@ import Login from './components/Login';
 import Register from './components/Register';
 import ProtectedRoute from './components/ProtectedRoute';
 import VerifyEmail from './components/VerifyEmail';
+import ForgotPassword from './components/ForgotPassword';
+import ResetPassword from './components/ResetPassword';
 import Layout from './components/Layout';
 import { ConfirmProvider } from './components/ConfirmProvider';
 import { ToastProvider } from './components/Toast';
@@ -31,6 +33,8 @@ function App() {
           <Route path="/login" element={token ? <Navigate to="/" replace /> : <Login />} />
           <Route path="/register" element={token ? <Navigate to="/" replace /> : <Register />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/forgot-password" element={token ? <Navigate to="/" replace /> : <ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/" element={<ProtectedRoute><Layout><Dashboard /></Layout></ProtectedRoute>} />
           <Route path="/tasks" element={<ProtectedRoute><Layout><Tasks /></Layout></ProtectedRoute>} />
           <Route path="/tasks/:id" element={<ProtectedRoute><Layout><TaskDetail /></Layout></ProtectedRoute>} />
