@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Tag as TagIcon, X, Plus } from 'lucide-react';
-import { Tag, listTags, createTag } from '../../utils/tags';
+import { Tag, listTags, createTag, onTagsChanged } from '../../utils/tags';
 import { useToast } from '../Toast';
 
 interface Props {
@@ -19,9 +19,8 @@ const TagSelector: React.FC<Props> = ({ value, onChange, readOnly, max = MAX_TAG
   const [query, setQuery] = useState('');
   const wrapRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    listTags().then(setAll).catch(() => {});
-  }, []);
+  const refresh = () => listTags().then(setAll).catch(() => {});
+  useEffect(() => { refresh(); const unsub = onTagsChanged(() => refresh()); return () => { unsub(); }; }, []);
 
   useEffect(() => {
     const onDoc = (e: MouseEvent) => { if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false); };

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Tag as TagIcon, X } from 'lucide-react';
-import { Tag, listTags } from '../../utils/tags';
+import { Tag, listTags, onTagsChanged } from '../../utils/tags';
 
 interface Props {
   value: string[];
@@ -12,7 +12,8 @@ const TagFilter: React.FC<Props> = ({ value, onChange }) => {
   const [all, setAll] = useState<Tag[]>([]);
   const [open, setOpen] = useState(false);
 
-  useEffect(() => { listTags().then(setAll).catch(() => {}); }, []);
+  const refresh = () => listTags().then(setAll).catch(() => {});
+  useEffect(() => { refresh(); const unsub = onTagsChanged(() => refresh()); return () => { unsub(); }; }, []);
 
   if (all.length === 0) return null;
 
