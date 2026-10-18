@@ -43,10 +43,13 @@ const Login: React.FC = () => {
           required
         />
         <PasswordInput value={password} onChange={setPassword} autoComplete="current-password" required />
-        <label className="auth-remember">
-          <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
-          <span>Запомнить меня</span>
-        </label>
+        <div className="auth-row-between">
+          <label className="auth-remember">
+            <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
+            <span>Запомнить меня</span>
+          </label>
+          <Link to="/forgot-password" className="auth-forgot">Забыли пароль?</Link>
+        </div>
         <button type="submit" className="button auth-submit">Войти</button>
       </form>
     </AuthLayout>

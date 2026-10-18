@@ -27,6 +27,11 @@ router.post('/login', [
   body('password').notEmpty().withMessage('Password is required')
 ], authController.login);
 
+// Восстановление пароля
+const forgotLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 5, message: { success: false, message: 'Слишком много попыток. Попробуйте позже.' }, standardHeaders: true, legacyHeaders: false });
+router.post('/forgot-password', forgotLimiter, authController.forgotPassword);
+router.post('/reset-password', forgotLimiter, authController.resetPassword);
+
 // Подтверждение почты (по ссылке из письма)
 router.get('/verify-email', authController.verifyEmail);
 // Повторная отправка письма (для вошедшего)

@@ -48,4 +48,19 @@ function verifyEmailHtml(username, link) {
 </body></html>`;
 }
 
-module.exports = { sendMail, verifyEmailHtml, APP_URL };
+/** Шаблон письма сброса пароля. */
+function resetPasswordHtml(username, link) {
+  return `<!doctype html><html lang="ru"><body style="margin:0;padding:0;background:#f3f5f8;font-family:Arial,sans-serif;color:#1b1f24">
+  <div style="max-width:520px;margin:32px auto;background:#fff;border-radius:12px;padding:32px">
+    <h2 style="margin:0 0 12px">Восстановление пароля</h2>
+    <p>Здравствуйте, ${username}!</p>
+    <p>Вы (или кто-то другой) запросили сброс пароля в DoskaDel. Если это были вы — нажмите кнопку ниже.</p>
+    <p style="text-align:center;margin:28px 0">
+      <a href="${link}" style="display:inline-block;background:#3b82f6;color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600">Задать новый пароль</a>
+    </p>
+    <p style="color:#6b7280;font-size:13px">Ссылка действует 1 час. Если вы не запрашивали сброс — просто проигнорируйте письмо, пароль останется прежним.</p>
+  </div>
+</body></html>`;
+}
+
+module.exports = { sendMail, verifyEmailHtml, resetPasswordHtml, APP_URL };
