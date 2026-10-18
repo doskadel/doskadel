@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import api from '../utils/api';
 import AuthLayout from './AuthLayout';
+import PasswordInput from './PasswordInput';
 
 /** Форма задания нового пароля по ссылке из письма (/reset-password?token=...). */
 const ResetPassword: React.FC = () => {
@@ -33,7 +34,7 @@ const ResetPassword: React.FC = () => {
         <p className="auth-subtitle" style={{ textAlign: 'left' }}>Пароль изменён. <Link to="/login">Войти</Link></p>
       ) : (
         <form onSubmit={submit} className="form">
-          <input className="input" type="password" placeholder="Новый пароль" value={password} onChange={(e) => setPassword(e.target.value)} minLength={6} autoComplete="new-password" required autoFocus />
+          <PasswordInput value={password} onChange={setPassword} placeholder="Новый пароль" autoComplete="new-password" required />
           <button className="button auth-submit" type="submit" disabled={busy}>{busy ? 'Сохраняем…' : 'Сменить пароль'}</button>
         </form>
       )}
