@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import api from '../utils/api';
+import AuthLayout from './AuthLayout';
 
 /** Форма задания нового пароля по ссылке из письма (/reset-password?token=...). */
 const ResetPassword: React.FC = () => {
@@ -21,22 +22,22 @@ const ResetPassword: React.FC = () => {
   };
 
   return (
-    <div className="auth-page">
-      <div className="auth-card">
-        <h1 className="auth-title">Новый пароль</h1>
-        {!token ? (
-          <p className="auth-hint">Ссылка недействительна. <Link to="/forgot-password">Запросить снова</Link></p>
-        ) : done ? (
-          <p className="auth-hint">Пароль изменён. <Link to="/login">Войти</Link></p>
-        ) : (
-          <form onSubmit={submit} className="form">
-            <input className="input" type="password" placeholder="Новый пароль" value={password} onChange={(e) => setPassword(e.target.value)} minLength={6} required autoFocus />
-            {error && <p className="auth-error">{error}</p>}
-            <button className="button" type="submit" disabled={busy}>{busy ? 'Сохраняем…' : 'Сменить пароль'}</button>
-          </form>
-        )}
-      </div>
-    </div>
+    <AuthLayout
+      title="Новый пароль"
+      error={error || undefined}
+      footer={<Link to="/login">Вернуться ко входу</Link>}
+    >
+      {!token ? (
+        <p className="auth-subtitle" style={{ textAlign: 'left' }}>Ссылка недействительна. <Link to="/forgot-password">Запросить снова</Link></p>
+      ) : done ? (
+        <p className="auth-subtitle" style={{ textAlign: 'left' }}>Пароль изменён. <Link to="/login">Войти</Link></p>
+      ) : (
+        <form onSubmit={submit} className="form">
+          <input className="input" type="password" placeholder="Новый пароль" value={password} onChange={(e) => setPassword(e.target.value)} minLength={6} autoComplete="new-password" required autoFocus />
+          <button className="button auth-submit" type="submit" disabled={busy}>{busy ? 'Сохраняем…' : 'Сменить пароль'}</button>
+        </form>
+      )}
+    </AuthLayout>
   );
 };
 
