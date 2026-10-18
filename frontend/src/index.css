@@ -69,7 +69,7 @@ input:focus:not(:focus-visible) {
   box-sizing: border-box;
 }
 
-#root { background: var(--color-bg); min-height: 100dvh; }
+#root { background: transparent; min-height: 100dvh; }
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
