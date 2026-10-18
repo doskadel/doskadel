@@ -284,6 +284,20 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ open, onClose }) => {
             />
             <p className="profile-username">{user.username}</p>
             <p className="profile-email">{user.email}</p>
+            <div className="profile-email-status">
+              {user.emailVerified ? (
+                <span className="email-verified">Почта подтверждена ✓</span>
+              ) : (
+                <span className="email-unverified">
+                  Почта не подтверждена
+                  <button
+                    type="button"
+                    className="email-resend-btn"
+                    onClick={async () => { try { await api.post('/api/auth/resend-verification'); toast('Письмо отправлено', 'success'); } catch { toast('Не удалось отправить', 'error'); } }}
+                  >Отправить письмо</button>
+                </span>
+              )}
+            </div>
           </div>
 
           <div className="profile-menu">
