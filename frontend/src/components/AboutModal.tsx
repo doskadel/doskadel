@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Check, Copy, Mail } from 'lucide-react';
 import Modal from './Modal';
+import Logo from './Logo';
 import { SUPPORT_EMAIL, APP_VERSION, APP_TAGLINE, buildMailto } from '../utils/support';
 
 interface AboutModalProps {
@@ -24,7 +25,7 @@ const AboutModal: React.FC<AboutModalProps> = ({ open, onClose }) => {
   return (
     <Modal open={open} onClose={onClose} title="О приложении">
       <div className="about">
-        <h3 className="about-name">DoskaDel</h3>
+        <h3 className="about-name"><Logo height={30} /></h3>
         <p className="about-tagline">{APP_TAGLINE}</p>
         <p className="about-version">Версия {APP_VERSION}</p>
 

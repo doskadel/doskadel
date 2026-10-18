@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="80" viewBox="0 0 320 80">
+  <defs>
+    <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#93c5fd"/>
+      <stop offset="0.5" stop-color="#3b82f6"/>
+      <stop offset="1" stop-color="#1d4ed8"/>
+    </linearGradient>
+  </defs>
+  <text x="50%" y="58" text-anchor="middle" font-family="Verdana, Arial, sans-serif" font-weight="900" font-size="34" letter-spacing="1.5" fill="url(#g2)" stroke="#1e3a8a" stroke-width="0.6" style="filter: drop-shadow(0 2px 4px rgba(59,130,246,0.6))">DoskaDel</text>
+</svg>

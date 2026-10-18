@@ -8,6 +8,7 @@ import api from '../utils/api';
 import { useGlobalHotkey } from '../hooks/useGlobalHotkey';
 import BotStub from './BotStub';
 import MoreDropdown from './MoreDropdown';
+import Logo from './Logo';
 
 const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
 
@@ -94,7 +95,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             {isNested && (
               <button onClick={handleBack} className="layout-back" title="Назад">←</button>
             )}
-            <Link to="/" className="layout-logo">DoskaDel</Link>
+            <Link to="/" className="layout-logo"><Logo height={26} /></Link>
 
             {/* Навигация для ПК/широких экранов */}
             <nav className="layout-nav layout-nav--desktop" aria-label="Основная навигация">
