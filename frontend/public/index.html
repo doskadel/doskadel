@@ -74,6 +74,13 @@
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
+      // Consent Mode: разрешаем аналитику, рекламные трекеры — нет.
+      gtag('consent', 'default', {
+        analytics_storage: 'granted',
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied'
+      });
       gtag('js', new Date());
       gtag('config', 'G-DL9PNLQ5V');
     </script>
