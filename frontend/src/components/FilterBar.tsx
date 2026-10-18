@@ -5,7 +5,7 @@ import MultiSelect from './MultiSelect';
 import { Status } from '../utils/status';
 import { PRIORITY_OPTIONS } from '../utils/priority';
 import { TASK_SORT_OPTIONS } from '../utils/sort';
-import { listTags, Tag } from '../utils/tags';
+import { listTags, Tag, onTagsChanged } from '../utils/tags';
 
 export type TaskTypeFilter = 'single' | 'recurring' | null;
 
@@ -48,7 +48,12 @@ const FilterBar: React.FC<FilterBarProps> = ({
 }) => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [allTags, setAllTags] = useState<Tag[]>([]);
-  useEffect(() => { listTags().then(setAllTags).catch(() => {}); }, []);
+  useEffect(() => {
+    const refresh = () => listTags().then(setAllTags).catch(() => {});
+    refresh();
+    const unsub = onTagsChanged(() => refresh());
+    return () => { unsub(); };
+  }, []);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {

@@ -3,7 +3,7 @@ import { Popover, Listbox, Transition } from '@headlessui/react';
 import { Filter, Search, ArrowUpDown, Check, X } from 'lucide-react';
 import { ARTICLE_SORT_OPTIONS } from '../utils/sort';
 import MultiSelect from './MultiSelect';
-import { listTags, Tag } from '../utils/tags';
+import { listTags, Tag, onTagsChanged } from '../utils/tags';
 
 interface ArticleFilterBarProps {
   q: string;
@@ -32,7 +32,12 @@ const ArticleFilterBar: React.FC<ArticleFilterBarProps> = ({
 }) => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [allTags, setAllTags] = useState<Tag[]>([]);
-  useEffect(() => { listTags().then(setAllTags).catch(() => {}); }, []);
+  useEffect(() => {
+    const refresh = () => listTags().then(setAllTags).catch(() => {});
+    refresh();
+    const unsub = onTagsChanged(() => refresh());
+    return () => { unsub(); };
+  }, []);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
