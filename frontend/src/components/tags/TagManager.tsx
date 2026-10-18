@@ -44,7 +44,7 @@ const TagManager: React.FC<Props> = ({ open, onClose }) => {
       <div className="tag-manager">
         <div className="tag-manager-add">
           <input className="input" placeholder="Новый тег" value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); add(); } }} />
-          <button type="button" className="button" onClick={add} disabled={!name.trim()}><Plus size={16} /> Добавить</button>
+          <button type="button" className="button tag-manager-add-btn" onClick={add} disabled={!name.trim()} title="Добавить" aria-label="Добавить"><Plus size={16} /></button>
         </div>
         <div className="tag-manager-search">
           <Search size={16} />
