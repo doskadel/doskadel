@@ -1302,6 +1302,62 @@ color: var(--color-text);
   max-width: 400px;
 }
 
+/* Неоновый премиум-фон для экранов входа (тёмная тема) */
+.auth-layout {
+  position: relative;
+  overflow: hidden;
+}
+.auth-layout::before,
+.auth-layout::after {
+  content: '';
+  position: fixed;
+  pointer-events: none;
+  z-index: 0;
+  border-radius: 50%;
+  filter: blur(80px);
+}
+.auth-layout::before {
+  width: 520px; height: 520px;
+  left: -160px; top: -160px;
+  background: radial-gradient(circle, rgba(59,130,246,0.28), transparent 70%);
+}
+.auth-layout::after {
+  width: 560px; height: 560px;
+  right: -180px; bottom: -200px;
+  background: radial-gradient(circle, rgba(99,102,241,0.22), transparent 70%);
+}
+.auth-layout-form, .auth-layout-promo { position: relative; z-index: 1; }
+.auth-card {
+  background: color-mix(in srgb, var(--color-surface) 88%, transparent);
+  backdrop-filter: blur(10px);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 22%, var(--color-border));
+  box-shadow: 0 0 0 1px rgba(59,130,246,0.06), 0 20px 60px rgba(0,0,0,0.45), 0 0 48px rgba(59,130,246,0.10);
+  position: relative;
+  overflow: hidden;
+}
+/* Лёгкий блик по верхней кромке карточки */
+.auth-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(125,177,255,0.6), transparent);
+}
+.auth-submit {
+  box-shadow: 0 0 0 1px rgba(59,130,246,0.25), 0 6px 20px rgba(59,130,246,0.35);
+}
+.auth-submit:hover { box-shadow: 0 0 0 1px rgba(59,130,246,0.4), 0 8px 28px rgba(59,130,246,0.5); }
+@media (prefers-reduced-motion: no-preference) {
+  .auth-layout::before { animation: auth-glow-a 14s ease-in-out infinite alternate; }
+  .auth-layout::after { animation: auth-glow-b 18s ease-in-out infinite alternate; }
+}
+@keyframes auth-glow-a { from { transform: translate(0,0); } to { transform: translate(40px,30px); } }
+@keyframes auth-glow-b { from { transform: translate(0,0); } to { transform: translate(-50px,-30px); } }
+/* Светлая тема — без неона */
+[data-theme="light"] .auth-card { background: var(--color-surface); backdrop-filter: none; }
+[data-theme="light"] .auth-layout::before,
+[data-theme="light"] .auth-layout::after { display: none; }
+
 .auth-brand {
   font-size: 20px;
   font-weight: 700;
