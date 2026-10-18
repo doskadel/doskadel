@@ -62,8 +62,24 @@ const publicUser = (user) => ({
   id: user._id,
   username: user.username,
   email: user.email,
-  avatar: user.avatar || null
+  avatar: user.avatar || null,
+  emailVerified: !!user.emailVerified
 });
+
+// Отправка письма подтверждения почты (не блокирует регистрацию).
+async function sendVerificationEmail(user) {
+  try {
+    const token = crypto.randomBytes(32).toString('hex');
+    user.emailVerifyToken = token;
+    user.emailVerifyExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    await user.save();
+    const { sendMail, verifyEmailHtml, APP_URL } = require('../utils/mailer');
+    const link = `${APP_URL}/verify-email?token=${token}`;
+    await sendMail({ to: user.email, subject: 'Подтверждение почты в DoskaDel', html: verifyEmailHtml(user.username, link) });
+  } catch (e) {
+    console.error('sendVerificationEmail error:', e);
+  }
+}
 
 // Регистрация
 const register = async (req, res) => {
@@ -82,6 +98,8 @@ const register = async (req, res) => {
 
     const user = new User({ username, email, password });
     await user.save();
+    // Письмо подтверждения (не блокирует регистрацию, если отправщик недоступен).
+    sendVerificationEmail(user);
 
     // Личное пространство + членство(owner) — фундамент workspace
     const workspace = await Workspace.create({
@@ -287,4 +305,39 @@ const logoutAll = async (req, res) => {
   }
 };
 
-module.exports = { register, login, refresh, logout, changePassword, listSessions, logoutAll };
+// GET /api/auth/verify-email?token=... — подтверждение почты по ссылке
+const verifyEmail = async (req, res) => {
+  try {
+    const { token } = req.query;
+    if (!token) return res.status(400).json({ success: false, message: 'token required' });
+    const user = await User.findOne({ emailVerifyToken: token });
+    if (!user) return res.status(400).json({ success: false, message: 'Ссылка недействительна или устарела' });
+    if (user.emailVerifyExpires && user.emailVerifyExpires < new Date()) {
+      return res.status(400).json({ success: false, message: 'Срок действия ссылки истёк' });
+    }
+    user.emailVerified = true;
+    user.emailVerifyToken = null;
+    user.emailVerifyExpires = null;
+    await user.save();
+    res.json({ success: true, message: 'Почта подтверждена' });
+  } catch (e) {
+    console.error('verifyEmail error:', e);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+// POST /api/auth/resend-verification — повторная отправка письма (для вошедшего)
+const resendVerification = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    if (user.emailVerified) return res.json({ success: true, already: true });
+    await sendVerificationEmail(user);
+    res.json({ success: true });
+  } catch (e) {
+    console.error('resendVerification error:', e);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+module.exports = { register, login, refresh, logout, changePassword, listSessions, logoutAll, verifyEmail, resendVerification };

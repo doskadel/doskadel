@@ -27,6 +27,11 @@ router.post('/login', [
   body('password').notEmpty().withMessage('Password is required')
 ], authController.login);
 
+// Подтверждение почты (по ссылке из письма)
+router.get('/verify-email', authController.verifyEmail);
+// Повторная отправка письма (для вошедшего)
+router.post('/resend-verification', auth, authController.resendVerification);
+
 // Обновление access-токена
 router.post('/refresh', authController.refresh);
 

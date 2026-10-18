@@ -188,6 +188,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
       <BotStub open={botOpen} onClose={() => setBotOpen(false)} />
+      {me && me.emailVerified === false && (
+        <div className="verify-banner">
+          Подтвердите почту {me.email} — проверьте письмо.
+          <button type="button" onClick={async () => { try { await api.post('/api/auth/resend-verification'); alert('Письмо отправлено'); } catch { alert('Не удалось отправить'); } }}>Отправить ещё раз</button>
+        </div>
+      )}
+
       <ProfileModal open={profileOpen} onClose={() => { setProfileOpen(false); loadMe(); }} />
       <PushPrompt />
     </div>
