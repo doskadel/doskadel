@@ -5207,6 +5207,13 @@ ul[data-type="taskList"] li:has(input[type="checkbox"]:not(:checked)) > div p { 
 .email-unverified { color: var(--color-text-muted); display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; }
 .email-resend-btn { border: 1px solid var(--color-border); background: var(--color-surface-alt); color: var(--color-primary); border-radius: var(--radius-sm); padding: 2px 8px; font-size: 12px; cursor: pointer; font-family: inherit; }
 .email-resend-btn:hover { border-color: var(--color-primary); }
+.tag-manager { display: flex; flex-direction: column; gap: 12px; }
+.tag-manager-add { display: flex; gap: 8px; }
+.tag-manager-add .input { flex: 1; }
+.tag-manager-search { display: flex; align-items: center; gap: 8px; border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 8px 12px; background: var(--color-input); color: var(--color-text-muted); }
+.tag-manager-search input { flex: 1; border: none; background: transparent; color: var(--color-text); font-family: inherit; font-size: 14px; outline: none; }
+.tag-manager-list { display: flex; flex-wrap: wrap; gap: 8px; max-height: 45vh; overflow-y: auto; }
+.tag-chip--manage { gap: 6px; padding: 4px 8px; }
 .neon-picker { display: flex; flex-direction: column; gap: 8px; padding: 10px 0; }
 .neon-swatches { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .neon-swatch { width: 28px; height: 28px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; padding: 0; box-shadow: 0 0 10px rgba(0,0,0,0.4); }

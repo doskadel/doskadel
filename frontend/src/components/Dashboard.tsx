@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, Transition } from '@headlessui/react';
-import { Settings, ChevronDown, CheckSquare, FileText, Plus, ArrowRight } from 'lucide-react';
+import { Settings, ChevronDown, CheckSquare, FileText, Plus, ArrowRight, Tag as TagIcon } from 'lucide-react';
+import TagManager from './tags/TagManager';
 import SortableSettings from './shared/SortableSettings';
 import { useConfirm } from './ConfirmProvider';
 import { useToast } from './Toast';
@@ -66,6 +67,7 @@ const Dashboard: React.FC = () => {
   const [error, setError] = useState('');
   const [byStatusOrder, setByStatusOrder] = useState<string[] | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [tagManagerOpen, setTagManagerOpen] = useState(false);
   const [settingsSnap, setSettingsSnap] = useState<{ blocks: any; byStatusOrder: any; upcomingDays: number; numStr?: Record<string, string> } | null>(null);
   const buildNumStr = (bl: any[], days: number): Record<string, string> => {
     const ns: Record<string, string> = { upcomingDays: String(days) };
@@ -497,6 +499,10 @@ const Dashboard: React.FC = () => {
           {settingsErr && (
             <p style={{ color: 'var(--color-danger)', fontSize: 14, marginTop: 12, marginBottom: 0 }}>{settingsErr}</p>
           )}
+          <button type="button" className="ve-action" style={{ marginTop: 16, width: '100%' }} onClick={() => setTagManagerOpen(true)}>
+            <TagIcon size={20} />
+            <span>Управление тегами</span>
+          </button>
           <div style={{ marginTop: 16, display: 'flex', gap: 12 }}>
             <button
               type="button"
@@ -582,6 +588,8 @@ const Dashboard: React.FC = () => {
           </div>
         </Modal>
       )}
+
+      <TagManager open={tagManagerOpen} onClose={() => setTagManagerOpen(false)} />
     </div>
     </PullToRefresh>
   );

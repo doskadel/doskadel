@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, BookOpen } from 'lucide-react';
+import { Plus, Search, BookOpen, Settings, Tag as TagIcon } from 'lucide-react';
 import PullToRefresh from './PullToRefresh';
 import LoadingOverlay from './LoadingOverlay';
 import { useSearchParams } from 'react-router-dom';
 import api from '../utils/api';
 import Modal from './Modal';
+import TagManager from './tags/TagManager';
 import ArticleModal from './ArticleModal';
 import ArticleFilterBar from './ArticleFilterBar';
 import TagSelector from './tags/TagSelector';
@@ -50,6 +51,8 @@ const Knowledge: React.FC = () => {
   const [content, setContent] = useState('');
   const [contentJson, setContentJson] = useState<any>(null);
   const [createTagIds, setCreateTagIds] = useState<string[]>([]);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [tagManagerOpen, setTagManagerOpen] = useState(false);
   const [pendingAttachments, setPendingAttachments] = useState<import('../utils/attachments').AttachmentMeta[]>([]);
 
   const [searchInput, setSearchInput] = useState(q);
@@ -231,7 +234,26 @@ const Knowledge: React.FC = () => {
         >
           <Plus size={16} /> Создать
         </button>
+        <button
+          type="button"
+          className="icon-button settings-btn"
+          onClick={() => setSettingsOpen(true)}
+          title="Настройки"
+          aria-label="Настройки"
+          style={{ marginLeft: 'auto' }}
+        >
+          <Settings size={20} />
+        </button>
       </div>
+
+      <Modal open={settingsOpen} onClose={() => setSettingsOpen(false)} title="Настройки базы знаний">
+        <button type="button" className="ve-action" onClick={() => { setSettingsOpen(false); setTagManagerOpen(true); }}>
+          <TagIcon size={20} />
+          <span>Управление тегами</span>
+        </button>
+      </Modal>
+
+      <TagManager open={tagManagerOpen} onClose={() => setTagManagerOpen(false)} />
 
       <ArticleFilterBar
         q={searchInput}

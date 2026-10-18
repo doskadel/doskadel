@@ -4,6 +4,8 @@ import LoadingOverlay from './LoadingOverlay';
 import CalendarView from './CalendarView';
 import OccurrenceActionDialog from './OccurrenceActionDialog';
 import SortableSettings from './shared/SortableSettings';
+import TagManager from './tags/TagManager';
+import { Tag as TagIcon } from 'lucide-react';
 import { GripVertical, X, Plus, Settings, CalendarDays, Columns, List, Info, LayoutList, Repeat, Search, ListChecks } from 'lucide-react';
 
 import { useSearchParams } from 'react-router-dom';
@@ -125,6 +127,7 @@ const Tasks: React.FC = () => {
   const [viewsEditOpen, setViewsEditOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
   const [settingsView, setSettingsView] = useState<'main' | 'views'>('main');
+  const [tagManagerOpen, setTagManagerOpen] = useState(false);
   const upcomingDays = useUpcomingDays();
   const infoRef = useRef<HTMLSpanElement>(null);
 
@@ -653,6 +656,8 @@ const Tasks: React.FC = () => {
         </form>
       </Modal>
 
+      <TagManager open={tagManagerOpen} onClose={() => setTagManagerOpen(false)} />
+
       <StatusManager
         open={statusManagerOpen}
         statuses={statuses}
@@ -815,6 +820,10 @@ const Tasks: React.FC = () => {
           <button type="button" className="ve-action" style={{ marginTop: 8 }} onClick={() => { setViewsEditOpen(false); setStatusManagerOpen(true); }}>
             <Settings size={20} />
             <span>Управление статусами</span>
+          </button>
+          <button type="button" className="ve-action" style={{ marginTop: 8 }} onClick={() => { setViewsEditOpen(false); setTagManagerOpen(true); }}>
+            <TagIcon size={20} />
+            <span>Управление тегами</span>
           </button>
         </Modal>
       )}
