@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Paperclip, Trash2, FileText, FileArchive, FileSpreadsheet, Image as ImageIcon, File as FileIcon, Download } from 'lucide-react';
 import {
-  AttachmentMeta, listAttachments, uploadAttachment, deleteAttachment, useAttachmentUrl, formatBytes, getAttachmentsConfig, AttachmentConfig, onAttachmentsChanged,
+  AttachmentMeta, listAttachments, uploadAttachment, deleteAttachment, useAttachmentUrl, formatBytes, getAttachmentsConfig, AttachmentConfig, onAttachmentsChanged, notifyAttachmentsChanged,
 } from '../../utils/attachments';
 import { useToast } from '../Toast';
 import { useConfirm } from '../ConfirmProvider';
@@ -102,6 +102,7 @@ const AttachmentBlock: React.FC<Props> = ({ ownerType, ownerId, pendingItems = [
         toast(`${file.name}: ${msg}`, 'error');
       }
     }
+    notifyAttachmentsChanged();
     setUploading(false);
   };
 
@@ -110,6 +111,7 @@ const AttachmentBlock: React.FC<Props> = ({ ownerType, ownerId, pendingItems = [
     if (!ok) return;
     try {
       await deleteAttachment(att._id);
+      notifyAttachmentsChanged();
       if (ownerId) setItems((prev) => prev.filter((a) => a._id !== att._id));
       else { setPending((prev) => prev.filter((a) => a._id !== att._id)); }
       onDeleted?.(att);
