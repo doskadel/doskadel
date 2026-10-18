@@ -8,6 +8,9 @@ import '@fontsource/inter/600.css';
 import './tokens.css';
 import './index.css';
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
+import { initNeon } from './utils/neon';
+
+initNeon();
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement

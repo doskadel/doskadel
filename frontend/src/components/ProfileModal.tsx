@@ -5,6 +5,7 @@ import Modal from './Modal';
 import api from '../utils/api';
 import PasswordInput from './PasswordInput';
 import AvatarUploader from './AvatarUploader';
+import { NEON_PRESETS, getNeon, setNeon } from '../utils/neon';
 import { clearToken } from '../utils/token';
 import { useConfirm } from './ConfirmProvider';
 import { useToast } from './Toast';
@@ -54,6 +55,7 @@ const DEFAULT_SETTINGS: NotificationSettings = {
 
 const ProfileModal: React.FC<ProfileModalProps> = ({ open, onClose }) => {
   const { theme, toggle: toggleTheme } = useTheme();
+  const [neonHex, setNeonHex] = React.useState<string>(getNeon());
   const confirm = useConfirm();
   const { toast } = useToast();
   const [view, setView] = useState<View>('profile');
@@ -368,6 +370,30 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ open, onClose }) => {
             >
               <span className="ve-toggle-knob" />
             </button>
+          </div>
+
+          <div className="neon-picker">
+            <span className="theme-toggle-label">Цвет подсветки</span>
+            <div className="neon-swatches">
+              {NEON_PRESETS.map((p) => (
+                <button
+                  key={p.hex}
+                  type="button"
+                  className={'neon-swatch' + (neonHex.toLowerCase() === p.hex.toLowerCase() ? ' neon-swatch--on' : '')}
+                  style={{ backgroundColor: p.hex }}
+                  title={p.name}
+                  aria-label={p.name}
+                  onClick={() => { setNeon(p.hex); setNeonHex(p.hex); }}
+                />
+              ))}
+              <label className="neon-custom" title="Свой цвет">
+                <input
+                  type="color"
+                  value={neonHex}
+                  onChange={(e) => { setNeon(e.target.value); setNeonHex(e.target.value); }}
+                />
+              </label>
+            </div>
           </div>
 
           <div className="settings-section-title">Часовой пояс</div>
