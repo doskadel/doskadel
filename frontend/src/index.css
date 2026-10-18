@@ -1622,7 +1622,21 @@ color: var(--color-text);
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(180deg, rgba(255,255,255,0.14), rgba(0,0,0,0.18));
+  background:
+    linear-gradient(115deg, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0.06) 28%, transparent 45%),
+    linear-gradient(180deg, rgba(255,255,255,0.10), rgba(0,0,0,0.20));
+}
+.kanban-column-header::before {
+  content: '';
+  position: absolute;
+  top: -40%;
+  left: -10%;
+  width: 60%;
+  height: 180%;
+  transform: rotate(18deg);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+  filter: blur(6px);
+  pointer-events: none;
 }
 .kanban-column-header > * { position: relative; z-index: 1; }
 
