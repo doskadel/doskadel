@@ -12,7 +12,7 @@ import RichTextRenderer from './editor/RichTextRenderer';
 import { removeAttachmentFromJson, toggleChecklistItem } from './editor/normalize';
 import api from '../utils/api';
 import AttachmentBlock from './attachments/AttachmentBlock';
-import { uploadAttachment, notifyAttachmentsChanged } from '../utils/attachments';
+import { uploadAttachment, notifyAttachmentsChanged, listAttachments, onAttachmentsChanged, AttachmentMeta } from '../utils/attachments';
 import TagSelector from './tags/TagSelector';
 import LinkedEntities from './links/LinkedEntities';
 import CommentSection from './comments/CommentSection';
@@ -64,6 +64,14 @@ const TaskModalContent: React.FC<TaskModalContentProps> = (props) => {
     onSave, onCancel, onQuickChangeStatus, onQuickAction, pendingCount = 0, onChecklistSaved,
   } = props;
 
+  const [attachments, setAttachments] = React.useState<AttachmentMeta[]>([]);
+  React.useEffect(() => {
+    if (!task) return;
+    const load = () => listAttachments('task', task._id).then(setAttachments).catch(() => {});
+    load();
+    const unsub = onAttachmentsChanged(() => load());
+    return () => { unsub(); };
+  }, [task?._id]);
   const checklistBase = React.useRef<any>(null);
   React.useEffect(() => { checklistBase.current = null; }, [task?.descriptionJson]);
 
@@ -82,6 +90,7 @@ const TaskModalContent: React.FC<TaskModalContentProps> = (props) => {
   const body = isEditing ? (
     <RichTextEditor
       value={editDescriptionJson}
+      attachments={attachments}
       initialMarkdown={!editDescriptionJson && editDescription ? editDescription : undefined}
       onChange={(json, md) => { setEditDescriptionJson(json); setEditDescription(md); }}
       placeholder="Описание"

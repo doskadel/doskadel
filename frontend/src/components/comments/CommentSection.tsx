@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { MessageSquare, Reply, Pencil, Trash2, Send, X } from 'lucide-react';
 import { CommentItem, listComments, createComment, updateComment, deleteComment } from '../../utils/comments';
-import { uploadAttachment, AttachmentMeta, notifyAttachmentsChanged } from '../../utils/attachments';
+import { uploadAttachment, AttachmentMeta, notifyAttachmentsChanged, listAttachments, onAttachmentsChanged } from '../../utils/attachments';
 import RichTextEditor from '../editor/RichTextEditor';
 import RichTextRenderer from '../editor/RichTextRenderer';
 import AttachmentBlock from '../attachments/AttachmentBlock';
@@ -47,6 +47,13 @@ const CommentEditor: React.FC<{
   const [busy, setBusy] = useState(false);
   const [resetKey, setResetKey] = useState(0);
   const [expanded, setExpanded] = useState(!!initialMarkdown || !!initialJson || !!onCancel);
+  const [attachments, setAttachments] = useState<AttachmentMeta[]>([]);
+  React.useEffect(() => {
+    const load = () => listAttachments(ownerType, ownerId).then(setAttachments).catch(() => {});
+    load();
+    const unsub = onAttachmentsChanged(() => load());
+    return () => { unsub(); };
+  }, [ownerType, ownerId]);
   const rootRef = React.useRef<HTMLDivElement>(null);
   React.useEffect(() => {
     if (!expanded) return;
@@ -84,6 +91,7 @@ const CommentEditor: React.FC<{
         key={resetKey}
         minimal
         autoFocus
+        attachments={attachments}
         value={json}
         initialMarkdown={!json ? initialMarkdown : undefined}
         onChange={(j, m) => { setJson(j); setMd(m); }}

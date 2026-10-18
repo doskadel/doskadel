@@ -17,6 +17,8 @@ import UrlDialog from './UrlDialog';
 import { makeCodeBlock, makeBlockquote } from './blocks';
 import { formatCode } from './codeFormat';
 import { TextSelection } from '@tiptap/pm/state';
+import AttachmentPickerModal from './AttachmentPickerModal';
+import { AttachmentMeta } from '../../utils/attachments';
 
 interface RichTextEditorProps {
   value: any;
@@ -27,17 +29,21 @@ interface RichTextEditorProps {
   onUploadFile?: (file: File) => Promise<{ id: string; filename: string; mime: string } | null>;
   minimal?: boolean;
   autoFocus?: boolean;
+  /** Вложения владельца — для выбора из блока при вставке в текст. */
+  attachments?: import('../../utils/attachments').AttachmentMeta[];
 }
 
 const btn = (active: boolean) => 'rte-btn' + (active ? ' rte-btn--active' : '');
 
-const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initialMarkdown, placeholder, onUploadFile, minimal, autoFocus }) => {
+const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initialMarkdown, placeholder, onUploadFile, minimal, autoFocus, attachments }) => {
   const autoFocusedRef = React.useRef(false);
   const onUploadFileRef = React.useRef(onUploadFile);
   onUploadFileRef.current = onUploadFile;
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const imgInputRef = React.useRef<HTMLInputElement>(null);
   const [toolbarCollapsed, setToolbarCollapsed] = React.useState(true);
+  const [imagePickerOpen, setImagePickerOpen] = React.useState(false);
+  const [filePickerOpen, setFilePickerOpen] = React.useState(false);
 
   // Загрузить файл и вставить узел в позицию (картинка -> Image, иначе chip).
   // Позиция курсора на момент клика по скрепке/картинке (до диалога выбора файла).
@@ -285,8 +291,22 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
     setLinkSel({ from, to });
     setUrlDialog('link');
   };
+  const insertExisting = (att: AttachmentMeta, pos?: number | null) => {
+    if (!editor) return;
+    const isImg = att.mime.startsWith('image/');
+    const node = isImg
+      ? { type: 'image', attrs: { src: `attachment:${att._id}`, alt: att.filename } }
+      : { type: 'attachmentChip', attrs: { id: att._id, filename: att.filename, mime: att.mime } };
+    const target = typeof pos === 'number' ? pos : savedPosRef.current?.pos;
+    const max = editor.state.doc.content.size;
+    if (typeof target === 'number') editor.chain().focus().insertContentAt(Math.min(target, max), node).run();
+    else editor.chain().focus().insertContent(node).run();
+    savedPosRef.current = null;
+  };
+
   const addImage = () => {
     captureCursor();
+    if (attachments && attachments.some((a) => a.mime.startsWith('image/'))) { setImagePickerOpen(true); return; }
     if (onUploadFileRef.current) { imgInputRef.current?.click(); return; }
     const { from, to } = editor.state.selection;
     setLinkSel({ from, to });
@@ -407,7 +427,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
           }}
         />)}
         {onUploadFile && (
-          <button type="button" className={btn(false)} onClick={() => { captureCursor(); fileInputRef.current?.click(); }} title="Прикрепить файл"><PaperclipIcon size={16} /></button>
+          <button type="button" className={btn(false)} onClick={() => { captureCursor(); if (attachments && attachments.length) { setFilePickerOpen(true); } else { fileInputRef.current?.click(); } }} title="Прикрепить файл"><PaperclipIcon size={16} /></button>
         )}
         <input
           ref={fileInputRef}
@@ -474,6 +494,27 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, initia
         submitLabel="Вставить"
         onSubmit={handleImageSubmit}
       />
+      {attachments && (
+        <>
+          <AttachmentPickerModal
+            open={imagePickerOpen}
+            title="Вставить картинку из вложений"
+            items={attachments}
+            imagesOnly
+            onClose={() => setImagePickerOpen(false)}
+            onPick={(att) => { insertExisting(att); setImagePickerOpen(false); }}
+            onUploadNew={() => { setImagePickerOpen(false); imgInputRef.current?.click(); }}
+          />
+          <AttachmentPickerModal
+            open={filePickerOpen}
+            title="Вставить файл из вложений"
+            items={attachments}
+            onClose={() => setFilePickerOpen(false)}
+            onPick={(att) => { insertExisting(att); setFilePickerOpen(false); }}
+            onUploadNew={() => { setFilePickerOpen(false); fileInputRef.current?.click(); }}
+          />
+        </>
+      )}
     </div>
   );
 };

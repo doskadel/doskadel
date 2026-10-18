@@ -8,7 +8,7 @@ import TagSelector from './tags/TagSelector';
 import LinkedEntities from './links/LinkedEntities';
 import CommentSection from './comments/CommentSection';
 import AttachmentBlock from './attachments/AttachmentBlock';
-import { uploadAttachment, notifyAttachmentsChanged } from '../utils/attachments';
+import { uploadAttachment, notifyAttachmentsChanged, listAttachments, onAttachmentsChanged, AttachmentMeta } from '../utils/attachments';
 import EntityLayout from './entity/EntityLayout';
 
 interface ArticleModalContentProps {
@@ -41,6 +41,14 @@ const ArticleModalContent: React.FC<ArticleModalContentProps> = ({
   article, loading, error, isEditing, editTitle, editContent, editContentJson, editTagIds, saving,
   setEditTitle, setEditContent, setEditContentJson, setEditTagIds, onSave, onCancel, onChecklistSaved,
 }) => {
+  const [attachments, setAttachments] = React.useState<AttachmentMeta[]>([]);
+  React.useEffect(() => {
+    if (!article) return;
+    const load = () => listAttachments('article', article._id).then(setAttachments).catch(() => {});
+    load();
+    const unsub = onAttachmentsChanged(() => load());
+    return () => { unsub(); };
+  }, [article?._id]);
   const checklistBase = React.useRef<any>(null);
   React.useEffect(() => { checklistBase.current = null; }, [article?.contentJson]);
 
@@ -55,6 +63,7 @@ const ArticleModalContent: React.FC<ArticleModalContentProps> = ({
   const body = isEditing ? (
     <RichTextEditor
       value={editContentJson}
+      attachments={attachments}
       initialMarkdown={editContent}
       onChange={(json, md) => { setEditContentJson(json); setEditContent(md); }}
       placeholder="Введите текст статьи..."

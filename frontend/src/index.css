@@ -5207,6 +5207,17 @@ ul[data-type="taskList"] li:has(input[type="checkbox"]:not(:checked)) > div p { 
 .email-unverified { color: var(--color-text-muted); display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; }
 .email-resend-btn { border: 1px solid var(--color-border); background: var(--color-surface-alt); color: var(--color-primary); border-radius: var(--radius-sm); padding: 2px 8px; font-size: 12px; cursor: pointer; font-family: inherit; }
 .email-resend-btn:hover { border-color: var(--color-primary); }
+.att-picker { display: flex; flex-direction: column; gap: 12px; }
+.att-picker-upload { display: inline-flex; align-items: center; gap: 8px; align-self: flex-start; border: 1px dashed var(--color-border); background: transparent; color: var(--color-primary); border-radius: var(--radius-md); padding: 8px 14px; cursor: pointer; font-family: inherit; }
+.att-picker-upload:hover { border-color: var(--color-primary); }
+.att-picker-list { display: flex; flex-direction: column; gap: 6px; max-height: 55vh; overflow-y: auto; }
+.att-picker-item { display: flex; align-items: center; gap: 10px; text-align: left; border: 1px solid var(--color-border); background: var(--color-surface-alt); color: var(--color-text); border-radius: var(--radius-md); padding: 8px 10px; cursor: pointer; font-family: inherit; width: 100%; }
+.att-picker-item:hover { border-color: var(--color-primary); }
+.att-pick-thumb { width: 40px; height: 40px; object-fit: cover; border-radius: var(--radius-sm); flex-shrink: 0; }
+.att-pick-icon { width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; background: var(--color-surface); border-radius: var(--radius-sm); color: var(--color-text-muted); flex-shrink: 0; }
+.att-picker-meta { display: flex; flex-direction: column; min-width: 0; }
+.att-picker-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.att-picker-sub { font-size: 12px; color: var(--color-text-muted); }
 .tag-manager { display: flex; flex-direction: column; gap: 12px; }
 .tag-manager-add { display: flex; gap: 8px; }
 .tag-manager-add .input { flex: 1; }
