@@ -52,5 +52,23 @@
 - **Сепараторы комментариев**: у `.comment-item` есть `border-left`; горизонтальный — через `::before` (не `border-top`), иначе сливается с вертикальной линией. `--color-border` на тёмном фоне почти не виден — брать `--color-border-strong`.
 - **Dev-сборка CRA + Service Worker** отдаёт старый CSS из кэша (Ctrl+F5 не помогает): в dev не регистрировать SW (`unregister`), при отладке стилей — Unregister + Clear site data.
 
+## Подтверждение почты / Resend (2026-10-18)
+
+- **Выбор модели:** мягкое подтверждение (регистрация активна сразу + баннер + статус в профиле). Жёсткий вариант (без входа до подтверждения) не выбран: нет трения, но можно регистрироваться на чужой адрес. Гибрид (ограничить пуши/смену пароля) — на будущее.
+- **Resend:** бесплатно 3000 писем/мес, 100/день. Домен `mail.doskadel.ru` (поддомен) верифицирован: DKIM (TXT `resend._domainkey.mail`), SPF (CNAME `rsend.mail`), Return-Path (CNAME `send.mail`), DMARC (TXT `_dmarc.mail`, `v=DMARC1; p=none;`). Записи в Reg.ru (зона `doskadel.ru`, поэтому имена с `.mail`).
+- **Ключ и from:** `RESEND_API_KEY`, `MAIL_FROM=DoskaDel <noreply@mail.doskadel.ru>`, `APP_URL=https://doskadel.ru`. Без ключа mailer — no-op (логирует), регистрация не падает.
+- **Спам:** письма от нового домена часто попадают в «Спам» Яндекса — это норма, репутация набирается. Юзеру: «не спам» + добавить отправителя в контакты.
+- **Токен:** 32 байта hex, срок 24ч, хранится в User (`emailVerifyToken`/`emailVerifyExpires`). Страница `/verify-email` — публичный маршрут (не под ProtectedRoute).
+
+## Аналитика GA4 (2026-10-18)
+
+- **Симптом:** 2-3 недели ноль, хотя запросы `collect` уходили (204). Причина — **неверный Measurement ID в коде** (`G-DL9PNLQ5V` вместо `G-DL9PNL0Q5V`): данные уходили в несуществующий ресурс. Сверять ID копированием из GA (Admin → Data Streams), не перепечатывать.
+- **Consent Mode:** без `gtag('consent','default',{analytics_storage:'granted'})` GA4 может не отправлять данные. Добавлено.
+- **Проверка:** DevTools → Network → `collect` (204 — норма), GA → Reports → **Realtime** (не обычные отчёты: задержка 24-48ч).
+
+## Прод: доступ к Mongo (2026-10-18)
+
+- Порт 27017 на проде **не проброшен** (закрыт после взлома). Для просмотра данных — SSH-туннель в **IP контейнера**: `docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' doskadel-mongo-1` → `ssh -N -L 27018:<IP>:27017 root@5.63.152.182` → Compass `127.0.0.1:27018`. IP может меняться при пересоздании контейнера.
+
 ## Гигиена БД
 - cleanup-orphans.js (документы без workspace), cleanup-test-users.js (iso_*/dbg_*) — dry-run по умолчанию, --apply для удаления.
