@@ -49,7 +49,14 @@ const FilterBar: React.FC<FilterBarProps> = ({
   const [searchOpen, setSearchOpen] = useState(false);
   const [allTags, setAllTags] = useState<Tag[]>([]);
   useEffect(() => {
-    const refresh = () => listTags().then(setAllTags).catch(() => {});
+    const refresh = () => listTags().then((tags) => {
+      setAllTags(tags);
+      // Убираем из выбранных теги, которые были удалены.
+      if (onTagIdsChange && tagIds.length) {
+        const alive = tagIds.filter((id) => tags.some((t) => t._id === id));
+        if (alive.length !== tagIds.length) onTagIdsChange(alive);
+      }
+    }).catch(() => {});
     refresh();
     const unsub = onTagsChanged(() => refresh());
     return () => { unsub(); };
