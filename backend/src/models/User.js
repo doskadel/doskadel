@@ -26,6 +26,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: null
   },
+  // Подтверждение почты (email verification).
+  emailVerified: { type: Boolean, default: false },
+  emailVerifyToken: { type: String, default: null },
+  emailVerifyExpires: { type: Date, default: null },
   // IANA-зона пользователя (напр. Europe/Moscow). Из неё считаются 'сегодня', границы дня, recurrence.tz.
   timezone: {
     type: String,
