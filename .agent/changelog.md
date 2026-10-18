@@ -2,6 +2,9 @@
 
 Короткие записи по датам (что вошло в main). Новые — сверху.
 
+## 2026-10-18 (ночь)
+- **v1.5.2 — восстановление пароля (forgot/reset).** Ссылка «Забыли пароль?» на логине → /forgot-password (email, без раскрытия существования аккаунта) → письмо со ссылкой (/reset-password?token=...) → новый пароль. Модель User: resetPasswordToken (sha256 хэш)/resetPasswordExpires (1ч). API: POST /api/auth/forgot-password (rate-limit 5/15мин), POST /api/auth/reset-password (смена + отзыв всех refresh-сессий). Фронт на AuthLayout (выравнивание, футер «Вернуться ко входу»), PasswordInput с глазком. Проверено E2E локально (reset → логин с новым паролем).
+
 ## 2026-10-18 (вечер)
 - **v1.5.1 — подтверждение почты (Resend).** Мягкая модель: регистрация сразу активна, юзер видит баннер «Подтвердите почту» + статус в профиле («подтверждена/нет» + кнопка повторной отправки). Модель User: emailVerified/emailVerifyToken/emailVerifyExpires (24ч). mailer.js (Resend API, graceful no-op без ключа). Эндпоинты: GET /api/auth/verify-email?token, POST /api/auth/resend-verification. Фронт: /verify-email (публичный маршрут), баннер в Layout, статус в ProfileModal. Env: RESEND_API_KEY, MAIL_FROM, APP_URL. Домен mail.doskadel.ru верифицирован в Resend (SPF/DKIM/DMARC в Reg.ru DNS). Письма от нового домена попадают в «Спам» Яндекса — норма, репутация набирается. Также: скрипт scripts/delete-user-by-email.js (каскадное удаление юзера по email, dry-run).
 - **Правка аналитики:** GA4 не работал 2-3 недели — Measurement ID в коде был неверный (G-DL9PNLQ5V вместо G-DL9PNL0Q5V). Исправлено + Consent Mode (analytics_storage granted, ads denied). Realtime заработал.

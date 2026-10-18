@@ -66,6 +66,15 @@
 - **Consent Mode:** без `gtag('consent','default',{analytics_storage:'granted'})` GA4 может не отправлять данные. Добавлено.
 - **Проверка:** DevTools → Network → `collect` (204 — норма), GA → Reports → **Realtime** (не обычные отчёты: задержка 24-48ч).
 
+## Восстановление пароля (2026-10-18)
+
+- Токен сброса: сырой (32 байта hex) — в письме, хэш sha256 — в БД (`resetPasswordToken`), срок 1ч. Так утечка БД не даёт рабочую ссылку.
+- `forgot-password` всегда отвечает 200 (не раскрывать существование аккаунта), rate-limit.
+- `reset-password` после смены отзывает ВСЕ refresh-сессии (`RefreshToken.deleteMany`) — защита при угоне.
+- Пароль хэшируется pre-save hook в User — достаточно `user.password = new; save()`.
+- Страницы forgot/reset — на `AuthLayout` (как Login), ссылка «Вернуться» — в footer. Пароль — через `PasswordInput` (глазок), не голый input.
+- E2E локально: forgot → хэш в БД → reset → login новым паролем.
+
 ## Прод: доступ к Mongo (2026-10-18)
 
 - Порт 27017 на проде **не проброшен** (закрыт после взлома). Для просмотра данных — SSH-туннель в **IP контейнера**: `docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' doskadel-mongo-1` → `ssh -N -L 27018:<IP>:27017 root@5.63.152.182` → Compass `127.0.0.1:27018`. IP может меняться при пересоздании контейнера.
