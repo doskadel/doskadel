@@ -2367,8 +2367,12 @@ color: var(--color-text);
 .attachment-chip--deleted { color: var(--color-text-muted); background: var(--color-surface-alt); border-color: var(--color-border); text-decoration: line-through; cursor: default; }
 .rte-render img[src^="blob:"] { max-width: 100%; height: auto; }
 .att-inline-img--selected { /* без рамки: только ручка ресайза */ }
-.att-resize-handle { position: absolute; right: -6px; bottom: -6px; width: 14px; height: 14px; border-radius: 3px; background: var(--color-primary); border: 2px solid var(--color-surface); cursor: nwse-resize; display: none; }
+.att-resize-handle { position: absolute; right: -6px; bottom: -6px; width: 14px; height: 14px; border-radius: 3px; background: var(--color-primary); border: 2px solid var(--color-surface); cursor: nwse-resize; display: none; touch-action: none; z-index: 2; }
 .att-inline-img--selected .att-resize-handle, .att-inline-img:hover .att-resize-handle { display: block; }
+@media (pointer: coarse) {
+  .att-resize-handle { display: block; width: 26px; height: 26px; right: -4px; bottom: -4px; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.5); }
+  .att-inline-img { touch-action: pan-y; }
+}
 .att-inline-img { line-height: 0; }
 
 /* ==================== ICON BUTTON ==================== */

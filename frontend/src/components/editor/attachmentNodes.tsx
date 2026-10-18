@@ -15,19 +15,26 @@ const AttachmentImage: React.FC<NodeViewProps> = ({ node, updateAttributes, sele
   const imgRef = React.useRef<HTMLImageElement>(null);
   const startRef = React.useRef<{ x: number; w: number } | null>(null);
 
+  const startYRef = React.useRef<{ y: number; h: number } | null>(null);
   const onResizeDown = (e: React.PointerEvent) => {
     e.preventDefault();
-    const cur = imgRef.current?.getBoundingClientRect().width || width || 300;
-    startRef.current = { x: e.clientX, w: cur };
+    e.stopPropagation();
+    const rect = imgRef.current?.getBoundingClientRect();
+    startRef.current = { x: e.clientX, w: rect?.width || width || 300 };
+    startYRef.current = { y: e.clientY, h: rect?.height || 0 };
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
   };
   const onResizeMove = (e: React.PointerEvent) => {
     if (!startRef.current) return;
+    e.preventDefault();
+    // Учитываем и горизонталь, и вертикаль (тянуть за угол наискосок).
     const dx = e.clientX - startRef.current.x;
-    const next = Math.max(40, Math.round(startRef.current.w + dx));
+    const dy = e.clientY - (startYRef.current?.y || e.clientY);
+    const delta = Math.abs(dy) > Math.abs(dx) ? dy : dx;
+    const next = Math.max(40, Math.round(startRef.current.w + delta));
     updateAttributes({ width: next });
   };
-  const onResizeUp = () => { startRef.current = null; };
+  const onResizeUp = () => { startRef.current = null; startYRef.current = null; };
 
   const style = width ? { width: `${width}px`, maxWidth: '100%' } : undefined;
   return (
